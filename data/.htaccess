@@ -1,0 +1,24 @@
+# Seyir — data/ klasörü erişim kuralları
+#
+# data/*.json dosyaları panonun (index.html) fetch ile okuması için
+# ERİŞİLEBİLİR kalmalıdır. Yalnızca log ve geçici dosyalar dışarıya kapatılır.
+# fetch-haberler.php hata kaydını data/php_errors.log içine yazar; bu dosyanın
+# tarayıcıdan okunabilir olması bilgi sızıntısıdır.
+
+# Apache 2.4
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(log|tmp|bak|private\.json)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+# Apache 2.2 (eski cPanel kurulumları)
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(log|tmp|bak|private\.json)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+# Dizin listelemesini kapat
+Options -Indexes

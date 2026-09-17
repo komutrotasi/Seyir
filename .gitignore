@@ -1,0 +1,22 @@
+# Kimlik ve Gizli Veriler
+config/admin-auth.php
+config/admin-auth.php.tmp
+*.private.json
+
+# Log ve Geçici Dosyalar
+data/php_errors.log
+data/*.tmp
+*.log
+*.tmp
+*.bak
+*.orig
+
+# OS ve Editör
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+*~

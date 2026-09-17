@@ -1,0 +1,33 @@
+{
+    "okulAdi": "Seyir Dijital Pano",
+    "okulLogo": "",
+    "slogan": "Okulunuzu yönetim panelinden yapılandırın",
+    "daktiloYazilari": [
+        "Okulun Dijital Nabzı"
+    ],
+    "mebHaberler": [],
+    "okulWebSiteUrl": "",
+    "konum": {
+        "sehir": "",
+        "enlem": null,
+        "boylam": null
+    },
+    "duyurular": [],
+    "sinavlar": [],
+    "kayanYazi": [],
+    "ayarlar": {
+        "karuselSuresi": 5000,
+        "temaOtomatik": true
+    },
+    "gizlilik": {
+        "personelAdiGosterim": "gorev",
+        "nobetciGoster": true,
+        "rehberOgretmenGoster": false,
+        "dersOgretmeniGoster": false,
+        "saklamaSuresiGun": 365
+    },
+    "nobet_programi": {},
+    "dersProgramiLise": {},
+    "ogretmenler": [],
+    "ogretmenBranslar": []
+}

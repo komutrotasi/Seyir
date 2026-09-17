@@ -1,0 +1,29 @@
+Options -Indexes
+RewriteEngine On
+
+# Dahili kaynaklar doğrudan web isteğiyle sunulmaz.
+RewriteRule ^(?:config|lib|tests|tools)(?:/|$) - [R=404,L]
+
+# Yapılandırma, test, dokümantasyon ve kaynak şablonlar web'den okunamaz.
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(AGENTS\.md|SEYIR_TAVSIYE_OZELLIKLER\.md|Seyir Yapılacak İşler\.md)$">
+        Require all denied
+    </FilesMatch>
+    <FilesMatch "\.private\.json$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^(AGENTS\.md|SEYIR_TAVSIYE_OZELLIKLER\.md|Seyir Yapılacak İşler\.md|.*\.private\.json)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "same-origin"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://api.aladhan.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'"
+</IfModule>

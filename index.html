@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://api.aladhan.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'">
+    <title>Seyir — Okulun Dijital Nabzı</title>
+    <meta name="description" content="Okul dijital bilgi panosu.">
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="img/favicon.png" type="image/png">
+    <!-- Yerel Font Awesome: pano açılışında üçüncü taraf CDN bağlantısı kurulmaz. -->
+    <link rel="stylesheet" href="css/fontawesome.min.css?v=20260917_ded1c367">
+
+    <!-- PanoTV Styles -->
+    <link rel="stylesheet" href="css/seyir.css?v=20260917_b63168a9">
+</head>
+
+<body>
+
+    <!-- CANLI DERS ZİLİ VE GÖRSEL ANONS POPUP BANNER -->
+    <div class="bell-anons-overlay" id="bell-anons-overlay">
+        <div class="bell-anons-card" id="bell-anons-card">
+            <div class="bell-anons-icon" id="bell-anons-icon">🔔</div>
+            <div class="bell-anons-content">
+                <div class="bell-anons-title" id="bell-anons-title">Ders Zili Çaldı!</div>
+                <div class="bell-anons-sub" id="bell-anons-sub">Tüm öğrencilerimize başarılar dileriz.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pano-scale-wrapper">
+        <div class="pano-container">
+            <!-- HEADER -->
+            <header class="pano-header">
+                <div class="pano-logo">
+                    <img src="img/okul_logo.png" alt="Seyir Dijital Pano Logosu"
+                        class="pano-okul-logo-img">
+                    <div class="pano-logo-text">
+                        <h1 id="pano-okul-adi" class="koyu-gecisli-baslik">
+                            <span class="okul-ana-isim">Seyir Dijital</span>
+                            <span class="okul-alt-isim">Pano</span>
+                        </h1>
+                        <div class="code-subline">
+                            <span class="code-prompt">&gt;</span> <span id="pano-typewriter">Hareket Okulu</span><span
+                                class="typewriter-cursor">_</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ Taraf: Canlı Tarih/Saat & Hava Durumu Dönüşümlü Rozet -->
+                <div class="pano-header-right">
+                    <div class="header-info-flipper" id="header-info-flipper">
+                        <!-- 1. YÜZ: Tarih ve Canlı Saat -->
+                        <div class="header-info-card info-clock active" id="header-card-clock">
+                            <div class="info-icon">⏰</div>
+                            <div class="info-details">
+                                <div class="info-main" id="header-live-time">00:00:00</div>
+                                <div class="info-sub" id="header-live-date">Tarih Yükleniyor...</div>
+                            </div>
+                        </div>
+                        <!-- 2. YÜZ: Yapılandırılan Okul Konumunun Canlı Hava Durumu -->
+                        <div class="header-info-card info-weather" id="header-card-weather">
+                            <div class="info-icon" id="header-weather-icon">☀️</div>
+                            <div class="info-details">
+                                <div class="info-main" id="header-weather-temp">--°C Şehir</div>
+                                <div class="info-sub" id="header-weather-desc">Canlı Hava Durumu</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MOBİL HAMBURGER MENÜ BUTONU (Sadece Mobilde Görünür) -->
+                <button type="button" class="pano-hamburger-btn" aria-label="Menüyü Aç/Kapat"
+                    aria-controls="pano-sidebar-flip" aria-expanded="false"
+                    onclick="toggleSeyirDrawer()">
+                    <span id="hamburgerBtnIcon">☰</span>
+                </button>
+            </header>
+
+            <!-- ORTA ALAN (PANEL) -->
+            <div class="pano-content">
+                <!-- SOL PANEL (Vaktin İçerikleri ve Vaktin Namazı Birleştirilmiş Kart) -->
+                <aside class="pano-left-sidebar">
+                    <div class="widget"
+                        style="flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; min-height: 0; height: 100%;">
+                        <div class="dini-icerik-wrapper" id="dini-icerik-wrapper"
+                            style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; padding: 0; overflow: hidden; height: 100%;">
+                            <!-- JS ile Vaktin Namazı, Vaktin Ayeti, Vaktin Hadisi, Vaktin Duası doldurulacak -->
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- ANA İÇERİK (Sadece Karusel) -->
+                <main class="pano-main">
+                    <!-- Karusel Slaytları (Ayrı Kart) -->
+                    <div class="pano-carousel widget" id="pano-carousel"
+                        style="flex: 2.5; position: relative; overflow: hidden; padding: 0;">
+                        <div class="carousel-slide active" style="text-align: center;">
+                            <h2>⏳</h2>
+                            <p>Veriler Yükleniyor...</p>
+                        </div>
+                    </div>
+
+                    <!-- Alt Duyuru Izgarası (Açılabilir Kartlar) -->
+                    <div class="duyuru-grid-widget widget">
+                        <div class="widget-header">
+                            <span id="pano-duyuru-baslik" style="display: flex; align-items: center; gap: 6px;">
+                                📢 DUYURULAR VE İLANLAR
+                            </span>
+                        </div>
+                        <div class="duyuru-grid-container" id="pano-duyuru-grid">
+                            <!-- JS ile akordiyon kartlar basılacak -->
+                        </div>
+                    </div>
+                </main>
+            </div> <!-- pano-content bitişi -->
+
+            <!-- YAN PANEL (3D Flip Kart) -->
+            <aside class="pano-sidebar flip-card" id="pano-sidebar-flip">
+                <div class="flip-card-inner" id="flip-inner">
+
+                    <!-- MOBİL MENÜ NAVİGASYON (Sadece Mobilde Görünür) -->
+                    <div id="mobile-menu-nav" class="mobile-only-nav">
+                        <div class="m-nav-header">
+                            <h2>✨ Seyir Navigasyon</h2>
+                            <button class="close-btn" onclick="toggleSeyirDrawer(false)">✕</button>
+                        </div>
+                        <ul class="m-nav-list">
+                            <li class="m-nav-item dersler"
+                                onclick="showSeyirMobileView('.flip-card-front', 'Ders Programı')">
+                                <div class="m-nav-icon">⏰</div>
+                                <div class="m-nav-text">
+                                    <span class="m-nav-title">Ders Programı</span>
+                                    <span class="m-nav-sub">Şu anki ve günlük ders takibi</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right m-nav-arrow"></i>
+                            </li>
+                            <li class="m-nav-item nobetci"
+                                onclick="showSeyirMobileView('.flip-card-back', 'Nöbetçi Öğretmenler')">
+                                <div class="m-nav-icon">🛡️</div>
+                                <div class="m-nav-text">
+                                    <span class="m-nav-title">Nöbetçi Öğretmenler</span>
+                                    <span class="m-nav-sub">Bugünkü nöbetçi öğretmenler</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right m-nav-arrow"></i>
+                            </li>
+                            <li class="m-nav-item duyurular"
+                                onclick="showSeyirMobileView('.duyuru-grid-widget', 'Duyurular')">
+                                <div class="m-nav-icon">📢</div>
+                                <div class="m-nav-text">
+                                    <span class="m-nav-title">Duyurular</span>
+                                    <span class="m-nav-sub">Okul haberleri ve güncel ilanlar</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-right m-nav-arrow"></i>
+                            </li>
+                        </ul>
+                        <a href="admin.html" class="sidebar-signature m-signature-btn"
+                            aria-label="Seyir yönetim girişini aç">
+                            <div class="signature-top">
+                                ⚡ Designed &amp; Developed by
+                            </div>
+                            <div class="signature-bottom">
+                                Zafer Ünal | Komut Rotası
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- MOBİL VIEW HEADER (Geri Butonu) -->
+                    <div id="mobile-view-header" class="mobile-only-header">
+                        <button class="back-btn" onclick="hideSeyirMobileView()">← Geri</button>
+                        <span id="mobile-view-title">Başlık</span>
+                    </div>
+
+                    <!-- ÖN YÜZ: Ders Programı -->
+                    <div class="flip-card-front widget">
+                        <div class="widget-header">
+                            <span id="pano-dersler-baslik" style="display: flex; align-items: center; gap: 6px;">
+                                ⏰ ŞU ANKİ DERSLER
+                            </span>
+                            <div class="pano-status" id="pano-status">
+                                <div class="status-badge">
+                                    <span id="pano-status-icon" aria-hidden="true">🔔</span>
+                                    <span id="pano-status-text">Durum</span>
+                                </div>
+                                <div class="status-timer" id="pano-status-timer">--:--</div>
+                            </div>
+                        </div>
+                        <div class="on-yuz-wrapper" id="ders-list-wrapper">
+                            <ul class="ders-list" id="pano-dersler">
+                                <!-- JS ile basılacak -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ARKA YÜZ: Nöbetçiler ve Duyurular -->
+                    <div class="flip-card-back widget">
+                        <div class="widget-header">
+                            <span id="pano-nobet-baslik" style="display: flex; align-items: center; gap: 6px;">
+                                🛡️ NÖBETÇİ ÖĞRETMENLER
+                            </span>
+                        </div>
+
+                        <div class="arka-yuz-wrapper" id="arka-yuz-wrapper">
+                            <div class="arka-yuz-content" id="arka-yuz-content">
+                                <ul class="nobetci-list" id="pano-nobetciler-back">
+                                    <!-- JS ile basılacak -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Geliştirici İmzası (Kart Dışı) -->
+                <a href="admin.html" class="sidebar-signature" style="text-decoration: none; display: block;"
+                    aria-label="Seyir yönetim girişini aç">
+                    <div class="signature-top">
+                        ⚡ Designed & Developed by
+                    </div>
+                    <div class="signature-bottom">
+                        Zafer Ünal | Komut Rotası
+                    </div>
+                </a>
+            </aside>
+        </div>
+
+        <!-- ALT BİLGİ VE KAYAN YAZI (TICKER) -->
+        <footer class="pano-footer" id="pano-ticker-wrapper" style="display: none;">
+            <div class="ticker-container" id="pano-ticker-container">
+                <div class="ticker-label">📢 KAYAN YAZILAR</div>
+                <div class="ticker-scroll">
+                    <div class="ticker-text" id="pano-ticker-text">
+                        <!-- JS ile doldurulacak -->
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MOBİL MENÜ JS LOGIC -->
+    <script>
+        function toggleSeyirDrawer(open) {
+            const drawer = document.getElementById('pano-sidebar-flip');
+            const icon = document.getElementById('hamburgerBtnIcon');
+            if (open === undefined) {
+                drawer.classList.toggle('mobile-open');
+            } else if (open) {
+                drawer.classList.add('mobile-open');
+            } else {
+                drawer.classList.remove('mobile-open');
+            }
+            const isOpen = drawer.classList.contains('mobile-open');
+            if (icon) icon.textContent = isOpen ? '✕' : '☰';
+
+            const btn = document.querySelector('.pano-hamburger-btn');
+            if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+            // Drawer açıkken arka planın kaymasını engelle
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+
+            if (!isOpen) hideSeyirMobileView();
+        }
+
+        function showSeyirMobileView(selector, title) {
+            document.getElementById('mobile-menu-nav').classList.add('hidden-view');
+            document.getElementById('mobile-view-header').classList.add('active-header');
+            document.getElementById('mobile-view-title').textContent = title;
+
+            document.querySelectorAll('.flip-card-front, .flip-card-back, .duyuru-grid-widget').forEach(el => el.classList.remove('mobile-active-view'));
+            const target = document.querySelector(selector);
+            if (target) target.classList.add('mobile-active-view');
+        }
+
+        function hideSeyirMobileView() {
+            document.getElementById('mobile-menu-nav').classList.remove('hidden-view');
+            document.getElementById('mobile-view-header').classList.remove('active-header');
+            document.querySelectorAll('.flip-card-front, .flip-card-back, .duyuru-grid-widget').forEach(el => el.classList.remove('mobile-active-view'));
+        }
+    </script>
+
+    <!-- PanoTV Core Logic -->
+    <script src="js/seyir.js?v=20260917_fde3d4fa"></script>
+</body>
+
+</html>

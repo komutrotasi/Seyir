@@ -1,0 +1,464 @@
+{
+    "ayetler": [
+        {
+            "ar": "وَقُلْ رَبِّ زِدْنِي عِلْمًا",
+            "t": "De ki: Rabbim! İlmimi artır.",
+            "s": "Tâhâ 20/114",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ",
+            "t": "Yaratan Rabbinin adıyla oku!",
+            "s": "Alak 96/1",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لاَ يَعْلَمُونَ",
+            "t": "Hiç bilenlerle bilmeyenler bir olur mu?",
+            "s": "Zümer 39/9",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَإِنَّكَ لَعَلَى خُلُقٍ عَظِيمٍ",
+            "t": "Şüphesiz sen yüce bir ahlak üzerinesin.",
+            "s": "Kalem 68/4",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَقُولُوا لِلنَّاسِ حُسْنًا",
+            "t": "İnsanlara güzel ve tatlı söz söyleyin.",
+            "s": "Bakara 2/83",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَالْإِحْسَانِ",
+            "t": "Şüphesiz Allah adaleti ve iyiliği emreder.",
+            "s": "Nahl 16/90",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَى",
+            "t": "İyilik ve erdemlilik üzerinde yardımlaşın.",
+            "s": "Mâide 5/2",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَأَنْ لَيْسَ لِلإِنْسَانِ إِلاَّ مَا سَعَى",
+            "t": "İnsan için ancak çalıştığının karşılığı vardır.",
+            "s": "Necm 53/39",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّ اللَّهَ يَأْمُرُكُمْ أَنْ تُؤَدُّوا الْأَمَانَاتِ إِلَى أَهْلِهَا",
+            "t": "Allah emanetleri ehline vermenizi emreder.",
+            "s": "Nisâ 4/58",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَالْكَاظِمِينَ الْغَيْظَ وَالْعَافِينَ عَنِ النَّاسِ",
+            "t": "Onlar öfkelerini yenerler ve insanları affederler.",
+            "s": "Âl-i İmrân 3/134",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَقُلْ رَبِّ أَدْخِلْنِي مُدْخَلَ صِدْقٍ وَأَخْرِجْنِي مُخْرَجَ صِدْقٍ",
+            "t": "De ki: Rabbim! Gireceğim yere dürüstlükle girmemi, çıkacağım yerden dürüstlükle çıkmamı sağla.",
+            "s": "İsrâ 17/80",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنْكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ",
+            "t": "Allah içinizden ilim verilenlerin derecelerini yükseltir.",
+            "s": "Mücâdele 58/11",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "فَإِذَا فَرَغْتَ فَانْصَبْ",
+            "t": "Bir işi bitirince hemen diğerine koyul, çalış.",
+            "s": "İnşirâh 94/7",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ",
+            "t": "Kulları içinde Allah'tan ancak ilim sahipleri hakkıyla korkar.",
+            "s": "Fâtır 35/28",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا",
+            "t": "De ki: Rabbim! Onlar beni küçükken nasıl yetiştirdilerse Sen de onlara merhamet et.",
+            "s": "İsrâ 17/24",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+            "t": "Şüphesiz zorlukla beraber bir kolaylık vardır.",
+            "s": "İnşirâh 94/6",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
+            "t": "Şüphesiz Allah sabredenlerle beraberdir.",
+            "s": "Bakara 2/153",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "فَاذْكُرُونِي أَذْكُرْكُمْ",
+            "t": "Öyleyse yalnız beni anın ki ben de sizi anayım.",
+            "s": "Bakara 2/152",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَاللَّهُ يُحِبُّ الْمُحْسِنِينَ",
+            "t": "Allah, iyilik edenleri sever.",
+            "s": "Âl-i İmrân 3/134",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "فَاصْبِرْ صَبْرًا جَمِيلًا",
+            "t": "Sen güzel bir sabırla sabret.",
+            "s": "Meâric 70/5",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "خُذِ الْعَفْوَ وَأْمُرْ بِالْعُرْفِ",
+            "t": "Sen af yolunu tut, iyiliği emret.",
+            "s": "A'râf 7/199",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا",
+            "t": "Hep birlikte Allah'ın ipine sımsıkı sarılın.",
+            "s": "Âl-i İmrân 3/103",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّ اللَّهَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
+            "t": "Şüphesiz Allah'ın gücü her şeye yeter.",
+            "s": "Bakara 2/20",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَقُلِ اعْمَلُوا",
+            "t": "De ki: Çalışın!",
+            "s": "Tevbe 9/105",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "وَلَا تَهِنُوا وَلَا تَحْزَنُوا",
+            "t": "Gevşemeyin, hüzünlenmeyin.",
+            "s": "Âl-i İmrân 3/139",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ",
+            "t": "Şüphesiz Allah tövbe edenleri sever.",
+            "s": "Bakara 2/222",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        }
+    ],
+    "hadisler": [
+        {
+            "ar": "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
+            "t": "İlim öğrenmek, kadın erkek her Müslümana farzdır. Kim ilim öğrenmek amacıyla bir yola girerse, Allah ona cennetin yolunu kolaylaştırır.",
+            "s": "İbn Mâce, Mukaddime, 17",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "إِنَّمَا بُعِثْتُ لِأُتَمِّمَ صَالِحَ الْأَخْلَاقِ",
+            "t": "Ben ancak güzel ahlakı tamamlamak için gönderildim. Sizin en hayırlınız, ahlakı en güzel olanınızdır.",
+            "s": "Muvatta', Hüsnü'l-Huluk, 8",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "إِنَّ مِنْ خِيَارِكُمْ أَحْسَنَكُمْ أَخْلَاقًا",
+            "t": "Sizin en hayırlınız ve bana en sevimli olanınız, ahlakı en güzel olanınızdır. Kibirlenenler ise kıyamet gününde bana en uzak olanlardır.",
+            "s": "Buhârî, Edeb, 38",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ",
+            "t": "Kardeşinin yüzüne tebessüm etmen senin için bir sadakadır. İyiliği emredip kötülükten sakındırman da bir sadakadır. Yolunu kaybeden kimseye yol göstermen de senin için bir sadakadır.",
+            "s": "Tirmizî, Birr, 36",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "مَنْ لاَ يَرْحَمْ لاَ يُرْحَمْ",
+            "t": "İnsanlara merhamet etmeyene Allah da merhamet etmez. Yeryüzündekilere merhamet edin ki gökteki melekler de size merhamet etsin.",
+            "s": "Buhârî, Edeb, 18",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "يَسِّرُوا وَلاَ تُعَسِّرُوا وَبَشِّرُوا وَلاَ تُنَفِّرُوا",
+            "t": "İşleri kolaylaştırınız, zorlaştırmayınız; insanları müjdeleyiniz, nefret ettirmeyiniz. Birbirinizle iyi geçininiz ve ihtilafa düşmeyiniz.",
+            "s": "Buhârî, Cihâd, 164",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ",
+            "t": "Gerçek Müslüman, dilinden ve elinden diğer insanların zarar görmediği, güven içinde olduğu kimsedir. Gerçek mümin ise insanların malları ve canları hususunda kendisine güvendiği kişidir.",
+            "s": "Buhârî, Îmân, 4",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "عَلَيْكُمْ بِالصِّدْقِ فَإِنَّ الصِّدْقَ يَهْدِي إِلَى الْبِرِّ",
+            "t": "Dürüstlükten asla ayrılmayınız; çünkü dürüstlük insanı iyiliğe, iyilik ise cennete götürür. Kişi doğru söylemeye devam ettikçe Allah katında 'Sıddîk' (dosdoğru) olarak yazılır.",
+            "s": "Müslim, Birr, 105",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+            "t": "Güzel ve tatlı söz sadakadır. İki kişi arasında adaletle hükmetmek sadakadır. Bir kimseye bineğine binerken veya eşyasını yüklerken yardım etmek de sadakadır.",
+            "s": "Buhârî, Edeb, 34",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "لاَ يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
+            "t": "Nefsim kudret elinde olan Allah'a yemin ederim ki; sizden biri kendisi için sevip arzu ettiği iyilikleri, Müslüman kardeşi için de istemedikçe gerçek manada iman etmiş olmaz.",
+            "s": "Buhârî, Îmân, 7",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "إِنَّ اللَّهَ يُحِبُّ إِذَا عَمِلَ أَحَدُكُمْ عَمَلًا أَنْ يُتْقِنَهُ",
+            "t": "Allah, sizden birinizin bir iş yaptığı zaman onu en sağlam, en eksiksiz ve en güzel şekilde yapmasını sever. İşini güzel yapanı Allah da sever.",
+            "s": "Beyhakî, Şuabü'l-Îmân, 4/334",
+            "source": "Hadis-i Şerif"
+        },
+        {
+            "ar": "الطَّهُورُ شَطْرُ الإِيمَانِ",
+            "t": "Temizlik imanın yarısıdır. 'Elhamdülillah' sözü mizanı doldurur. 'Sübhanallah ve Elhamdülillah' kelimeleri ise yer ile gökler arasını sevapla doldurur.",
+            "s": "Müslim, Tahâret, 1",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "خَيْرُ النَّاسِ مَنْ يَنْفَعُ النَّاسَ",
+            "t": "İnsanların en hayırlısı, insanlara en faydalı olanıdır. Allah'a en sevimli olan amel ise, bir Müslümanın kalbine sevinç sokmak veya onun bir sıkıntısını gidermektir.",
+            "s": "Taberânî, el-Mu'cemü'l-Evsat, 6/58",
+            "source": "Hadis-i Şerif"
+        },
+        {
+            "ar": "نِعْمَتَانِ مَغْبُونٌ فِيهِمَا كَثِيرٌ مِنَ النَّاسِ الصِّحَّةُ وَالْفَرَاغُ",
+            "t": "İki büyük nimet vardır ki, insanların pek çoğu bu nimetleri değerlendirme hususunda aldanmış ve hüsrana uğramıştır: Sağlık ve boş vakit.",
+            "s": "Buhârî, Rikâk, 1",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "ar": "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ",
+            "t": "Kim ilim öğrenmek, bilgi sahibi olmak için bir yola çıkarsa, melekler onun bu gayretinden hoşnut olarak kanatlarını o ilim yolcusunun üzerine gererler.",
+            "s": "Müslim, Zikir, 38",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Kolaylaştırınız, zorlaştırmayınız; müjdeleyiniz, nefret ettirmeyiniz.",
+            "s": "Buhârî, İlim, 11",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Sizin en hayırlınız, Kur'an'ı öğrenen ve öğretendir.",
+            "s": "Buhârî, Fedâilü'l-Kur'ân, 21",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Ameller ancak niyetlere göredir.",
+            "s": "Buhârî, Bed'ü'l-Vahy, 1",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Kişi sevdiğiyle beraberdir.",
+            "s": "Buhârî, Edeb, 96",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Veren el, alan elden hayırlıdır.",
+            "s": "Buhârî, Zekât, 18",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Küçüklerimize merhamet etmeyen, büyüklerimize saygı göstermeyen bizden değildir.",
+            "s": "Tirmizî, Birr, 15",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "İlim öğrenmek için yola çıkan kimse, dönünceye kadar Allah yolundadır.",
+            "s": "Tirmizî, İlim, 2",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Allah'a ve ahiret gününe iman eden kimse ya hayır söylesin ya da sussun.",
+            "s": "Buhârî, Edeb, 31",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Komşusu açken tok olarak geceleyen bizden değildir.",
+            "s": "Hâkim, Müstedrek, 2/15",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Güzel söz sadakadır.",
+            "s": "Buhârî, Edeb, 34",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Kim bir iyiliğe öncülük ederse, o iyiliği yapanın ecri kadar sevap alır.",
+            "s": "Müslim, İmâre, 133",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Sabır, aydınlıktır.",
+            "s": "Müslim, Tahâret, 1",
+            "source": "Kütüb-i Sitte"
+        }
+    ],
+    "dualar": [
+        {
+            "ar": "رَبِّ زِدْنِي عِلْمًا وَفَهْمًا",
+            "t": "Rabbim! İlmimi, anlayışımı ve kavrayışımı artır. Beni faydalanılmayan ilimden, ürpermeyen kalpten ve doymak bilmeyen nefisten muhafaza eyle.",
+            "s": "Tâhâ 20/114",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي",
+            "t": "Rabbim! Göğsümü genişlet, işimi kolaylaştır. Dilimdeki bağı çöz ki sözümü iyi anlasınlar. Beni doğru yoldan ve rızandan ayırma.",
+            "s": "Tâhâ 20/25-26",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ",
+            "t": "Rabbimiz! Bize dünyada da iyilik ve güzellik ver, ahirette de iyilik ve güzellik ver. Bizi cehennem azabından koru ve salih kullarının arasına ilhak eyle.",
+            "s": "Bakara 2/201",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا",
+            "t": "Allah'ım! Senden daima faydalı bir ilim, temiz ve helal bir rızık ve dergahında kabul olunan salih bir amel dilerim.",
+            "s": "İbn Mâce, İkâmet, 32",
+            "source": "Peygamberimizin Duası"
+        },
+        {
+            "ar": "رَبَّنَا لاَ تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً",
+            "t": "Rabbimiz! Bizi doğru yola ilettikten sonra kalplerimizi haktan saptırma. Bize kendi katından bir rahmet bağışla; şüphesiz sen lütfu en bol olansın.",
+            "s": "Âl-i İmrân 3/8",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اللَّهُمَّ اهْدِنِي لِأَحْسَنِ الْأَخْلَاقِ لاَ يَهْدِي لِأَحْسَنِهَا إِلاَّ أَنْتَ",
+            "t": "Allah'ım! Beni ahlakın en güzelini, amellerin en dürüstünü yaşamaya ilet. Kötü ahlaktan ve yanlış işlerden beni ancak Sen uzak tutabilirsin.",
+            "s": "Müslim, Musâfirîn, 201",
+            "source": "Peygamberimizin Duası"
+        },
+        {
+            "ar": "رَبَّنَا اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ يَوْمَ يَقُومُ الْحِسَابُ",
+            "t": "Rabbimiz! Herkesin amellerinin tartılacağı o dehşetli hesap gününde beni, anne-babamı, sevdiklerimi ve tüm inananları mağfiretinle bağışla.",
+            "s": "İbrâhîm 14/41",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اللَّهُمَّ انْفَعْنِي بِمَا عَلَّمْتَنِي وَعَلِّمْنِي مَا يَنْفَعُنِي وَزِدْنِي عِلْمًا",
+            "t": "Allah'ım! Bana öğrettiğin ilimle beni dünyada ve ahirette faydalandır. Bana fayda verecek ilmi öğret ve ilmimi, irfanımı günbegün artır.",
+            "s": "Tirmizî, Daavât, 128",
+            "source": "Peygamberimizin Duası"
+        },
+        {
+            "ar": "رَبِّ هَبْ لِي حُكْمًا وَأَلْحِقْنِي بِالصَّالِحِينَ",
+            "t": "Rabbim! Bana doğru hüküm verebilme yeteneği ve hikmet ver. Beni dürüst, erdemli ve salih kullarının arasına kat; gelecek nesiller içinde beni güzel bir isimle anılır eyle.",
+            "s": "Şuarâ 26/83",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عِلْمٍ لاَ يَنْفَعُ وَمِنْ قَلْبٍ لاَ يَخْشَعُ",
+            "t": "Allah'ım! Sahibine fayda vermeyen ilimden, Seni anınca ürpermeyen kalpten, doyma bilmeyen nefisten ve kabul olunmayacak duadan Sana sığınırım.",
+            "s": "Müslim, Zikir, 73",
+            "source": "Peygamberimizin Duası"
+        },
+        {
+            "ar": "رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ",
+            "t": "Rabbimiz! Yaptığımız ibadetleri ve dualarımızı eksiklerine rağmen bizden kabul buyur. Şüphesiz Sen her şeyi hakkıyla işiten ve kemaliyle bilensin.",
+            "s": "Bakara 2/127",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ",
+            "t": "Allah'ım! Hayatımın her anında Seni anmak, verdiğin sayısız nimete layıkıyla şükretmek ve Sana en güzel, en ihlaslı şekilde ibadet edebilmek için bana kudret ve yardım ihsan eyle.",
+            "s": "Ebu Dâvûd, Vitir, 26",
+            "source": "Peygamberimizin Duası"
+        },
+        {
+            "ar": "رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ",
+            "t": "Rabbim! Bana, anneme ve babama lütfettiğin nimetlere şükretmemi ve Senin razı olacağın iyi işler yapmamı nasip eyle. Rahmetinle beni iyi kullarının arasına kat.",
+            "s": "Neml 27/19",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "ar": "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى وَالتُّقَى وَالْعَفَافَ وَالْغِنَى",
+            "t": "Allah'ım! Senden daima doğru yolu bulmayı, hidayet üzere kalmayı, günahtan korunmayı (takva), namuslu yaşamayı (iffet) ve kimseye muhtaç olmamayı (gönül zenginliği) dilerim.",
+            "s": "Müslim, Zikir, 72",
+            "source": "Peygamberimizin Duası"
+        },
+        {
+            "ar": "رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ",
+            "t": "Rabbimiz! Bize eşlerimizden ve çocuklarımızdan gözümüzü aydınlatacak, gönlümüze huzur verecek nesiller bağışla. Bizi erdemli ve iyi insanlara önder kıl.",
+            "s": "Furkân 25/74",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbimiz! Bize katından bir rahmet ver ve içinde bulunduğumuz durumda bize kurtuluş ve doğruluğa ulaşmayı kolaylaştır.",
+            "s": "Kehf 18/10",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbimiz! Üzerimize sabır yağdır, ayaklarımızı sağlam bastır ve şu kâfir kavme karşı bize yardım et.",
+            "s": "Bakara 2/250",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbimiz! Bizi bağışla, bize merhamet et. Sen bizim yardımcımızsın.",
+            "s": "Bakara 2/286",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbim! Beni ve soyumdan gelenleri namazı devamlı kılanlardan eyle. Rabbimiz! Duamı kabul buyur.",
+            "s": "İbrâhîm 14/40",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbimiz! Bize gözümüzü aydınlatacak eşler ve çocuklar bağışla ve bizi takva sahiplerine önder kıl.",
+            "s": "Furkân 25/74",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbimiz! Nurumuzu tamamla ve bizi bağışla. Şüphesiz senin gücün her şeye yeter.",
+            "s": "Tahrîm 66/8",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Ey kalpleri evirip çeviren Allahım! Kalbimi dinin üzere sabit kıl.",
+            "s": "Tirmizî, Kader, 7",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Allahım! Senden hidayet, takva, iffet ve gönül zenginliği isterim.",
+            "s": "Müslim, Zikir, 72",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Rabbim! Gireceğim yere doğrulukla girmemi, çıkacağım yerden doğrulukla çıkmamı sağla.",
+            "s": "İsrâ 17/80",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Rabbim! Göğsümü genişlet ve işimi kolaylaştır.",
+            "s": "Tâhâ 20/25-26",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        },
+        {
+            "t": "Allahım! Bana öğrettiklerinle beni faydalandır ve bana fayda verecek şeyleri öğret.",
+            "s": "Tirmizî, Daavât, 128",
+            "source": "Kütüb-i Sitte"
+        },
+        {
+            "t": "Rabbimiz! Bize dünyada da ahirette de iyilik ver ve bizi ateş azabından koru.",
+            "s": "Bakara 2/201",
+            "source": "Kur’an-ı Kerim — Diyanet İşleri Başkanlığı meali"
+        }
+    ]
+}

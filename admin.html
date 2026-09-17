@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr; font-src 'self' data:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'">
+    <title>Pano Yönetim Paneli</title>
+    <!-- Yerel Font Awesome: yönetim ekranı üçüncü taraf CDN'e font isteği göndermez. -->
+    <link rel="stylesheet" href="css/fontawesome.min.css?v=20260917_ded1c367">
+    <link rel="stylesheet" href="css/admin.css?v=20260909_328a30fa">
+    <!-- SheetJS 0.18.5 yerel kopya: özel yönetim verisi üçüncü taraf betiğe açılmaz. -->
+    <script src="js/vendor/xlsx.full.min.js?v=20260917_31e9848e"></script>
+
+    <!-- Yönetici parolası ve okul verileri yalnızca bu tarayıcıda saklanır. -->
+</head>
+
+<body>
+    <div class="login-overlay" id="login-screen">
+        <!-- Zenginleştirilmiş arkaplan orbları -->
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+
+        <div class="login-box glass-panel" id="login-card">
+            <div class="login-logo-container">
+                <img src="img/favicon.png" alt="Logo" class="login-logo-img">
+                <div class="logo-shield-badge"><i class="fa-solid fa-shield-halved"></i></div>
+            </div>
+            <h2 class="login-title" id="local-auth-title">Seyir Yönetim</h2>
+            <p class="login-subtitle" id="local-auth-subtitle">Bu cihazdaki yönetim paneline giriş yapın.</p>
+            <form id="local-auth-form" autocomplete="off">
+                <div class="input-wrapper">
+                    <input id="local-auth-password" type="password" minlength="8" maxlength="128"
+                        autocomplete="current-password" placeholder="Parola" required>
+                    <i class="fa-solid fa-key input-icon"></i>
+                    <button type="button" class="pin-toggle-btn" data-password-target="local-auth-password"
+                        aria-label="Parolayı göster veya gizle"><i class="fa-solid fa-eye"></i></button>
+                </div>
+                <div class="input-wrapper" id="local-auth-repeat-wrapper" style="display:none;">
+                    <input id="local-auth-password-repeat" type="password" minlength="8" maxlength="128"
+                        autocomplete="new-password" placeholder="Parolayı tekrar yazın">
+                    <i class="fa-solid fa-shield-halved input-icon"></i>
+                    <button type="button" class="pin-toggle-btn" data-password-target="local-auth-password-repeat"
+                        aria-label="Parolayı göster veya gizle"><i class="fa-solid fa-eye"></i></button>
+                </div>
+                <button type="submit" class="btn-glow" id="local-auth-submit">
+                    <span>Giriş Yap</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+            </form>
+            <div class="error-msg" id="local-auth-message" aria-live="polite"></div>
+            <button type="button" id="local-auth-reset"
+                style="display:none; margin:8px auto 0; border:0; background:transparent; color:#94a3b8; cursor:pointer; text-decoration:underline;">
+                Parolayı unuttum / bu cihazı sıfırla
+            </button>
+        </div>
+    </div>
+
+    <div class="admin-layout" id="admin-dashboard" style="display: none;">
+        <aside class="admin-sidebar" id="admin-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand-group">
+                    <div class="brand-logo-wrapper">
+                        <img src="img/favicon.png" alt="Logo" class="sidebar-logo-img">
+                        <span class="logo-glow-ring"></span>
+                    </div>
+                    <div class="sidebar-brand-text">
+                        <span class="brand-title">Seyir</span>
+                        <span class="brand-subtitle">Fikirden Koda, Koddan Şampiyonluğa</span>
+                    </div>
+                </div>
+                <button type="button" id="admin-mobile-toggle" class="admin-mobile-toggle" aria-label="Menüyü Aç/Kapat"
+                    onclick="toggleAdminSidebarMobile()">
+                    <i class="fa-solid fa-bars" id="admin-hamburger-icon"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-target="tab-genel"><span class="nav-icon">⚙️</span> <span
+                        class="nav-text">Genel Ayarlar</span></a>
+                <a href="#" class="nav-item" data-target="tab-duyurular"><span class="nav-icon">📢</span> <span
+                        class="nav-text">Duyurular</span></a>
+                <a href="#" class="nav-item" data-target="tab-sinav"><span class="nav-icon">📝</span> <span
+                        class="nav-text">Sınav Yönetimi</span></a>
+                <a href="#" class="nav-item" data-target="tab-nobetci"><span class="nav-icon">🛡️</span> <span
+                        class="nav-text">Nöbetçi Öğretmenler</span></a>
+                <a href="#" class="nav-item" data-target="tab-siniflar"><span class="nav-icon">👥</span> <span
+                        class="nav-text">Sınıf Yönetimi</span></a>
+                <a href="#" class="nav-item" data-target="tab-ogretmenler"><span class="nav-icon">👨‍🏫</span> <span
+                        class="nav-text">Öğretmen Yönetimi</span></a>
+                <a href="#" class="nav-item" data-target="tab-zaman"><span class="nav-icon">⏰</span> <span
+                        class="nav-text">Zaman Yönetimi</span></a>
+                <a href="#" class="nav-item" data-target="tab-program"><span class="nav-icon">📅</span> <span
+                        class="nav-text">Ders Yönetimi</span></a>
+                <a href="#" class="nav-item" data-target="tab-veri"><span class="nav-icon">💾</span> <span
+                        class="nav-text">Veri Yönetimi</span></a>
+                <a href="#" class="nav-item" data-target="tab-kayan"><span class="nav-icon">🏃‍♂️</span> <span
+                        class="nav-text">Kayan Yazılar</span></a>
+
+                <a href="index.html" class="nav-item btn-return-home"
+                    style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);">
+                    <span class="nav-icon">🏠</span> <span class="nav-text">Ana Sayfaya Dön</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" class="sidebar-signature" onclick="return false;">
+                    <div class="signature-top">
+                        ⚡ Designed & Developed by
+                    </div>
+                    <div class="signature-bottom">
+                        Zafer Ünal | Komut Rotası
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <main class="admin-content">
+            <!-- Üst Bar ve Kaydet Butonu -->
+            <header class="content-topbar">
+                <div class="topbar-left">
+                    <div class="topbar-title-group">
+                        <h1 id="active-tab-title">Genel Ayarlar</h1>
+                        <span class="topbar-sub-tag">Seyir Komut Merkezi</span>
+                    </div>
+                    <span class="badge-online">
+                        <span class="pulse-dot"></span> Canlı Sistem
+                    </span>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Hızlı Araçlar (AGENTS.md Kural 6: Tam Ekran / Tema / Bildirim / Ayarlar) -->
+                    <div class="header-action-tools">
+                        <button type="button" class="btn-tool-icon" title="Tam Ekran" aria-label="Tam Ekran Aç/Kapat"
+                            onclick="toggleAdminFullscreen()">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                        <button type="button" class="btn-tool-icon" id="btn-theme-toggle" title="Tema Değiştir"
+                            aria-label="Açık / Koyu Tema Değiştir" onclick="toggleAdminTheme()">🌙</button>
+                        <button type="button" class="btn-tool-icon btn-notification-relative" title="Bildirimler"
+                            aria-label="Bildirimler" onclick="toggleNotificationsMenu(this)">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="notification-badge-dot"></span>
+                        </button>
+                        <button type="button" class="btn-tool-icon" title="Ayarlar" aria-label="Sistem Ayarları"
+                            onclick="showSettingsToast()">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+
+                    <span class="topbar-divider" aria-hidden="true"></span>
+
+                    <input type="file" id="inp-json-file" accept=".json" style="display: none;">
+                    <button id="btn-save-json" class="btn-save-glow">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>Kaydet</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-scrollable">
+                <!-- Genel Ayarlar -->
+                <section id="tab-genel" class="tab-pane active">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>⚙️ Genel Ayarlar ve Okul Kimliği Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Okulun resmi adını, amblemini/logosunu, sloganını, ana slayt haberlerini ve otomatik
+                                    tema gösterim sürelerini yönetmenizi sağlar.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong>
+                                    Burada girilen okul adı, amblemi ve sloganı ekrandaki tüm header (üst bilgi barı)
+                                    alanında anında güncellenir. Ana slayt haberleri orta büyük haber panosunda sırayla
+                                    sergilenir.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Okul Adı, Slogan ve Web
+                                    URL alanlarını doldurun. Haber slaytları için görsel seçip başlık/detay ekleyin.
+                                    Değişiklikleri tamamlayınca sağ üstteki <strong>💾 Kaydet</strong> butonuna
+                                    tıklayın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kart 1: Okul & Pano Kimliği -->
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-school-flag" style="color: #3b82f6;"></i> Okul & Pano Kimliği</h2>
+                            <p>Okul adı, özel amblemi/logosu, web bağlantısı ve temel gösterim parametrelerini
+                                yapılandırın.</p>
+                        </div>
+
+                        <!-- Özel Okul Logosu / Amblemi Yükleme Alanı -->
+                        <div class="logo-upload-box"
+                            style="display: flex; align-items: center; gap: 20px; padding: 18px; background: rgba(59, 130, 246, 0.05); border: 1.5px dashed rgba(59, 130, 246, 0.35); border-radius: 14px; margin-bottom: 22px; flex-wrap: wrap;">
+                            <div class="logo-preview-wrapper"
+                                style="position: relative; width: 88px; height: 88px; border-radius: 16px; background: #ffffff; border: 2px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.06); flex-shrink: 0;">
+                                <img id="img-okulLogo-preview" src="img/okul_logo.png" alt="Okul Logosu Önizleme"
+                                    style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px;">
+                            </div>
+                            <div style="flex: 1; min-width: 220px;">
+                                <label
+                                    style="font-weight: 700; font-size: 0.98rem; display: block; margin-bottom: 4px; color: var(--text-main);">
+                                    <i class="fa-solid fa-image" style="color: #3b82f6;"></i> Okul Logosu / Amblemi
+                                </label>
+                                <p
+                                    style="font-size: 0.83rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4;">
+                                    Her okul kendi amblemini yükleyebilir. Şeffaf PNG veya SVG formatı önerilir (Maks.
+                                    2MB). Pano ekranında sol üst köşede anında güncellenir.
+                                </p>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                    <label for="inp-okulLogo-file" class="btn-action-purple"
+                                        style="cursor: pointer; padding: 9px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 7px; margin: 0; border-radius: 8px;">
+                                        <i class="fa-solid fa-arrow-up-from-bracket"></i> Yeni Logo Yükle
+                                    </label>
+                                    <input type="file" id="inp-okulLogo-file"
+                                        accept="image/png, image/jpeg, image/svg+xml, image/webp"
+                                        style="display: none;">
+                                    <button type="button" id="btn-reset-logo" class="btn-action-warning"
+                                        style="padding: 9px 14px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
+                                        <i class="fa-solid fa-rotate-left"></i> Varsayılana Sıfırla
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2col">
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-school"></i> Okul Adı</label>
+                                <input type="text" id="inp-okulAdi" class="form-control"
+                                    placeholder="Örn: Mahmud Celaleddin Ökten İHL">
+                                <small
+                                    style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.78rem;">Pano
+                                    başlığında ve tarayıcı sekmesinde görünür.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-quote-left"></i> Okul Sloganı</label>
+                                <input type="text" id="inp-slogan" class="form-control"
+                                    placeholder="Örn: Fikirden Koda, Koddan Şampiyonluğa">
+                                <small
+                                    style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.78rem;">Kurumsal
+                                    motto veya bilgilendirici slogan.</small>
+                            </div>
+
+                            <!-- Dinamik MEB Okul Sitesi ve Kontrollü Haber Yenileme (Madde 3.1) -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label><i class="fa-solid fa-globe"></i> MEB Okul Web Sitesi Adresi</label>
+                                <div style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;">
+                                    <input type="text" id="inp-webUrl" class="form-control"
+                                        style="flex: 1; min-width: 250px;"
+                                        placeholder="https://konyamcosihl.meb.k12.tr/">
+                                    <button type="button" id="btn-fetch-meb-news" class="btn-action-blue"
+                                        style="padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; white-space: nowrap; cursor: pointer; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+                                        <i class="fa-solid fa-arrows-rotate" id="icon-fetch-meb"></i> Haberleri Şimdi
+                                        Yenile
+                                    </button>
+                                </div>
+                                <div id="meb-fetch-status"
+                                    style="margin-top: 8px; font-size: 0.84rem; display: none; padding: 8px 12px; border-radius: 8px;">
+                                </div>
+                                <small
+                                    style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">
+                                    <i class="fa-solid fa-circle-info"></i> Yalnızca resmî MEB okul adresleri kabul
+                                    edilir. Pano mevcut önbelleği gösterir; yeni haberler yalnızca bu butonla alınır.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-location-dot"></i> Şehir</label>
+                                <input type="text" id="inp-sehir" class="form-control" placeholder="Örn: Konya">
+                                <small
+                                    style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.78rem;">Namaz
+                                    vakti ve hava durumu kartında kullanılır.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-map-location-dot"></i> Konum Koordinatları</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <input type="number" step="any" id="inp-enlem" class="form-control"
+                                        placeholder="Enlem: 37.87" min="-90" max="90">
+                                    <input type="number" step="any" id="inp-boylam" class="form-control"
+                                        placeholder="Boylam: 32.48" min="-180" max="180">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-users-rectangle"></i> Sınıf Listesi (Virgülle
+                                    Ayırın)</label>
+                                <input type="text" id="inp-siniflar" class="form-control"
+                                    placeholder="Örn: 9-A, 10-A, 11-B">
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-stopwatch"></i> Slayt Geçiş Süresi (ms)</label>
+                                <input type="number" id="inp-karuselSuresi" class="form-control" placeholder="8000">
+                            </div>
+
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label><i class="fa-solid fa-circle-half-stroke"></i> Otomatik Tema Modu</label>
+                                <select id="inp-temaOtomatik" class="form-control">
+                                    <option value="true">☀️/🌙 Açık (Saat Bazlı Otomatik)</option>
+                                    <option value="false">🔒 Kapalı (Sabit Tema)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="grid-column: 1 / -1; padding:18px; border:1px solid rgba(16,185,129,.35); border-radius:14px; background:rgba(16,185,129,.06);">
+                                <label style="font-size:1.05rem;"><i class="fa-solid fa-user-shield"></i> KVKK Güvenli Pano Görünümü</label>
+                                <p style="margin:4px 0 14px; color:var(--text-muted); font-size:.84rem; line-height:1.5;">
+                                    Yönetim verileri özel yerel alanda tutulur. Pano yalnızca aşağıdaki kurallarla
+                                    hazırlanmış açık görünümü okur. Sunucuya yüklenecek <code>data.json</code> dosyasında
+                                    yapılandırılmış personel alanları güvenli görünüme dönüştürülür; serbest metinler
+                                    okul tarafından ayrıca kontrol edilmelidir.
+                                </p>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px;">
+                                    <div>
+                                        <label for="inp-personel-gosterim">Personel adı gösterimi</label>
+                                        <select id="inp-personel-gosterim" class="form-control">
+                                            <option value="gorev">Yalnızca görev adı (önerilen)</option>
+                                            <option value="basHarf">Yalnızca baş harfler</option>
+                                            <option value="gizli">Tamamen gizli</option>
+                                            <option value="tam">Tam ad — yalnızca yerel pano</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="inp-saklama-suresi">Personel verisi saklama süresi</label>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <input id="inp-saklama-suresi" type="number" min="1" max="3650" value="365" class="form-control">
+                                            <span style="color:var(--text-muted);">gün</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:16px; margin-top:14px;">
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input id="inp-nobetci-goster" type="checkbox" checked> Nöbetçi alanını göster
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input id="inp-rehber-goster" type="checkbox"> Rehber öğretmen alanını göster
+                                    </label>
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input id="inp-ders-ogretmeni-goster" type="checkbox"> Aktif derste öğretmeni göster
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kart 2: Sistem ve Veri Yönetimi -->
+                    <div class="glass-card" style="margin-top: 25px;">
+                        <div class="section-header">
+                            <h2><i class="fa-solid fa-database" style="color: #10b981;"></i> Sistem ve Veri Yönetimi
+                            </h2>
+                            <p>Yedekleme, veri aktarımı ve oturum işlemlerini tek tıkla gerçekleştirin.</p>
+                        </div>
+                        <div class="system-actions-grid">
+                            <div class="action-card">
+                                <div class="action-info">
+                                    <i class="fa-solid fa-file-import" style="color: #8b5cf6;"></i>
+                                    <div>
+                                        <h4>Özel Yedeği İçe Aktar</h4>
+                                        <p>Yalnızca yetkili cihazdaki yönetim yedeğini geri yükleyin.</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-upload-json" class="btn-action-purple">
+                                    <i class="fa-solid fa-upload"></i> JSON Yükle
+                                </button>
+                            </div>
+
+                            <div class="action-card">
+                                <div class="action-info">
+                                    <i class="fa-solid fa-download" style="color: #10b981;"></i>
+                                    <div>
+                                        <h4>Güvenli Pano JSON'u</h4>
+                                        <p>Personel adları ayıklanmış, sunucuya yüklenebilir data.json üretin.</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-download-json" class="btn-action-green btn-download-public-json">
+                                    <i class="fa-solid fa-file-export"></i> Güvenli data.json İndir
+                                </button>
+                            </div>
+
+                            <div class="action-card">
+                                <div class="action-info">
+                                    <i class="fa-solid fa-trash-can" style="color: #ef4444;"></i>
+                                    <div>
+                                        <h4>Fabrika Ayarları</h4>
+                                        <p>Tüm verileri silip varsayılan duruma getirin.</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-reset-data" class="btn-action-danger">
+                                    <i class="fa-solid fa-arrow-rotate-left"></i> Verileri Sıfırla
+                                </button>
+                            </div>
+
+                            <div class="action-card">
+                                <div class="action-info">
+                                    <i class="fa-solid fa-right-from-bracket" style="color: #f59e0b;"></i>
+                                    <div>
+                                        <h4>Oturumu Kapat</h4>
+                                        <p>Yönetim panelinden güvenle çıkış yapın.</p>
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-logout" class="btn-action-warning"
+                                    onclick="logoutAdmin()">
+                                    <i class="fa-solid fa-lock"></i> Oturumu Kapat
+                                </button>
+                            </div>
+
+                            <div class="action-card"
+                                style="align-items:stretch; gap:12px;">
+                                <div class="action-info">
+                                    <i class="fa-solid fa-key" style="color:#3b82f6;"></i>
+                                    <div>
+                                        <h4>Yönetici Parolasını Değiştir</h4>
+                                        <p>Önce mevcut parolanızı, ardından yeni güçlü parolayı girin.</p>
+                                    </div>
+                                </div>
+                                <input type="password" id="local-current-password" class="form-control"
+                                    autocomplete="current-password" placeholder="Mevcut parola" required>
+                                <input type="password" id="local-new-password" class="form-control" minlength="8"
+                                    autocomplete="new-password" placeholder="Yeni parola" required>
+                                <input type="password" id="local-new-password-repeat" class="form-control" minlength="8"
+                                    autocomplete="new-password" placeholder="Yeni parola tekrar" required>
+                                <small style="color:var(--text-muted); line-height:1.45;">
+                                    En az 8 karakter kullanın. Daha uzun ve benzersiz bir parola önerilir.
+                                </small>
+                                <button type="button" id="btn-local-password-change" class="btn-action-blue">
+                                    <i class="fa-solid fa-shield-halved"></i> Parolayı Değiştir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Duyurular -->
+                <section id="tab-duyurular" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>📢 Duyurular ve İlanlar Yönetim Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Panonun alt kısmında yer alan 3 sütunlu duyurular ve ilanlar alanına özel duyurular
+                                    eklemenizi ve silmenizi sağlar.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong>
+                                    Girilen duyurular panonun altında 3'lü akordiyon kartlar halinde yayınlanır.
+                                    <code>Acil İlan</code> seçeneği kırmızı neon çerçeveyle öne çıkar.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Başlık, duyuru metni ve
+                                    öncelik rengini girip <strong>"Duyuru Ekle"</strong> butonuna basın. Silmek
+                                    istediğiniz duyuruların yanındaki çöp kutusuna tıklayın ve sağ üstteki <strong>💾
+                                        Kaydet</strong> butonuna basın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card custom-announcements-card">
+                        <div class="section-header" style="margin-bottom: 20px;">
+                            <h2>Duyurular Yönetimi</h2>
+                            <p>Buradan özel duyurular ekleyebilir veya silebilirsiniz.</p>
+                        </div>
+
+                        <!-- Kompakt Ekleme Formu -->
+                        <div
+                            style="background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--sidebar-border); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-start;">
+                            <div style="flex: 1; min-width: 250px;">
+                                <input type="text" id="inline-d-baslik" class="form-control form-sm"
+                                    placeholder="Başlık (Örn: Hafta Sonu Kursları)"
+                                    style="margin-bottom: 10px; background: white;">
+                                <div style="display: flex; gap: 10px;">
+                                    <select id="inline-d-renk" class="form-control form-sm"
+                                        style="flex: 1; background: white;">
+                                        <option value="primary">Renk: Mavi</option>
+                                        <option value="secondary">Renk: Yeşil</option>
+                                        <option value="accent">Renk: Turuncu</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 10px;">
+                                <textarea id="inline-d-icerik" class="form-control form-sm" rows="2"
+                                    style="min-height: 80px; background: white;"
+                                    placeholder="Duyuru içeriğini buraya yazın..."></textarea>
+                                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                    <button class="btn-secondary btn-sm" id="btn-cancel-inline-duyuru"
+                                        style="display:none; padding: 8px 15px;">İptal</button>
+                                    <button class="btn-primary btn-glow btn-sm" id="btn-add-inline-duyuru"
+                                        style="padding: 8px 25px;"><i class="fa-solid fa-plus"></i> <span
+                                            id="text-add-inline-duyuru">Ekle</span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Duyuru Listesi -->
+                        <h3 style="font-size: 1.05rem; margin-bottom: 15px; color: var(--text-muted);"><i
+                                class="fa-solid fa-list"></i> Mevcut Duyurular</h3>
+                        <div id="duyurular-listesi" class="list-container" style="max-height: 400px; overflow-y: auto;">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sınav Yönetimi -->
+                <section id="tab-sinav" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>📝 Sınav Yönetimi Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Okuldaki ortak sınav tarihlerini, saatini, ders adını ve sınava girecek sınıfları
+                                    duyurmanızı sağlar.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong>
+                                    Sınavlar panoda mavi temalı sınav rozetiyle duyurular şeridinde öğrencilere otomatik
+                                    olarak bildirilir.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Ders Adı, Sınıflar (Örn:
+                                    9A, 9B), Tarih ve Saat girip <strong>"Ekle"</strong>ye basın. Toplu sınav yüklemesi
+                                    için Veri Yönetimi sekmesindeki Excel içe aktarıcıyı kullanabilirsiniz.
+                                    Değişikliklerden sonra <strong>💾 Kaydet</strong> butonuna tıklayın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card custom-announcements-card">
+                        <div class="section-header" style="margin-bottom: 20px;">
+                            <h2>Sınav Yönetimi</h2>
+                            <p>Buradan manuel sınav tarihi ekleyebilir veya silebilirsiniz. Toplu yükleme için Veri
+                                Yönetimi menüsünü kullanın.</p>
+                        </div>
+
+                        <!-- Kompakt Ekleme Formu -->
+                        <div
+                            style="background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--sidebar-border); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-start;">
+                            <div style="flex: 1; min-width: 250px;">
+                                <input type="text" id="inline-s-ders" class="form-control form-sm"
+                                    placeholder="Ders Adı (Örn: Matematik)"
+                                    style="margin-bottom: 10px; background: white;">
+                                <input type="text" id="inline-s-siniflar" class="form-control form-sm"
+                                    placeholder="Sınıflar (Örn: 9A, 9B, 10A)"
+                                    style="margin-bottom: 10px; background: white;">
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <input type="date" id="inline-s-tarih" class="form-control form-sm"
+                                    style="margin-bottom: 10px; background: white;">
+                                <input type="time" id="inline-s-saat" class="form-control form-sm"
+                                    style="margin-bottom: 10px; background: white;">
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+                                <button id="btn-add-inline-sinav" class="btn-primary btn-sm"
+                                    style="padding: 10px 20px; font-weight: bold; width: 100%;">
+                                    <i class="fa-solid fa-plus"></i> <span id="text-add-inline-sinav">Ekle</span>
+                                </button>
+                                <button id="btn-cancel-inline-sinav" class="btn-secondary btn-sm"
+                                    style="display: none; padding: 10px 20px; width: 100%;">İptal</button>
+                            </div>
+                        </div>
+
+                        <div id="sinavlar-listesi" class="list-container" style="max-height: 400px; overflow-y: auto;">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Nöbetçi Öğretmenler -->
+                <section id="tab-nobetci" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>🛡️ Nöbetçi Öğretmen Yönetim Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Haftanın her günü için okuldaki kat ve alan bazlı (Bahçe, 1. Kat, 2. Kat vb.)
+                                    nöbetçi öğretmen atamalarını düzenler.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong> Seyir
+                                    panosunda o anki günün nöbetçi öğretmenleri kat isimleriyle birlikte neon avatar
+                                    kartlarıyla listelenir.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Gün butonlarından
+                                    (Pazartesi-Cuma) birini seçin. Sağdaki öğretmen havuzundan isimleri sürükleyip
+                                    soldaki nöbet yerlerine bırakın ya da seçin. İşlem bitince sağ üstteki <strong>💾
+                                        Kaydet</strong> butonuna tıklayın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2>Nöbetçi Öğretmenler</h2>
+                            <p>Öğretmenleri sağ taraftan alıp soldaki nöbet yerlerine sürükleyin.</p>
+                            <button class="btn-primary btn-sm btn-glow-sm" id="btn-edit-teachers"><i
+                                    class="fa-solid fa-users"></i> Öğretmen Listesini Düzenle</button>
+                        </div>
+
+                        <div class="day-selector"
+                            style="display:flex; gap:10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                            <button class="btn-day active" data-day="Pazartesi">Pazartesi</button>
+                            <button class="btn-day" data-day="Salı">Salı</button>
+                            <button class="btn-day" data-day="Çarşamba">Çarşamba</button>
+                            <button class="btn-day" data-day="Perşembe">Perşembe</button>
+                            <button class="btn-day" data-day="Cuma">Cuma</button>
+                            <button class="btn-day btn-tamamlama" data-day="Tamamlama"
+                                style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; margin-left: auto; display: flex; align-items: center; gap: 5px;"><i
+                                    class="fa-solid fa-clipboard-list"></i> Ders Tamamlama</button>
+                        </div>
+
+                        <div class="tamamlama-container" style="display: none; flex-direction: column; gap: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                                <h3
+                                    style="margin:0; font-size: 1.2rem; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-person-chalkboard"></i> Boş Ders / Tamamlama Durumu</h3>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <label style="color: var(--text2); font-size: 0.9rem;">Gün:</label>
+                                    <select id="tamamlama-gun-select" class="form-control"
+                                        style="width: 150px; padding: 5px 10px; height: auto;">
+                                        <option value="Pazartesi">Pazartesi</option>
+                                        <option value="Salı">Salı</option>
+                                        <option value="Çarşamba">Çarşamba</option>
+                                        <option value="Perşembe">Perşembe</option>
+                                        <option value="Cuma">Cuma</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="tamamlama-grid"
+                                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px;">
+                                <!-- JS Dolduracak -->
+                            </div>
+
+                            <!-- Atanan Dersler Listesi -->
+                            <div style="margin-top: 30px; border-top: 2px solid rgba(0,0,0,0.05); padding-top: 20px;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h3 style="color: var(--primary); font-size: 1.1rem; margin: 0;"><i
+                                            class="fa-solid fa-list-check"></i> Atanan Dersler (Tamamlama Listesi)</h3>
+                                    <button class="btn-primary btn-sm btn-glow-sm"
+                                        style="background:#10b981; border:none;" onclick="exportTamamlamaToExcel()"><i
+                                            class="fa-solid fa-file-excel"></i> Excel İndir</button>
+                                </div>
+                                <div class="table-container"
+                                    style="overflow-x: auto; background: #ffffff; border: 1px solid var(--sidebar-border); border-radius: 8px;">
+                                    <table class="admin-table"
+                                        style="width: 100%; border-collapse: collapse; text-align: left;">
+                                        <thead>
+                                            <tr>
+                                                <th
+                                                    style="padding: 10px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                    Ders Saati</th>
+                                                <th
+                                                    style="padding: 10px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                    Sınıf / Ders</th>
+                                                <th
+                                                    style="padding: 10px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                    İzinli Öğretmen (Kimin Yerine)</th>
+                                                <th
+                                                    style="padding: 10px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                    Nöbetçi Öğretmen (Kim Girecek)</th>
+                                                <th
+                                                    style="padding: 10px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600; text-align: right;">
+                                                    İşlem</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tamamlama-atananlar-body">
+                                            <!-- JS Dolduracak -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Ders Atama Modalı (Gizli) -->
+                        <div id="modal-ders-atama"
+                            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+                            <div
+                                style="background: #1f2937; width: 90%; max-width: 500px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; border: 1px solid #374151;">
+                                <div
+                                    style="padding: 15px 20px; background: #111827; border-bottom: 1px solid #374151; display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="margin: 0; color: #60a5fa; font-size: 1.1rem;"><i
+                                            class="fa-solid fa-calendar-check"></i> Ders Tamamlama Ataması</h3>
+                                    <button onclick="document.getElementById('modal-ders-atama').style.display='none'"
+                                        style="background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer; transition: color 0.2s;"
+                                        onmouseover="this.style.color='#f3f4f6'"
+                                        onmouseout="this.style.color='#9ca3af'"><i
+                                            class="fa-solid fa-xmark"></i></button>
+                                </div>
+                                <div style="padding: 20px; color: #f3f4f6;">
+                                    <p
+                                        style="margin-top: 0; margin-bottom: 15px; font-size: 0.95rem; color: #d1d5db; line-height: 1.5;">
+                                        <strong id="modal-atama-nobetci" style="color: #60a5fa;"></strong> adlı
+                                        öğretmeni <strong id="modal-atama-saat" style="color: #60a5fa;"></strong>
+                                        saatinde boş olan aşağıdaki sınıflardan birine atayın:
+                                    </p>
+                                    <div id="modal-atama-liste"
+                                        style="display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                                        <!-- JS Dolduracak -->
+                                    </div>
+                                </div>
+                                <div
+                                    style="padding: 15px 20px; border-top: 1px solid #374151; background: #111827; text-align: right;">
+                                    <button class="btn-secondary"
+                                        onclick="document.getElementById('modal-ders-atama').style.display='none'"
+                                        style="background: #374151; color: #f3f4f6; border: 1px solid #4b5563;">İptal</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dnd-container">
+                            <!-- Sol Kolon: Nöbet Yerleri -->
+                            <div class="dnd-left" id="dnd-zones">
+                                <!-- JS ile dinamik doldurulacak -->
+                            </div>
+
+                            <!-- Sağ Kolon: Öğretmen Havuzu -->
+                            <div class="dnd-right">
+                                <h3
+                                    style="margin-top:0; margin-bottom: 15px; font-size:1.1rem; color:var(--text1); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                                    <i class="fa-solid fa-users-viewfinder"></i> Atanmamış Öğretmenler <span
+                                        id="unassigned-count" style="opacity:0.7; font-size:0.9rem;">(0)</span>
+                                </h3>
+                                <div class="dnd-pool" id="dnd-pool" ondrop="dropToPool(event)"
+                                    ondragover="allowDropEslestirme(event)">
+                                    <!-- JS ile dinamik doldurulacak -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Öğretmen Branş Yönetimi -->
+                <!-- Öğretmen Yönetimi -->
+                <section id="tab-ogretmenler" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>👨‍🏫 Öğretmen Yönetimi Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Okul öğretmen kadrosunu, branşlarını ve sınıf rehber öğretmenliklerini tanımlar.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong>
+                                    Nöbetçi öğretmen seçimlerinde, boş ders tamamlama işlemlerinde ve ders
+                                    programlarında öğretmen isimleri otomatik açılır menülerde listelenir.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Yeni öğretmen adı ve
+                                    branşını ekleyin veya listeden öğretmen bilgilerini güncelleyin/silin. Sağ üstteki
+                                    <strong>💾 Kaydet</strong> butonuna basarak değişiklikleri aktarın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2>Öğretmen Yönetimi</h2>
+                            <p>Öğretmen ekleyebilir, silebilir, branşlarını güncelleyebilir ve nöbet günlerini bu
+                                tablodan görebilirsiniz.</p>
+                        </div>
+
+                        <div class="day-selector"
+                            style="display:flex; gap:10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                            <button class="btn-day btn-ogretmen-tab active" data-tab="liste">Öğretmen Listesi</button>
+                            <button class="btn-day btn-ogretmen-tab" data-tab="program"><i
+                                    class="fa-solid fa-calendar-days"></i> Ders Programları</button>
+                        </div>
+
+                        <div id="ogretmenler-liste-container">
+
+                            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                <!-- Branş Ekleme -->
+                                <div style="display: flex; gap: 10px; flex: 1; min-width: 250px;">
+                                    <input type="text" id="inp-yeni-brans" class="form-control form-sm"
+                                        placeholder="Yeni Branş (Örn: Bilişim)" style="flex: 1; background: #ffffff;">
+                                    <button class="btn-primary btn-sm btn-glow-sm" id="btn-add-brans"><i
+                                            class="fa-solid fa-plus"></i> Ekle</button>
+                                </div>
+                                <!-- Branş Silme -->
+                                <div style="display: flex; gap: 10px; flex: 1; min-width: 250px;">
+                                    <select id="sel-sil-brans" class="form-control form-sm"
+                                        style="flex: 1; background: #ffffff;">
+                                        <option value="">Silinecek Branş</option>
+                                    </select>
+                                    <button class="btn-secondary btn-sm" id="btn-delete-brans"
+                                        style="background:#fef2f2; color:#ef4444; border:1px solid #fca5a5;"><i
+                                            class="fa-solid fa-trash"></i> Sil</button>
+                                </div>
+
+                                <!-- Öğretmen Ekleme -->
+                                <div style="display: flex; gap: 10px; flex: 1; min-width: 250px;">
+                                    <input type="text" id="inp-yeni-ogretmen" class="form-control form-sm"
+                                        placeholder="Manuel Öğretmen Ekle (Örn: Ali Veli)"
+                                        style="flex: 1; background: #ffffff;">
+                                    <button class="btn-primary btn-sm btn-glow-sm" id="btn-add-ogretmen-manuel"><i
+                                            class="fa-solid fa-user-plus"></i> Ekle</button>
+                                </div>
+                            </div>
+
+                            <div class="table-container"
+                                style="overflow-x: auto; background: #ffffff; border: 1px solid var(--sidebar-border); border-radius: 8px;">
+                                <table class="admin-table"
+                                    style="width: 100%; border-collapse: collapse; text-align: left;">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                Öğretmen Adı</th>
+                                            <th
+                                                style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                Branşı</th>
+                                            <th
+                                                style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                Sınıf Rehberliği</th>
+                                            <th
+                                                style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                                Nöbet Günleri</th>
+                                            <th
+                                                style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600; text-align: right;">
+                                                İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ogretmen-table-body">
+                                        <!-- JS ile dinamik doldurulacak -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div> <!-- ogretmenler-liste-container bitiş -->
+
+                        <div id="ogretmenler-program-container"
+                            style="display: none; flex-direction: column; gap: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                                <h3
+                                    style="margin:0; font-size: 1.2rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-person-chalkboard"></i> Haftalık Ders Programı</h3>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <label style="color: var(--text2); font-size: 0.9rem;">Öğretmen Seçimi:</label>
+                                    <select id="sel-ogretmen-program" class="form-control"
+                                        style="width: 250px; padding: 5px 10px; height: auto; background: #ffffff;">
+                                        <option value="">Öğretmen Seçiniz...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Sonuçları basacağımız Grid -->
+                            <div id="ogretmen-program-sonuc"
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                                <div
+                                    style="grid-column: 1/-1; padding: 20px; text-align: center; color: var(--text3); background: rgba(255,255,255,0.5); border-radius: 8px; border: 1px dashed var(--sidebar-border);">
+                                    Lütfen yukarıdan ders programını görmek istediğiniz öğretmeni seçin.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Zaman Yönetimi -->
+                <!-- Sınıf Yönetimi -->
+                <section id="tab-siniflar" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>👥 Sınıf Yönetimi Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Okuldaki aktif sınıfları/şubeleri (Örn: 9-A, 10-B) ve bu sınıflara atanan rehber
+                                    öğretmenleri yönetir.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong>
+                                    Burada kayıtlı olan sınıflar pano üzerinde "Şu Anki Dersler" alanında sınıf bazlı
+                                    ders gösterimi yapılabilmesini sağlar.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> <strong>"+ Yeni Sınıf
+                                        Ekle"</strong> butonuna basarak yeni şube ismi girin veya rehber öğretmen
+                                    atayın. İşlem bitince <strong>💾 Kaydet</strong> butonuna tıklayın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2>Sınıf Yönetimi</h2>
+                                <p>Sınıf isimlerini, o sınıfın rehber öğretmenlerini bu alandan belirleyebilir, yeni
+                                    sınıflar ekleyip silebilirsiniz.</p>
+                            </div>
+                            <button class="btn-primary" onclick="addNewSinif()">+ Yeni Sınıf Ekle</button>
+                        </div>
+
+                        <div class="table-container"
+                            style="overflow-x: auto; background: #ffffff; border: 1px solid var(--sidebar-border); border-radius: 8px;">
+                            <table class="admin-table"
+                                style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr>
+                                        <th
+                                            style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600; width: 30%;">
+                                            Sınıf Adı</th>
+                                        <th
+                                            style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600;">
+                                            Sınıf Rehber Öğretmeni</th>
+                                        <th
+                                            style="padding: 12px 15px; border-bottom: 2px solid var(--sidebar-border); background: #f8fafc; color: var(--text-muted); font-weight: 600; width: 80px; text-align: center;">
+                                            İşlem</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="siniflar-table-body">
+                                    <!-- JS ile dinamik doldurulacak -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="tab-zaman" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>⏰ Zaman Yönetimi (Ders Vakitleri) Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Ortaokul ve Lise kademeleri için derslerin başlangıç/bitiş saatlerini ve teneffüs
+                                    aralıklarını belirler.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong>
+                                    Panodaki canlı "Teneffüse Kalan Süre" sayacı, aktif ders belirleyici ve otomatik
+                                    ders değişimi bu saatlere göre saniyesi saniyesine çalışır.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Her ders periyodu için
+                                    <code>HH:MM - HH:MM</code> formatında saat girin (Örn: 08:30 - 09:10).
+                                    Değişiklikleri tamamlayınca sağ üstteki <strong>💾 Kaydet</strong> butonuna
+                                    tıklayın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2>Ders Programı Vakitleri</h2>
+                            <p>Ortaokul ve Lise kademeleri için ayrı ayrı ders programı vakitlerini ayarlayabilirsiniz.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <!-- Ortaokul -->
+                            <div
+                                style="flex: 1; min-width: 250px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--sidebar-border);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h3 style="margin: 0; color: var(--text-main); font-size: 1.1rem;"><i
+                                            class="fa-solid fa-child-reaching"></i> Ortaokul</h3>
+                                    <button class="btn-primary btn-sm btn-glow-sm" id="btn-add-ders-orta"><i
+                                            class="fa-solid fa-plus"></i> Ekle</button>
+                                </div>
+                                <div id="ders-listesi-orta" class="list-container"
+                                    style="height: auto; padding-right: 5px;">
+                                    <!-- Dinamik Liste -->
+                                </div>
+                            </div>
+
+                            <!-- Lise -->
+                            <div
+                                style="flex: 1; min-width: 250px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--sidebar-border);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h3 style="margin: 0; color: var(--text-main); font-size: 1.1rem;"><i
+                                            class="fa-solid fa-graduation-cap"></i> Lise</h3>
+                                    <button class="btn-primary btn-sm btn-glow-sm" id="btn-add-ders-lise"><i
+                                            class="fa-solid fa-plus"></i> Ekle</button>
+                                </div>
+                                <div id="ders-listesi-lise" class="list-container"
+                                    style="height: auto; padding-right: 5px;">
+                                    <!-- Dinamik Liste -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ders Programı -->
+                <section id="tab-program" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>📅 Ders Yönetimi (Haftalık Program) Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Tüm sınıfların Pazartesi'den Cuma'ya kadarki haftalık ders programını ve ders
+                                    öğretmenlerini sisteme işler.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong> Seyir
+                                    panosundaki "Şu Anki Dersler" alanında canlı olarak o anda işlenen ders adı, sınıfı
+                                    ve öğretmeni gösterilir.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Sınıf ve gün seçin. 1.
+                                    Dersten itibaren ders adlarını ve öğretmenlerini doldurun. Dilerseniz Veri Yönetimi
+                                    alanından Excel ile toplu yükleme yapabilirsiniz. İşlem bitince <strong>💾
+                                        Kaydet</strong> butonuna tıklayın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2>Ders Yönetimi</h2>
+                            <p>Sınıfların haftalık ders programını ve öğretmen atamalarını yapabilirsiniz.</p>
+                        </div>
+
+                        <!-- Alt Sekmeler (Sub-tabs) -->
+                        <div class="program-sub-tabs"
+                            style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid var(--sidebar-border); padding-bottom: 10px;">
+                            <button id="btn-sub-haftalik" class="btn-primary btn-sm btn-glow-sm"
+                                onclick="switchProgramSubTab('haftalik')">Haftalık Program</button>
+                            <button id="btn-sub-eslestirme" class="btn-secondary btn-sm"
+                                onclick="switchProgramSubTab('eslestirme')">Sınıf & Ders Eşleştirme</button>
+                        </div>
+
+                        <!-- HAFTALIK PROGRAM ALANI -->
+                        <div id="sub-tab-haftalik" style="display: block;">
+                            <div id="program-class-buttons"
+                                style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--sidebar-border);">
+                                <!-- Dinamik Butonlar -->
+                            </div>
+
+                            <div id="program-matrix-container"
+                                style="display: none; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--sidebar-border);">
+                                <div id="program-matrix" style="display: grid; gap: 10px;">
+                                    <!-- Satırlar JS ile doldurulacak -->
+                                </div>
+                            </div>
+                            <div id="program-matrix-empty"
+                                style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                Lütfen yukarıdan bir sınıf seçin.
+                            </div>
+                        </div>
+
+                        <!-- SINIF & DERS EŞLEŞTİRME ALANI -->
+                        <div id="sub-tab-eslestirme" style="display: none;">
+                            <div id="eslestirme-class-buttons"
+                                style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--sidebar-border);">
+                                <!-- Dinamik Butonlar -->
+                            </div>
+
+                            <div id="eslestirme-matrix-container" style="display: none;">
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: start;">
+
+                                    <!-- Sol Kolon: Sınıfın Dersleri -->
+                                    <div
+                                        style="background: #f8fafc; border: 1px solid var(--sidebar-border); border-radius: 8px; padding: 15px;">
+                                        <h3
+                                            style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main); border-bottom: 2px solid var(--primary); padding-bottom: 5px; display: inline-block;">
+                                            Sınıfın Dersleri</h3>
+                                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                                            Ders havuzundan buraya ders sürükleyin.</p>
+
+                                        <div id="sinif-dersleri-dropzone" class="drop-zone"
+                                            ondrop="dropToSinifEslestirme(event)"
+                                            ondragover="allowDropEslestirme(event)"
+                                            style="min-height: 200px; display: flex; flex-direction: column; gap: 10px;">
+                                            <!-- JS ile dolacak -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Sağ Kolon: Ders Havuzu -->
+                                    <div
+                                        style="background: #ffffff; border: 1px dashed var(--sidebar-border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid var(--sidebar-border); padding-bottom: 5px;">
+                                            <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-main);">Ders
+                                                Havuzu</h3>
+                                            <button class="btn-primary btn-sm" onclick="addNewDersToHavuz()">+ Yeni Ders
+                                                Ekle</button>
+                                        </div>
+
+                                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                            <button id="btn-havuz-ortaokul" class="btn-primary btn-sm"
+                                                onclick="switchHavuzTab('ortaokul')" style="flex: 1;">Ortaokul</button>
+                                            <button id="btn-havuz-lise" class="btn-secondary btn-sm"
+                                                onclick="switchHavuzTab('lise')" style="flex: 1;">Lise</button>
+                                        </div>
+
+                                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                                            Mevcut tüm dersler. Sola sürükleyerek sınıfa atayın.</p>
+
+                                        <div id="ders-havuzu-ortaokul-dropzone" class="drop-zone pool-zone"
+                                            ondrop="dropToHavuzEslestirme(event)"
+                                            ondragover="allowDropEslestirme(event)"
+                                            style="min-height: 200px; display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start;">
+                                            <!-- Ortaokul dersleri dolacak -->
+                                        </div>
+
+                                        <div id="ders-havuzu-lise-dropzone" class="drop-zone pool-zone"
+                                            ondrop="dropToHavuzEslestirme(event)"
+                                            ondragover="allowDropEslestirme(event)"
+                                            style="min-height: 200px; display: none; flex-wrap: wrap; gap: 10px; align-content: flex-start;">
+                                            <!-- Lise dersleri dolacak -->
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div id="eslestirme-matrix-empty"
+                                style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                Lütfen yukarıdan bir sınıf seçin.
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+                <!-- Veri Yönetimi -->
+                <section id="tab-veri" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>💾 Veri ve Yedek Yönetimi Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Tüm pano verilerini (ders programı, duyurular, nöbetçiler) JSON dosyası olarak
+                                    yedeklemenizi veya Excel ile toplu yüklemenizi sağlar.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong> Veri
+                                    kaybını önler, farklı panolara hızlı kurulum yapılmasına veya toplu verilerin
+                                    saniyeler içinde yüklenmesine imkan tanır.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> <strong>"JSON
+                                        İndir"</strong> ile sistem yedeğini bilgisayarınıza kaydedin. <strong>"JSON
+                                        Yükle"</strong> ile kayıtlı yedek dosyasını sisteme aktarın. Excel program
+                                    dosyalarını yüklemek için örnek şablonu indirip doldurabilirsiniz.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2>Veri & Yedek Yönetimi</h2>
+                            <p>Sistem verilerinizi JSON formatında yedekleyebilir veya Excel şablonlarıyla veri aktarımı
+                                yapabilirsiniz.</p>
+                        </div>
+
+                        <!-- JSON Yedekleme Kartı -->
+                        <div
+                            style="background: rgba(99, 102, 241, 0.08); padding: 20px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.3); margin-bottom: 20px;">
+                            <h3
+                                style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-database" style="color: #6366f1;"></i> Açık Pano Verisi ve Özel Yönetim Yedeği
+                            </h3>
+                            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                                <strong>data.json</strong> açık pano içindir ve tam personel adlarını dışarı çıkarmaz.
+                                <strong>Özel yönetim yedeği</strong> ise kişisel veri içerebilir; yalnızca yetkili,
+                                şifreli kurumsal depolamada saklanmalı ve web sunucusuna yüklenmemelidir.
+                            </p>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <button class="btn-primary" onclick="document.getElementById('btn-upload-json').click()"
+                                    style="background: linear-gradient(135deg, #6366f1, #4f46e5); border: none;">
+                                    <i class="fa-solid fa-file-import"></i> Özel Yedeği İçe Aktar
+                                </button>
+                                <button class="btn-primary btn-download-public-json" id="btn-download-json-veri"
+                                    style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                                    <i class="fa-solid fa-file-export"></i> Güvenli data.json İndir
+                                </button>
+                                <button class="btn-primary btn-download-private-json" id="btn-download-private-json"
+                                    style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none;">
+                                    <i class="fa-solid fa-lock"></i> Özel Yönetim Yedeği İndir
+                                </button>
+                                <button class="btn-primary" id="btn-clear-json-data"
+                                    style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+                                    <i class="fa-solid fa-trash-can"></i> Bu Cihazdaki Tüm Yerel Veriyi Sil
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <!-- Ders Programı Yükle -->
+                            <div
+                                style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <h3 style="margin-top: 0; color: var(--text-main);"><i
+                                        class="fa-solid fa-calendar-check"></i> Ders Programı Yükle</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Tüm
+                                    sınıfların haftalık ders programını içeren dosyayı yükleyin.</p>
+
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                    <button class="btn-secondary btn-sm" onclick="downloadTemplate('program')"><i
+                                            class="fa-solid fa-download"></i> Örnek Şablon İndir</button>
+                                    <button class="btn-secondary btn-sm" onclick="exportExcelProgram()"><i
+                                            class="fa-solid fa-file-export"></i> Dışa Aktar</button>
+                                </div>
+
+                                <input type="file" id="inp-excel-program" accept=".xlsx, .xls" class="form-control"
+                                    style="margin-bottom: 10px;">
+                                <button class="btn-primary" onclick="importExcelProgram()"><i
+                                        class="fa-solid fa-file-import"></i> Ders Programını İçe Aktar</button>
+                                <div id="excel-program-result"
+                                    style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                            </div>
+
+                            <!-- Nöbet Programı Yükle -->
+                            <div
+                                style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <h3 style="margin-top: 0; color: var(--text-main);"><i
+                                        class="fa-solid fa-user-shield"></i> Nöbet Programı Yükle</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
+                                    Öğretmenlerin günlük nöbet yerlerini içeren dosyayı yükleyin.</p>
+
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                    <button class="btn-secondary btn-sm" onclick="downloadTemplate('nobet')"><i
+                                            class="fa-solid fa-download"></i> Örnek Şablon İndir</button>
+                                    <button class="btn-secondary btn-sm" onclick="exportExcelNobet()"><i
+                                            class="fa-solid fa-file-export"></i> Dışa Aktar</button>
+                                </div>
+
+                                <input type="file" id="inp-excel-nobet" accept=".xlsx, .xls" class="form-control"
+                                    style="margin-bottom: 10px;">
+                                <button class="btn-primary" onclick="importExcelNobet()"><i
+                                        class="fa-solid fa-file-import"></i> Nöbet Programını İçe Aktar</button>
+                                <div id="excel-nobet-result"
+                                    style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                            </div>
+
+                            <!-- Sınav Programı Yükle -->
+                            <div
+                                style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <h3 style="margin-top: 0; color: var(--text-main);"><i
+                                        class="fa-solid fa-file-signature"></i> Sınav Takvimi Yükle</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Okulun tüm
+                                    sınav takvimini içeren dosyayı yükleyin.</p>
+
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                    <button class="btn-secondary btn-sm" onclick="downloadTemplate('sinav')"><i
+                                            class="fa-solid fa-download"></i> Örnek Şablon İndir</button>
+                                    <button class="btn-secondary btn-sm" onclick="exportExcelSinav()"><i
+                                            class="fa-solid fa-file-export"></i> Dışa Aktar</button>
+                                </div>
+
+                                <input type="file" id="inp-excel-sinav" accept=".xlsx, .xls" class="form-control"
+                                    style="margin-bottom: 10px;">
+                                <button class="btn-primary" onclick="importExcelSinav()"><i
+                                        class="fa-solid fa-file-import"></i> Sınav Takvimini İçe Aktar</button>
+                                <div id="excel-sinav-result"
+                                    style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Kayan Yazılar -->
+                <section id="tab-kayan" class="tab-pane">
+                    <!-- Nasıl Kullanılır? Rehber Kartı -->
+                    <div class="tab-guide-container" style="margin-bottom: 20px;">
+                        <button type="button" class="btn-guide-toggle" onclick="toggleHelpGuide(this)"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: all 0.25s ease;">
+                            <span>❓ Nasıl Kullanılır?</span>
+                            <i class="fa-solid fa-chevron-down guide-arrow"
+                                style="transition: transform 0.3s ease;"></i>
+                        </button>
+                        <div class="tab-guide-card"
+                            style="display: none; margin-top: 12px; background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1.5px solid rgba(139, 92, 246, 0.4); border-left: 6px solid #8b5cf6; border-radius: 14px; padding: 18px 22px; color: #f1f5f9; box-shadow: 0 10px 25px rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                                <h3
+                                    style="margin: 0; font-size: 1.15rem; color: #c084fc; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                    💡 <span>🏃‍♂️ Kayan Yazılar (Ticker) Rehberi</span>
+                                </h3>
+                                <button type="button"
+                                    onclick="toggleHelpGuide(this.closest('.tab-guide-container').querySelector('.btn-guide-toggle'))"
+                                    style="background: rgba(255,255,255,0.1); border: none; color: #94a3b8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">✕</button>
+                            </div>
+                            <div class="guide-content" style="font-size: 0.92rem; line-height: 1.65; color: #e2e8f0;">
+                                <p style="margin-top: 0; margin-bottom: 8px;"><strong>📌 Bu Menü Ne İşe Yarar?</strong>
+                                    Panonun en altındaki şerit barda sağdan sola kayan spot duyuru ve bilgilendirme
+                                    cümlelerini düzenler.</p>
+                                <p style="margin-bottom: 8px;"><strong>⚙️ Yapılan Değişikliklerin Etkisi:</strong> Alt
+                                    barda girilen her bir satır metin kesintisiz döngü halinde kayarak sergilenir.</p>
+                                <p style="margin-bottom: 0;"><strong>🚀 Nasıl Yapılır?</strong> Metin kutusuna her
+                                    satıra 1 duyuru gelecek şekilde mesajlarınızı yazın. Değişikliği aktif etmek için
+                                    sağ üstteki <strong>💾 Kaydet</strong> butonuna basın.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="section-header">
+                            <h2>Kayan Yazılar (Ticker)</h2>
+                            <p>Alt barda kayan yazıları ekleyin, sırasını değiştirin veya silin.</p>
+                        </div>
+
+                        <!-- Yeni Kayan Yazı Ekleme -->
+                        <div
+                            style="background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--sidebar-border);">
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                <input type="text" id="inp-kayan-yeni" class="form-control form-sm"
+                                    style="flex: 1; min-width: 240px; background: #ffffff;"
+                                    placeholder="Örn: Okulumuza hoş geldiniz..." maxlength="300">
+                                <button type="button" class="btn-primary btn-glow btn-sm" id="btn-add-kayan"
+                                    style="padding: 8px 22px;">
+                                    <i class="fa-solid fa-plus"></i> <span id="text-add-kayan">Ekle</span>
+                                </button>
+                                <button type="button" class="btn-secondary btn-sm" id="btn-cancel-kayan"
+                                    style="display: none; padding: 8px 18px;">İptal</button>
+                            </div>
+                            <small style="display: block; margin-top: 8px; color: var(--text-muted);">
+                                Enter tuşuyla da ekleyebilirsiniz. Değişikliklerin panoya yansıması için sağ üstteki
+                                <strong>💾 Kaydet</strong> butonuna basın.
+                            </small>
+                        </div>
+
+                        <!-- Kayan Yazı Listesi (sırala / düzenle / sil) -->
+                        <div id="kayan-listesi" class="list-container" style="max-height: 420px; overflow-y: auto;">
+                            <!-- JS ile doldurulacak -->
+                        </div>
+
+                        <!-- Toplu Düzenleme (gelişmiş) -->
+                        <details style="margin-top: 18px;">
+                            <summary
+                                style="cursor: pointer; font-weight: 700; color: var(--text-muted); padding: 8px 0;">
+                                <i class="fa-solid fa-list-ul"></i> Toplu Düzenleme (her satıra bir yazı)
+                            </summary>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <textarea id="inp-kayan" class="form-control" rows="8"
+                                    placeholder="Örn: Okulumuza hoş geldiniz..."></textarea>
+                                <small style="display: block; margin-top: 6px; color: var(--text-muted);">
+                                    Buradaki değişiklikler yukarıdaki listeye anında yansır.
+                                </small>
+                            </div>
+                        </details>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Öğretmen Listesi Düzenleme Modalı -->
+    <div id="modal-teachers" class="modal-overlay"
+        style="display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; display: flex; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+        <div class="glass-card" style="width: 500px; max-width: 90%; position: relative;">
+            <button id="btn-close-teachers"
+                style="position: absolute; right: 15px; top: 15px; background: transparent; border: none; color: var(--text2); font-size: 1.5rem; cursor: pointer;"><i
+                    class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top:0; margin-bottom: 15px;">Öğretmen Havuzu</h2>
+            <p style="color: var(--text2); margin-bottom: 15px;">Her satıra bir öğretmen adı yazın. Bu isimler
+                sürükle-bırak havuzunda görünecektir.</p>
+            <textarea id="inp-teachers-pool" class="form-control" rows="12" placeholder="Örn: Zafer Ünal"></textarea>
+            <div style="text-align: right; margin-top: 15px;">
+                <button class="btn-primary" id="btn-save-teachers">Uygula</button>
+            </div>
+        </div>
+    </div>
+    <!-- Veri Sıfırlama Modalı -->
+    <div id="modal-reset" class="modal-overlay"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s;">
+        <div class="glass-card" style="max-width: 500px; width: 90%; position: relative;">
+            <button id="btn-close-reset"
+                style="position: absolute; right: 15px; top: 15px; background: transparent; border: none; color: var(--text2); font-size: 1.5rem; cursor: pointer;"><i
+                    class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-top:0; margin-bottom: 15px; color: #ef4444;"><i
+                    class="fa-solid fa-triangle-exclamation"></i> Veri Sıfırlama</h2>
+            <p style="color: var(--text2); margin-bottom: 15px;">Silinmesini istediğiniz verileri seçin ve onaylamak
+                için kutucuğa <strong>SIFIRLA</strong> yazın.</p>
+
+            <div style="display: grid; gap: 10px; margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chk-reset-siniflar" checked> Sınıf İsimleri ve Rehberlikler
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chk-reset-ogretmenler" checked> Öğretmenler
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chk-reset-nobet" checked> Nöbetçi Öğretmenler ve Programı
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chk-reset-program" checked> Ders Programları
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chk-reset-havuz" checked> Ders Havuzları
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="chk-reset-zaman" checked> Zaman Tablosu (Ders Vakitleri)
+                </label>
+            </div>
+
+            <input type="text" id="inp-reset-confirm" class="form-control" placeholder="Onaylamak için SIFIRLA yazın"
+                style="margin-bottom: 20px; border-color: #ef4444;">
+
+            <div style="text-align: right;">
+                <button class="btn-primary" id="btn-execute-reset"
+                    style="background: #ef4444; border-color: #ef4444; pointer-events: none; opacity: 0.5;">Seçili
+                    Verileri Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/local-auth.js?v=1"></script>
+    <script src="js/admin.js?v=20260917_594ff5e7"></script>
+</body>
+
+</html>

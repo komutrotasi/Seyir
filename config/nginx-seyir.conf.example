@@ -1,0 +1,33 @@
+# Bu parçayı ilgili server { } bloğuna uyarlayın.
+# Kök yol ve PHP-FPM socket değeri sunucuya göre değiştirilmelidir.
+
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "same-origin" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://api.aladhan.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'" always;
+
+location = /seyir/admin.php {
+    return 302 /seyir/admin.html;
+}
+
+location ^~ /seyir/config/ {
+    deny all;
+}
+
+location ~* ^/seyir/(?:tests|tools|lib)/ {
+    deny all;
+}
+
+location ~* ^/seyir/data/.*\.(?:log|tmp|bak|private\.json)$ {
+    deny all;
+}
+
+location ~* ^/seyir/.*\.private\.json$ {
+    deny all;
+}
+
+location = /seyir/fetch-haberler.php {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass unix:/run/php/php-fpm.sock;
+}
