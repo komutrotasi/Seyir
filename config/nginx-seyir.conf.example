@@ -6,27 +6,33 @@ add_header Referrer-Policy "same-origin" always;
 add_header X-Frame-Options "SAMEORIGIN" always;
 add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://api.aladhan.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'" always;
 
-location = /seyir/admin.php {
-    return 302 /seyir/admin.html;
+location = /admin.php {
+    return 302 /admin.html;
 }
 
-location ^~ /seyir/config/ {
+location ^~ /config/ {
     deny all;
 }
 
-location ~* ^/seyir/(?:tests|tools|lib)/ {
+location ~* ^/(?:tests|tools|lib)/ {
     deny all;
 }
 
-location ~* ^/seyir/data/.*\.(?:log|tmp|bak|private\.json)$ {
+location ~* ^/data/.*\.(?:log|tmp|bak|private\.json)$ {
     deny all;
 }
 
-location ~* ^/seyir/.*\.private\.json$ {
+location ~* ^/.*\.private\.json$ {
     deny all;
 }
 
-location = /seyir/fetch-haberler.php {
+location = /fetch-haberler.php {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass unix:/run/php/php-fpm.sock;
+}
+
+location = /fetch-gorsel.php {
     include fastcgi_params;
     fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     fastcgi_pass unix:/run/php/php-fpm.sock;

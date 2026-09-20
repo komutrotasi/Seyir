@@ -5,6 +5,7 @@ $senaryolar = array(
     array('tema4-haberbant.html', 'tema4-haberbant', 'Bilim Şenliği Başladı'),
     array('tema5-pgwslider.html', 'tema5-pgwSlider', 'Mezuniyet Törenimiz'),
     array('tema-main-carousel.html', 'genel-meb-slider', 'TEKNOFEST Başarısı'),
+    array('tema6-kutlugun.html', 'genel-meb-slider', 'Öğrenciler Sümela Manastırı’nı Ziyaret Etti'),
     array('tema-main-slider.html', 'genel-meb-slider', 'Kitap Okuma Etkinliği'),
     array('tema-okul-haberler.html', 'genel-meb-slider', 'Okullar Arası Spor Turnuvası')
 );
@@ -29,4 +30,3 @@ foreach ($senaryolar as $senaryo) {
 
 if ($hata > 0) exit(1);
 fwrite(STDOUT, "Tüm MEB ayrıştırıcı senaryoları başarılı.\n");
-

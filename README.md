@@ -26,14 +26,14 @@
 * **Hava Durumu:** Open-Meteo API entegrasyonuyla konum bazlı anlık sıcaklık ve hava durumu simgeleri.
 * **Vakit Bilgisi:** AlAdhan API ile anlık namaz ve ezan vakitleri gösterimi.
 * **Günün Sözü & Tarihte Bugün:** Her gün otomatik yenilenen edebi sözler ve tarihi olaylar.
-* **MEB & Kurum Haberleri:** Okul web sitesi ve MEB haberleri RSS/API köprüsü (`fetch-haberler.php`).
+* **MEB & Kurum Haberleri:** Farklı MEB temalarını okuyabilen haber köprüsü (`fetch-haberler.php`) ve yazmasız görsel aracısı (`fetch-gorsel.php`).
 
 ### 4. 🖥️ Akıllı Tahta & TV 16:9 Uyumluluğu
 * **Akıllı Ölçekleme (`#pano-scale-wrapper`):** 1080p, 4K veya farklı ekran çözünürlüklerinde bozulmadan otomatik tam ekran uyumu.
 * **Pardus ETAP ve Windows Uyumlu:** Pardus yüklü akıllı tahtalarda ve koridor televizyonlarında tarayıcı tam ekran (F11) modunda kesintisiz çalışır.
 
 ### 5. 🔐 Yönetim Paneli & Güvenlik
-* **Yönetim Paneli (`admin.html` / `admin.php`):** Nöbetçi listesi, duyurular, kutlama mesajları ve zil saatlerini kolayca güncelleyebileceğiniz modern arayüz.
+* **Yönetim Paneli (`admin.html`):** İlk kullanımda cihaz-yerel parola belirleyerek nöbetçi listesi, duyurular, kutlama mesajları ve zil saatlerini yönetebileceğiniz modern arayüz.
 * **KVKK ve Güvenlik Standartları:** Dahili `KURULUM-GUVENLIK-KONTROL-LISTESI.md` ve `KVKK-AYDINLATMA-SABLONU.md` ile mevzuata tam uyumluluk.
 
 ---
@@ -41,7 +41,7 @@
 ## 🛠️ Teknoloji Yığını
 
 * **Ön Yüz:** Semantic HTML5, CSS3 Grid/Flexbox mimarisi, Vanilla JavaScript
-* **Arka Yüz (Opsiyonel):** Hafif PHP API katmanı (`admin.php`, `fetch-haberler.php`) — Statik modda da tam çalışır.
+* **Arka Yüz:** Yalnızca MEB haberlerini ve görsellerini anlık ileten hafif PHP aracıları. Okula özgü veri sunucuda saklanmaz.
 * **İkonlar:** Yerel FontAwesome 6 (İnternet bağlantısı kopsa dahi CDN gerektirmeyen yerel font kütüphanesi)
 * **Tasarım:** Akıllı Tahta ve TV için yüksek kontrastlı modern açık tema
 
@@ -49,7 +49,7 @@
 
 ## 🚀 Yerel Kurulum ve Çalıştırma
 
-### Yöntem A: Statik Çalıştırma (Önerilen Hızlı Mod)
+### Yöntem A: Statik Arayüz Önizlemesi
 ```bash
 # 1. Depoyu klonlayın
 git clone git@github.com:komutrotasi/seyir.git
@@ -64,11 +64,20 @@ npx serve .
 http://localhost:8080
 ```
 
+Bu yöntem başlangıç panosunu ve yerel yönetim özelliklerini gösterir; PHP çalışmadığı için
+“Haberleri Şimdi Yenile” kullanılamaz. Haber yenilemesini sınamak için aşağıdaki PHP
+yöntemini veya canlı alan adını kullanın.
+
 ### Yöntem B: PHP / cPanel / Sunucu Kurulumu
+
+Windows'ta proje klasöründeki `BASLAT-SEYIR.bat` dosyasına çift tıklayın. Linux/Pardus'ta:
+
 ```bash
-# PHP dahili sunucusunu başlatın
-php -S localhost:8000
+./baslat-seyir.sh
 ```
+
+Ardından `http://127.0.0.1:8000` adresini kullanın. `127.0.0.1:5501` adresini açan
+VS Code Live Server PHP çalıştırmadığı için haber yenileme bu adreste kullanılamaz.
 
 ---
 
@@ -79,6 +88,7 @@ seyir/
 ├── index.html                     # Ana Pano TV ekranı
 ├── admin.html / admin.php         # Pano içerik yönetim paneli
 ├── fetch-haberler.php             # MEB haberleri çekme servisi
+├── fetch-gorsel.php               # MEB görsellerini yazmadan ileten güvenli aracı
 ├── CNAME                          # seyir.komutrotasi.com yönlendirmesi
 ├── css/                           # Pano ve ikon stilleri (seyir.css, fontawesome)
 ├── js/                            # Canlı saat, zil, hava durumu mantığı

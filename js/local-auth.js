@@ -126,6 +126,14 @@
         sessionStorage.removeItem(SESSION_KEY);
     }
 
+    function hasLocalData() {
+        for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('seyir_') && key !== CREDENTIAL_KEY) return true;
+        }
+        return false;
+    }
+
     function lockRemainingSeconds() {
         try {
             const guard = JSON.parse(sessionStorage.getItem(GUARD_KEY) || 'null');
@@ -181,16 +189,21 @@
     }
 
     function clearAll() {
-        Object.keys(localStorage)
-            .filter(key => key.startsWith('seyir_'))
-            .forEach(key => localStorage.removeItem(key));
-        Object.keys(sessionStorage)
-            .filter(key => key.startsWith('seyir_'))
-            .forEach(key => sessionStorage.removeItem(key));
+        function clearStorage(storage) {
+            const keys = [];
+            for (let i = 0; i < storage.length; i += 1) {
+                const key = storage.key(i);
+                if (key && key.startsWith('seyir_')) keys.push(key);
+            }
+            keys.forEach(key => storage.removeItem(key));
+        }
+        clearStorage(localStorage);
+        clearStorage(sessionStorage);
     }
 
     window.SeyirLocalAuth = Object.freeze({
         isConfigured: () => readCredentials() !== null,
+        hasLocalData,
         isAuthenticated,
         createPassword,
         login,

@@ -240,7 +240,7 @@
                             <div class="form-group">
                                 <label><i class="fa-solid fa-school"></i> Okul Adı</label>
                                 <input type="text" id="inp-okulAdi" class="form-control"
-                                    placeholder="Örn: Mahmud Celaleddin Ökten İHL">
+                                    placeholder="Örn: Atatürk Anadolu Lisesi">
                                 <small
                                     style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.78rem;">Pano
                                     başlığında ve tarayıcı sekmesinde görünür.</small>
@@ -255,13 +255,13 @@
                                     motto veya bilgilendirici slogan.</small>
                             </div>
 
-                            <!-- Dinamik MEB Okul Sitesi ve Kontrollü Haber Yenileme (Madde 3.1) -->
+                            <!-- Dinamik MEB Okul Sitesi ve Haber Yenileme (Madde 3.1) -->
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label><i class="fa-solid fa-globe"></i> MEB Okul Web Sitesi Adresi</label>
                                 <div style="display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap;">
                                     <input type="text" id="inp-webUrl" class="form-control"
                                         style="flex: 1; min-width: 250px;"
-                                        placeholder="https://konyamcosihl.meb.k12.tr/">
+                                        placeholder="https://okuladi.meb.k12.tr/">
                                     <button type="button" id="btn-fetch-meb-news" class="btn-action-blue"
                                         style="padding: 10px 18px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border-radius: 10px; white-space: nowrap; cursor: pointer; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
                                         <i class="fa-solid fa-arrows-rotate" id="icon-fetch-meb"></i> Haberleri Şimdi
@@ -274,7 +274,8 @@
                                 <small
                                     style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">
                                     <i class="fa-solid fa-circle-info"></i> Yalnızca resmî MEB okul adresleri kabul
-                                    edilir. Pano mevcut önbelleği gösterir; yeni haberler yalnızca bu butonla alınır.
+                                    edilir. Adres değiştirildiğinde haberler bir kez otomatik alınır; bu buton daha sonra
+                                    elle yenilemek içindir.
                                 </small>
                             </div>
 
@@ -383,7 +384,7 @@
                                     <i class="fa-solid fa-download" style="color: #10b981;"></i>
                                     <div>
                                         <h4>Güvenli Pano JSON'u</h4>
-                                        <p>Personel adları ayıklanmış, sunucuya yüklenebilir data.json üretin.</p>
+                                        <p>Personel adları ayıklanmış, taşınabilir açık pano JSON'u üretin.</p>
                                     </div>
                                 </div>
                                 <button type="button" id="btn-download-json" class="btn-action-green btn-download-public-json">
@@ -1515,8 +1516,8 @@
         </div>
     </div>
 
-    <script src="js/local-auth.js?v=1"></script>
-    <script src="js/admin.js?v=20260917_594ff5e7"></script>
+    <script src="js/local-auth.js?v=20260917_a8e68658"></script>
+    <script src="js/admin.js?v=20260918_90c22fc9"></script>
 </body>
 
 </html>

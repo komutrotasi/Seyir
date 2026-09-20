@@ -1,85 +1,64 @@
 # Seyir Kurulum ve Güvenlik Kontrol Listesi
 
-Bu belge her okul kurulumu için uygulanmalıdır. Seyir veritabanı kullanmaz; yönetim
-verisi tarayıcıda, açık pano verisi `data/data.json` dosyasında ve haber önbelleği
-`data/meb_haberler.json` dosyasında tutulur.
+Seyir tek bir merkezî adresten (`https://seyir.komutrotasi.com`) sunulur. Veritabanı
+kullanmaz. Her okulun parolası, adı, logosu, programları ve haberleri yalnızca sistemi
+açtığı bilgisayarın ilgili tarayıcı profilinde saklanır.
 
 ## 1. Sunucu gereksinimleri
 
-- PHP 7.2 veya üzeri.
-- HTTPS sertifikası ve HTTP → HTTPS yönlendirmesi.
-- Dış HTTPS bağlantısı; cURL veya `allow_url_fopen` seçeneklerinden en az biri.
-- `data/` ve `data/meb_images/` için PHP kullanıcısına yazma izni. Gereksiz `777`
-  izni verilmemelidir.
-- Apache kullanılıyorsa `mod_rewrite`, `mod_authz_core` ve `.htaccess` desteği.
-- Nginx kullanılıyorsa `config/nginx-seyir.conf.example` kuralları sunucu bloğuna
-  uyarlanmalıdır; `.htaccess` Nginx tarafından okunmaz.
+- HTTPS zorunludur. Yerel parola özeti Web Crypto ile yalnızca güvenli bağlantıda çalışır.
+- `index.html` ve `admin.html` normal statik dosya olarak sunulmalıdır.
+- PHP 7.2+ yalnızca `fetch-haberler.php` ve `fetch-gorsel.php` haber aracıları için gereklidir.
+- PHP sunucusunun dış HTTPS bağlantısı için cURL veya `allow_url_fopen` desteği gerekir.
+- Haber servisi yalnızca resmî `meb.k12.tr` ve `meb.gov.tr` adreslerini kabul eder.
+- `config/nginx-seyir.conf.example` veya kökteki `.htaccess` kuralları uygulanmalıdır.
 
-## 2. Yönetici hesabı
+## 2. Okulun ilk kullanımı
 
-Kurulumdan sonra pano ekranındaki “Designed & Developed by” imza kartına tıklanır.
-Henüz hesap yoksa `admin.php` ilk açılış sihirbazını gösterir; kullanıcı adı ve güçlü
-parola tarayıcıdan belirlenir. Hesap bir kez oluşturulduktan sonra bu ekran kapanır ve
-aynı kart normal giriş ekranını açar. Parola, yönetim panelindeki “Sistem ve Veri
-Yönetimi” bölümünden değiştirilebilir.
+1. Okul bilgisayarında `https://seyir.komutrotasi.com` açılır.
+2. Sağ alttaki “Designed & Developed by” imza kartına tıklanır.
+3. İlk kullanım ekranında bu bilgisayara özel yönetici parolası iki kez yazılır.
+4. İlk açılışta Mahmud Celaleddin Ökten AİHL adı, logosu ve örnek başlangıç haberleri
+   görünür; okul bunları panelden kendi adı, logosu ve MEB sitesiyle değiştirir.
+5. Sonraki kullanımlarda aynı kart doğrudan parola giriş ekranını açar.
 
-Web tabanlı ilk kurulum için PHP kullanıcısının `config/` klasörüne yazabilmesi gerekir.
-Sorun giderme veya sunucu yöneticisi tarafından parola sıfırlama amacıyla şu komut da
-kullanılabilir:
+Parola açık metin olarak kaydedilmez. Rastgele salt ve 210.000 turlu PBKDF2-SHA256
+özeti yerel tarayıcı alanında tutulur. Parola “Genel Ayarlar → Sistem ve Veri Yönetimi”
+bölümünden değiştirilebilir.
 
-```bash
-php tools/admin-sifre-ayarla.php
-```
+## 3. Cihaz ve tarayıcı sınırı
 
-Her okul farklı, en az 12 karakterlik; büyük/küçük harf, rakam ve özel karakter içeren
-güçlü parola kullanmalıdır. Web sihirbazı ve komut satırı aracı açık parolayı kaydetmez;
-`config/admin-auth.php` içine yalnızca `password_hash()` çıktısı yazar. Bu dosya kaynak
-kontrolüne eklenmez ve web erişimine kapatılır.
+- Veriler alan adına değil, alan adını açan tarayıcı profiline özgüdür.
+- Başka bilgisayar veya başka tarayıcı aynı okul verilerini otomatik göremez.
+- Gizli/özel pencere kullanılmamalıdır; pencere kapanınca veriler kaybolabilir.
+- Tarayıcı verileri temizlenirse okul yapılandırması ve parola da silinir.
+- Bilgisayar değişmeden önce “Özel Yönetim Yedeği” indirilmelidir.
+- Aynı bilgisayarda farklı okullar kullanılacaksa ayrı işletim sistemi/tarayıcı profilleri
+  oluşturulmalıdır.
 
-Alternatif olarak sunucu ortamında `SEYIR_ADMIN_USER` ve
-`SEYIR_ADMIN_PASSWORD_HASH` değişkenleri tanımlanabilir. Eski `admin.html` adresi
-Apache'de `admin.php` adresine yönlendirilir. İlk kurulum ekranı internete açık bir
-sunucuda bekletilmemeli; kurulum tamamlanır tamamlanmaz okul hesabı oluşturulmalıdır.
+Yerel parola ekranı yanlışlıkla yapılan değişikliklere karşı cihaz kilididir. Bilgisayara
+ve tarayıcı geliştirici araçlarına tam erişimi olan teknik bir kişiye karşı sunucu taraflı
+hesap güvenliği sağlamaz. Bu model, verinin bilinçli olarak yalnızca okul bilgisayarında
+tutulması tercihine dayanır.
 
-> Pano dosyası doğrudan veya yalnızca statik dosya sunan Live Server ile açılırsa PHP
-> çalışmaz. İmza kartı bu durumda `admin.php` dosyasının indirilmesini engeller ve
-> kurulum sorumlusuna PHP desteğinin etkinleştirilmesi gerektiğini bildirir.
+## 4. Haberlerin ayrılması
 
-## 3. Veri ayrımı
+`fetch-haberler.php` seçilen MEB sitesini anlık olarak okur ve sonucu tarayıcıya döndürür.
+`fetch-gorsel.php` yalnızca doğrulanmış resmî MEB görsellerini aynı alan adı üzerinden
+tarayıcıya iletir. Okul URL'si, haber listesi veya haber görselleri sunucudaki ortak bir
+JSON/cache dosyasına yazılmaz. Sonuç `seyir_admin_data` ve gizlilik uygulanmış
+`seyir_public_data` içinde yalnızca ilgili bilgisayarda saklanır.
 
-- `seyir_admin_data`: Yetkili cihazdaki özel yönetim verisi; pano bunu okumaz.
-- `seyir_public_data`: Gizlilik ayarları uygulanmış yerel pano kopyası.
-- `data/data.json`: Sunucuya yüklenebilen açık pano dosyası; tam personel adı
-  içermemelidir.
-- `*.private.json`: Kişisel veri içerebilen özel yedek; web sunucusuna kesinlikle
-  yüklenmemeli, şifreli ve yetkili kurumsal alanda saklanmalıdır.
+## 5. KVKK ve veri yönetimi
 
-Admin panelindeki “KVKK Güvenli Pano Görünümü” varsayılan olarak görev adı gösterir;
-rehber ve aktif ders öğretmeni alanlarını kapalı tutar. Okul, işleme amacı ve hukuki
-dayanağı değerlendirmeden “Tam ad” seçeneğini etkinleştirmemelidir.
+- `seyir_admin_data`: yalnızca yönetim panelinin kullandığı özel yerel veri.
+- `seyir_public_data`: panonun okuduğu, görünürlük kuralları uygulanmış yerel kopya.
+- Varsayılan personel görünümü görev adıdır; rehber ve ders öğretmeni kapalıdır.
+- “Bu Cihazdaki Tüm Yerel Veriyi Sil” okul verileriyle birlikte parolayı da siler.
+- Özel yönetim yedeği kişisel veri içerebilir; web sunucusuna yüklenmemelidir.
 
-## 4. Saklama ve silme
-
-- Varsayılan personel verisi saklama süresi 365 gündür ve okul politikasına göre
-  kısaltılabilir.
-- Süre dolduğunda personel alanları yönetici girişinde temizlenir; kurumsal içerik
-  korunur.
-- “Bu Cihazdaki Tüm Yerel Veriyi Sil” işlemi özel/açık Seyir kayıtlarını ve tema
-  tercihini kaldırır.
-- Eski cihaz devredilmeden önce tarayıcı profili de işletim sistemi düzeyinde
-  silinmelidir.
-
-## 5. KVKK ve dış servisler
-
-Okul; veri sorumlusu kimliği, amaç, hukuki sebep, aktarım, saklama süresi ve ilgili
-kişi haklarını içeren kendi aydınlatma metnini yayımlamalıdır. Başlangıç taslağı
-`KVKK-AYDINLATMA-SABLONU.md` dosyasındadır. Bu teknik seçenekler tek başına hukuki
-uyum garantisi değildir.
-
-Font Awesome, Arapça font ve Excel kütüphanesi sürümü sabitlenmiş yerel dosyalardan
-sunulur. Pano yalnızca hava durumu için Open-Meteo ve namaz vakitleri için Aladhan
-servislerine ağ isteği gönderir. Kurumun ağ/veri aktarım politikası bu servisleri ayrıca
-değerlendirmelidir; gerekirse ilgili kartlar kurum içi veri kaynağına uyarlanmalıdır.
+Okul; aydınlatma metni, hukuki sebep, yetkiler ve saklama süresini ayrıca belirlemelidir.
+Teknik seçenekler tek başına hukuki uyum garantisi değildir.
 
 ## 6. Yayın öncesi kontroller
 
@@ -87,15 +66,17 @@ değerlendirmelidir; gerekirse ilgili kartlar kurum içi veri kaynağına uyarla
 node tools/encoding-kontrol.js
 node tools/guvenlik-kontrol.js
 node tools/surum-guncelle.js --kontrol
+node --check js/local-auth.js
 node --check js/seyir.js
 node --check js/admin.js
+node tests/local-auth-test.js
 php -l admin.php
 php -l fetch-haberler.php
-php -l lib/admin-auth.php
+php -l fetch-gorsel.php
 php -l lib/meb-parser.php
 php tests/meb-parser-test.php
 ```
 
-Kullanıcı tarafından ayrıca masaüstü, mobil, akıllı tahta ve TV ölçekleme testleri;
-giriş/çıkış, açık veri aktarımı, özel yedek uyarısı ve üç gerçek MEB tema testi
-tarayıcıda manuel olarak yapılmalıdır.
+Kullanıcı tarafından ayrıca ilk parola oluşturma, giriş/çıkış, parola değiştirme, yedek
+alma, veri silme ve farklı MEB temalarından haber çekme işlemleri gerçek tarayıcıda manuel
+olarak denenmelidir.

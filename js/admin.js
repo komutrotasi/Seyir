@@ -167,6 +167,27 @@ const SEYIR_PRIVATE_STORAGE_KEY = 'seyir_admin_data';
 const SEYIR_PUBLIC_STORAGE_KEY = 'seyir_public_data';
 let appData = {};
 
+const BASLANGIC_HABER_GORSELLERI = [
+    { anahtar: '17671892', yol: 'img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg' },
+    { anahtar: '17651353', yol: 'img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg' },
+    { anahtar: '17641455', yol: 'img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg' },
+    { anahtar: '17630148', yol: 'img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg' },
+    { anahtar: '17627027', yol: 'img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg' }
+];
+
+function baslangicHaberGorselleriniDuzelt(haberler) {
+    let degisti = false;
+    (Array.isArray(haberler) ? haberler : []).forEach(haber => {
+        const aramaMetni = String(haber.link || '') + ' ' + String(haber.gorsel || '');
+        const yerel = BASLANGIC_HABER_GORSELLERI.find(kayit => aramaMetni.includes(kayit.anahtar));
+        if (yerel && haber.gorsel !== yerel.yol) {
+            haber.gorsel = yerel.yol;
+            degisti = true;
+        }
+    });
+    return degisti;
+}
+
 function varsayilanGizlilikAyarlari() {
     return {
         personelAdiGosterim: 'gorev',
@@ -336,7 +357,11 @@ document.addEventListener('DOMContentLoaded', () => {
         repeatInput.required = !configured;
         passwordInput.autocomplete = configured ? 'current-password' : 'new-password';
         authSubmit.querySelector('span').textContent = configured ? 'Giriş Yap' : 'Parola Oluştur ve Başla';
-        authReset.style.display = configured ? 'block' : 'none';
+        const eskiVeriVar = SEYIR_LOCAL_AUTH && SEYIR_LOCAL_AUTH.hasLocalData();
+        authReset.style.display = configured || eskiVeriVar ? 'block' : 'none';
+        authReset.textContent = configured
+            ? 'Parolayı unuttum / bu cihazı sıfırla'
+            : 'Bu cihazdaki eski Seyir verilerini temizle';
     }
 
     function openDashboard() {
@@ -517,10 +542,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load Data
     function getBosSablon() {
         return {
-            okulAdi: "Seyir Dijital Pano",
+            okulAdi: "Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi",
+            okulLogo: "img/okul_logo.png",
             slogan: "Okulun Dijital Nabzı",
-            okulWebSiteUrl: "",
-            konum: { sehir: "", enlem: null, boylam: null },
+            daktiloYazilari: ["Medya Okulu"],
+            mebHaberler: [],
+            okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
+            konum: { sehir: "Konya", enlem: null, boylam: null },
             ayarlar: { karuselSuresi: 5000, temaOtomatik: true },
             gizlilik: varsayilanGizlilikAyarlari(),
             veriYonetimi: { sonGozdenGecirme: new Date().toISOString() },
@@ -535,6 +563,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    async function baslangicVerisiniOku() {
+        try {
+            const res = await fetch('data/data.json?t=' + new Date().getTime());
+            if (!res.ok) return null;
+            const veri = await res.json();
+            return veri && typeof veri === 'object' ? veri : null;
+        } catch (e) {
+            console.info('data/data.json okunamadı, yerel şablon kullanılıyor:', e.message);
+            return null;
+        }
+    }
+
     /**
      * Verileri yükler.
      * @param {boolean} dosyadanTohumla localStorage boşken data/data.json içeriğiyle
@@ -544,28 +584,35 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function loadData(dosyadanTohumla = true) {
         try {
+            const dosyaVerisi = dosyadanTohumla ? await baslangicVerisiniOku() : null;
             const local = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
+            let kimlikMigrasyonu = false;
             if (local) {
                 appData = JSON.parse(local);
-            } else {
-                appData = getBosSablon();
-
-                if (dosyadanTohumla) {
-                    // Pano ile aynı başlangıç verisini kullan (varsa data/data.json)
-                    try {
-                        const res = await fetch('data/data.json?t=' + new Date().getTime());
-                        if (res.ok) {
-                            const dosyaVerisi = await res.json();
-                            if (dosyaVerisi && typeof dosyaVerisi === 'object') {
-                                appData = Object.assign(getBosSablon(), dosyaVerisi);
-                            }
-                        }
-                    } catch (e) {
-                        // Dosya yoksa/okunamıyorsa boş şablonla devam et
-                        console.info('data/data.json okunamadı, boş şablon kullanılıyor:', e.message);
+                const bosEskiKimlik = (!appData.okulAdi || appData.okulAdi === 'Seyir Dijital Pano') &&
+                    !String(appData.okulWebSiteUrl || '').trim() &&
+                    !String(appData.okulLogo || '').trim() &&
+                    (!Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0);
+                if (bosEskiKimlik && dosyaVerisi) {
+                    const yerelKopya = Object.assign({}, appData);
+                    ['okulAdi', 'okulLogo', 'slogan', 'daktiloYazilari', 'okulWebSiteUrl', 'mebHaberler', 'konum']
+                        .forEach(alan => delete yerelKopya[alan]);
+                    appData = Object.assign(getBosSablon(), dosyaVerisi, yerelKopya);
+                    kimlikMigrasyonu = true;
+                } else if (dosyaVerisi && String(appData.okulWebSiteUrl || '').replace(/\/+$/, '') === 'https://konyamcosihl.meb.k12.tr') {
+                    if (!Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0) {
+                        appData.mebHaberler = dosyaVerisi.mebHaberler || [];
+                        kimlikMigrasyonu = true;
+                    }
+                    if (!String(appData.okulLogo || '').trim()) {
+                        appData.okulLogo = dosyaVerisi.okulLogo || 'img/okul_logo.png';
+                        kimlikMigrasyonu = true;
                     }
                 }
+            } else {
+                appData = Object.assign(getBosSablon(), dosyaVerisi || {});
             }
+            if (baslangicHaberGorselleriniDuzelt(appData.mebHaberler)) kimlikMigrasyonu = true;
 
             // Sayfa ilk açılışında (oturum zaten açıksa) loadData, DOMContentLoaded
             // geri çağrımının ORTASINDA senkron çalışır. Oysa renderDersler /
@@ -578,6 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const gizlilik = gizlilikAyarlari(appData);
             appData.gizlilik = gizlilik;
+            if (kimlikMigrasyonu) saveData();
             const son = Date.parse((appData.veriYonetimi && appData.veriYonetimi.sonGozdenGecirme) || '');
             const sureMs = Math.max(1, Number(gizlilik.saklamaSuresiGun) || 365) * 86400000;
             if (Number.isFinite(son) && Date.now() - son > sureMs) {
@@ -1356,8 +1404,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         BhUI.toast("Değişiklikler başarıyla kaydedildi. Pano ekranı anında güncellenecektir.", "success");
 
-        // Haber tarama bilinçli olarak otomatik başlatılmaz. Kullanıcı, okul URL'sini
-        // kaydettikten sonra "Haberleri Şimdi Yenile" butonuyla kontrollü yeniler.
+        // MEB adresi değiştiğinde haber yenileme ayrıca tek istek olarak otomatik çalışır.
+        // Bu buton diğer pano ayarlarını yerel tarayıcıya kaydeder.
     });
 
     // Açık pano JSON'u tam personel adı ve özel yönetim tabloları içermez.
@@ -1369,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formVerileriniOku();
         saveData();
         jsonDosyasiIndir(panoIcinAcikVeriOlustur(appData, true), 'data.json');
-        BhUI.toast('Güvenli data.json indirildi; sunucuya bu dosyayı yükleyebilirsiniz.', 'success');
+        BhUI.toast('Güvenli ve taşınabilir data.json indirildi.', 'success');
     }));
 
     document.querySelectorAll('.btn-download-private-json').forEach(btn => btn.addEventListener('click', () => {
@@ -1483,7 +1531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnResetLogo) {
         btnResetLogo.addEventListener('click', () => {
             if (confirm('Okul logosunu varsayılana sıfırlamak istediğinize emin misiniz?')) {
-                delete appData.okulLogo;
+                appData.okulLogo = 'img/okul_logo.png';
                 const preview = document.getElementById('img-okulLogo-preview');
                 if (preview) preview.src = 'img/okul_logo.png';
                 const inpFile = document.getElementById('inp-okulLogo-file');
@@ -1495,6 +1543,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Dinamik MEB Haberleri Çekme Fonksiyonu
+    let haberIstegiDenetleyici = null;
+    let aktifHaberUrl = '';
+
     async function fetchMebHaberlerOtomatik(hedefUrl) {
         let url = (hedefUrl || document.getElementById('inp-webUrl').value || '').trim();
         const btnFetch = document.getElementById('btn-fetch-meb-news');
@@ -1528,6 +1579,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Aynı URL için change + buton click olayları arka arkaya gelirse ikinci
+        // isteği başlatma. URL gerçekten değiştiyse önceki isteği iptal et.
+        if (haberIstegiDenetleyici && aktifHaberUrl === url) return;
+        if (haberIstegiDenetleyici) haberIstegiDenetleyici.abort();
+        const buIstek = new AbortController();
+        haberIstegiDenetleyici = buIstek;
+        aktifHaberUrl = url;
+
         if (btnFetch) btnFetch.disabled = true;
         if (iconFetch) iconFetch.classList.add('fa-spin');
         if (statusEl) {
@@ -1544,13 +1603,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-                body: 'url=' + encodeURIComponent(url)
+                body: 'url=' + encodeURIComponent(url),
+                signal: buIstek.signal
             });
             const raw = await response.text();
-            if (raw.trim().startsWith('<?')) {
-                throw new Error('PHP dosyası çalıştırılmıyor. Paneli PHP sunucusundaki admin.php adresinden açın.');
+            const yanitTuru = response.headers.get('content-type') || '';
+            const yerelStatikSunucu = /^(?:127\.0\.0\.1|localhost)$/i.test(window.location.hostname) &&
+                !/application\/json/i.test(yanitTuru);
+            if (raw.trim().startsWith('<?') || yerelStatikSunucu) {
+                throw new Error('VS Code Live Server PHP çalıştırmaz. BASLAT-SEYIR.bat dosyasını açın ve http://127.0.0.1:8000 adresini kullanın; mevcut haberler korundu.');
             }
-            data = JSON.parse(raw);
+            try {
+                data = JSON.parse(raw);
+            } catch (jsonHatasi) {
+                throw new Error('Haber servisi eski veya eksik kurulmuş. fetch-haberler.php, fetch-gorsel.php ve lib/meb-parser.php dosyalarını birlikte güncelleyin; mevcut haberler korundu.');
+            }
 
             if (data && data.durum === 'basarili') {
                 const haberSayisi = data.istatistik ? data.istatistik.toplam : (data.haberler ? data.haberler.length : 0);
@@ -1559,6 +1626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // appData mebHaberler güncelle
                 if (data.haberler && Array.isArray(data.haberler)) {
                     appData.okulWebSiteUrl = url;
+                    baslangicHaberGorselleriniDuzelt(data.haberler);
                     appData.mebHaberler = data.haberler;
                     saveData();
                 }
@@ -1579,17 +1647,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 BhUI.toast('Haber çekme hatası: ' + hataMesaji, 'danger');
             }
         } catch (err) {
+            if (err && err.name === 'AbortError') return;
             console.error('Haber çekme hatası:', err);
             if (statusEl) {
                 statusEl.style.background = 'rgba(239, 68, 68, 0.15)';
                 statusEl.style.color = '#dc2626';
-                statusEl.innerHTML = `<strong>⚠️ Servis Hatası:</strong> Paneli PHP sunucusundaki <code>admin.php</code> adresinden açın. (${escapeHtml(err.message)})`;
+                statusEl.innerHTML = `<strong>⚠️ Servis Hatası:</strong> ${escapeHtml(err.message)}`;
             }
-            BhUI.toast('Haber servisine erişilemedi. PHP sunucusunun çalıştığından emin olun.', 'warning');
+            BhUI.toast(err.message || 'Haber servisine erişilemedi.', 'warning');
         } finally {
-            if (btnFetch) btnFetch.disabled = false;
-            if (iconFetch) iconFetch.classList.remove('fa-spin');
+            if (haberIstegiDenetleyici === buIstek) {
+                haberIstegiDenetleyici = null;
+                aktifHaberUrl = '';
+                if (btnFetch) btnFetch.disabled = false;
+                if (iconFetch) iconFetch.classList.remove('fa-spin');
+            }
         }
+    }
+
+    const inpWebUrl = document.getElementById('inp-webUrl');
+    let sonOtomatikHaberUrl = '';
+    function okulAdresiDegisti() {
+        const yeniUrl = (inpWebUrl && inpWebUrl.value || '').trim();
+        if (!yeniUrl || yeniUrl === sonOtomatikHaberUrl) return;
+        sonOtomatikHaberUrl = yeniUrl;
+        fetchMebHaberlerOtomatik(yeniUrl);
+    }
+    if (inpWebUrl) {
+        inpWebUrl.addEventListener('change', okulAdresiDegisti);
+        inpWebUrl.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            okulAdresiDegisti();
+        });
     }
 
     const btnFetchMebNews = document.getElementById('btn-fetch-meb-news');

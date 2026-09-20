@@ -4,7 +4,7 @@ Bu doküman, **Nexus Seyir Paneli**'nin işlevselliğini, görselliğini ve otom
 
 ## ✅ Tamamlanan Dağıtım Güvenliği (17.09.2026)
 
-- Varsayılan istemci PIN'i kaldırıldı; veritabanısız sunucu oturumu, tarayıcıdan ilk hesap kurulumu ve panelden parola değiştirme eklendi.
+- Varsayılan PIN kaldırıldı; her okul bilgisayarı için ilk kullanımda PBKDF2 özetli yerel parola kurulumu ve panelden parola değiştirme eklendi.
 - Özel yönetim verisi ile açık pano verisi ayrıldı; KVKK güvenli görünüm seçenekleri eklendi.
 - Güvenli `data.json` ve uyarılı `.private.json` yedek akışları ayrıldı.
 - Saklama süresi, kişisel veri temizliği, Apache/Nginx/HTTPS kurulum rehberi hazırlandı.
@@ -16,7 +16,7 @@ Bu doküman, **Nexus Seyir Paneli**'nin işlevselliğini, görselliğini ve otom
 ## 📌 Kullanıcı Tarafından Ekelenen Özel İstekler & Fikirler
 
 ### 1. 🌐 Dinamik MEB Okul Sitesi Entegrasyonu ve Kontrollü Haber Yenileme
-- **Açıklama:** Admin panelinden okulun MEB adresi güncellendiğinde haberler, kullanıcının “Haberleri Şimdi Yenile” işlemiyle (`fetch-haberler.php`) kontrollü olarak alınmalı; pano yalnızca oluşturulan JSON önbelleğini okumalıdır.
+- **Açıklama:** Admin panelinden okulun MEB adresi değiştirildiğinde haberler tek bir kontrollü istekle (`fetch-haberler.php`) otomatik alınmalı; sonraki güncellemeler “Haberleri Şimdi Yenile” ile yapılmalı ve pano yalnızca cihaz-yerel açık veriyi okumalıdır.
 - **Teknik Detay:** Admin panelinde URL input alanı -> `pano-data.json` veya config dosyasına kayıt -> PHP scraper / API uç noktası vasıtasıyla dinamik haber akışı.
 
 ### 2. 🎬 Orta Haber Alanında Video Oynatıcı Desteği (Admin Video Linki)

@@ -1,14 +1,57 @@
 {
-    "okulAdi": "Seyir Dijital Pano",
-    "okulLogo": "",
-    "slogan": "Okulunuzu yönetim panelinden yapılandırın",
+    "okulAdi": "Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi",
+    "okulLogo": "img/okul_logo.png",
+    "slogan": "Okulun Dijital Nabzı",
     "daktiloYazilari": [
-        "Okulun Dijital Nabzı"
+        "Medya Okulu",
+        "Teknoloji Okulu",
+        "Aile Okulu",
+        "Kur'an Okulu",
+        "Bilim Okulu",
+        "Vefa Okulu",
+        "Hareket Okulu",
+        "İlim Okulu",
+        "Kariyer Okulu",
+        "Spor Okulu",
+        "Okuma Okulu",
+        "Türkiye Yüzyılı Maarif Okulu",
+        "Zanaat Okulu"
     ],
-    "mebHaberler": [],
-    "okulWebSiteUrl": "",
+    "mebHaberler": [
+        {
+            "tip": "slider",
+            "baslik": "Öğretmenimiz Tuğba Dağlı’nın Başarısı \"VI. Uluslararası Projeden Uygulamaya Eğitim Sempozyumuna Davet\"",
+            "gorsel": "img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg",
+            "link": "https://konyamcosihl.meb.k12.tr/icerikler/öğretmenimiz-tuğba-dağlının-başarısı-vi-uluslararası-projeden-uygulamaya-eğitim-sempozyumuna-davet_17671892.html"
+        },
+        {
+            "tip": "slider",
+            "baslik": "Okulumuza Hoş Geldiniz",
+            "gorsel": "img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg",
+            "link": "https://konyamcosihl.meb.k12.tr/icerikler/okulumuza-hoş-geldiniz_17651353.html"
+        },
+        {
+            "tip": "slider",
+            "baslik": "Din Öğretiminde İyi Örnekler Kongresi'nde İki Sözlü Bildirimiz Kabul Edildi",
+            "gorsel": "img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg",
+            "link": "https://konyamcosihl.meb.k12.tr/icerikler/din-öğretiminde-iyi-örnekler-kongresinde-iki-sözlü-bildirimiz-kabul-edildi_17641455.html"
+        },
+        {
+            "tip": "slider",
+            "baslik": "\"İrade Bizim Zafer Bizim\" 15 Temmuz'u Unutmadık Unutturmayacağız.",
+            "gorsel": "img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg",
+            "link": "https://konyamcosihl.meb.k12.tr/icerikler/irade-bizim-zafer-bizim-15-temmuzu-unutmadık-unutturmayacağız_17630148.html"
+        },
+        {
+            "tip": "slider",
+            "baslik": "Bu Okula Gelin Mutlaka Görün",
+            "gorsel": "img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg",
+            "link": "https://konyamcosihl.meb.k12.tr/icerikler/bu-okula-gelin-mutlaka-görün_17627027.html"
+        }
+    ],
+    "okulWebSiteUrl": "https://konyamcosihl.meb.k12.tr/",
     "konum": {
-        "sehir": "",
+        "sehir": "Konya",
         "enlem": null,
         "boylam": null
     },

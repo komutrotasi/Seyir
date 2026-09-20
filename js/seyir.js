@@ -27,6 +27,20 @@ const PanoTV = (function () {
     let dersScrollDir = 1;
     let animFrame = null;
 
+    const BASLANGIC_HABER_GORSELLERI = [
+        { anahtar: '17671892', yol: 'img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg' },
+        { anahtar: '17651353', yol: 'img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg' },
+        { anahtar: '17641455', yol: 'img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg' },
+        { anahtar: '17630148', yol: 'img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg' },
+        { anahtar: '17627027', yol: 'img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg' }
+    ];
+
+    function haberGorselAdresi(haber) {
+        const aramaMetni = String((haber && haber.link) || '') + ' ' + String((haber && haber.gorsel) || '');
+        const yerel = BASLANGIC_HABER_GORSELLERI.find(kayit => aramaMetni.includes(kayit.anahtar));
+        return yerel ? yerel.yol : String((haber && haber.gorsel) || '');
+    }
+
     function startVerticalScroll() {
         const wrapper = document.getElementById('ders-list-wrapper');
         const list = document.getElementById('pano-dersler');
@@ -178,14 +192,30 @@ const PanoTV = (function () {
             if (localDataStr) {
                 try {
                     localData = JSON.parse(localDataStr);
+                    // Önceki boş kurulum sürümünün kimlik alanları, yeni başlangıç
+                    // okulunun paketlenmiş verilerini ezmesin. Diğer yerel ayarlar korunur.
+                    const bosEskiKimlik = localData &&
+                        (!localData.okulAdi || localData.okulAdi === 'Seyir Dijital Pano') &&
+                        !String(localData.okulWebSiteUrl || '').trim() &&
+                        !String(localData.okulLogo || '').trim() &&
+                        (!Array.isArray(localData.mebHaberler) || localData.mebHaberler.length === 0);
+                    if (bosEskiKimlik) {
+                        localData = Object.assign({}, localData);
+                        ['okulAdi', 'okulLogo', 'slogan', 'daktiloYazilari', 'okulWebSiteUrl', 'mebHaberler']
+                            .forEach(alan => delete localData[alan]);
+                    } else if (String(localData.okulWebSiteUrl || '').replace(/\/+$/, '') === 'https://konyamcosihl.meb.k12.tr') {
+                        localData = Object.assign({}, localData);
+                        if (!Array.isArray(localData.mebHaberler) || localData.mebHaberler.length === 0) delete localData.mebHaberler;
+                        if (!String(localData.okulLogo || '').trim()) delete localData.okulLogo;
+                    }
                 } catch (e) {
                     console.error("Local data parse error", e);
                 }
             }
 
             panoData = Object.assign({
-                okulAdi: "Seyir Dijital Pano",
-                okulLogo: "",
+                okulAdi: "Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi",
+                okulLogo: "img/okul_logo.png",
                 slogan: "Okulun Dijital Nabzı",
                 daktiloYazilari: [
                     "Medya Okulu",
@@ -202,8 +232,8 @@ const PanoTV = (function () {
                     "Türkiye Yüzyılı Maarif Okulu",
                     "Zanaat Okulu"
                 ],
-                okulWebSiteUrl: "",
-                konum: { sehir: "", enlem: null, boylam: null },
+                okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
+                konum: { sehir: "Konya", enlem: null, boylam: null },
                 ayarlar: { karuselSuresi: 5000, temaOtomatik: true },
                 gizlilik: {
                     personelAdiGosterim: 'gorev',
@@ -663,18 +693,28 @@ const PanoTV = (function () {
         allSlides.forEach((duyuru, index) => {
             const slide = document.createElement('div');
             slide.className = 'carousel-slide' + (index === 0 ? ' active' : '');
+            const haberGorseli = haberGorselAdresi(duyuru);
 
-            if ((duyuru.tip === 'foto' || duyuru.tip === 'foto-haber' || duyuru.tip === 'slider') && duyuru.gorsel) {
+            if ((duyuru.tip === 'foto' || duyuru.tip === 'foto-haber' || duyuru.tip === 'slider') && haberGorseli) {
                 // Resimli slide: tam arka plan cover + altta ortalı başlık
                 slide.classList.add('photo-slide');
 
                 // Sadece background özelliklerini inline zorla
                 // opacity / z-index CSS .carousel-slide ve .active sınıfları üzerinden yönetilir
-                slide.style.backgroundImage = `url('${String(duyuru.gorsel).replace(/['"\\)]/g, '')}')`;
+                const guvenliGorsel = haberGorseli.replace(/['"\\)]/g, '');
+                slide.style.backgroundImage = `url('${guvenliGorsel}')`;
                 slide.style.backgroundSize = 'contain';
                 slide.style.backgroundPosition = 'center center';
                 slide.style.backgroundRepeat = 'no-repeat';
                 slide.style.backgroundColor = '#0f172a';
+
+                // Kırık bir haber görselini okul logosuyla maskeleyip yanlış içerik
+                // göstermeyelim. Yükleme başarısızsa nötr arka plan ve başlık kalır.
+                const gorselKontrol = new Image();
+                gorselKontrol.onerror = () => {
+                    slide.style.backgroundImage = 'linear-gradient(135deg, #0f172a, #1e293b)';
+                };
+                gorselKontrol.src = guvenliGorsel;
 
                 // Başlık altta ortalı gradient ile
                 const baslikMetni = duyuru.baslik || '';

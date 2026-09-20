@@ -8,13 +8,13 @@
 | Bileşen | Durum | Not |
 |---|---|---|
 | `index.html` | ✅ Kararlı | Header, mobil hamburger menü, flip-card, duyurular, ticker |
-| `admin.php` + `admin.html` | ✅ Güvenli geçit | İlk açılış sihirbazı, panelden parola değiştirme, sunucu oturumu, CSRF, güçlü parola hash'i |
+| `admin.html` + `js/local-auth.js` | ✅ Cihaz-yerel geçit | İlk kullanımda parola belirleme, PBKDF2 özeti, panelden parola değiştirme |
 | `js/seyir.js` | ✅ Sözdizimi OK | Scale engine, typewriter, dini içerik, namaz geçişleri |
 | `js/admin.js` | ✅ Sözdizimi OK | DnD ders/nöbet programı, kayan yazı yönetimi |
 | `css/seyir.css` | ✅ Kararlı | Dark glassmorphism, mobil responsive |
 | `css/admin.css` | ✅ Kararlı | Light tema (varsayılan) |
 | `data/data.json` | ✅ Geçerli JSON | KVKK uyumlu sıfır-preset; şeması `data/VERI-SEMASI.md` |
-| `fetch-haberler.php` | ✅ PHP Sözdizimi OK | cURL + fallback, dosya görsel önbelleği, 30 dk. TTL, JSON hata yanıtı |
+| `fetch-haberler.php` | ✅ PHP Sözdizimi OK | Yalnızca POST, MEB alan adı/SSRF kontrolü, sunucuya okul verisi yazmayan JSON yanıtı |
 | `lib/meb-parser.php` + `tests/` | ✅ Testli | 5 yerel MEB tema fixture'ı, ağsız regresyon testi |
 | `data/dini_icerik.json` | ✅ Genişletildi | 26 ayet / 27 hadis / 27 dua |
 | `tools/` | ✅ Yeni | Cache-buster ve kodlama kontrol otomasyonu |
@@ -26,22 +26,24 @@ node tools/encoding-kontrol.js      # UTF-8 / Türkçe karakter bütünlüğü (
 node tools/guvenlik-kontrol.js      # PIN, özel veri sızıntısı, dış betik ve bağımlılık denetimi
 node tools/surum-guncelle.js        # ?v= cache-buster etiketlerini içerik hash'ine göre yenile
 node tools/surum-guncelle.js --kontrol   # CI: etiketler güncel değilse çıkış 1
-node --check js/seyir.js && node --check js/admin.js
+node --check js/local-auth.js && node --check js/seyir.js && node --check js/admin.js
+node tests/local-auth-test.js
 php -l fetch-haberler.php
-php -l admin.php && php -l lib/admin-auth.php && php -l lib/meb-parser.php
+php -l admin.php && php -l lib/meb-parser.php
 php tests/meb-parser-test.php
 ```
 
 ### 🔐 Dağıtım Güvenliği ve KVKK Teknik Seçenekleri ✅
 
-- Kaynak koddaki varsayılan PIN kaldırıldı. `admin.php`, güçlü parola hash'i, güvenli
-  PHP oturumu, süre aşımı, deneme kilidi ve CSRF doğrulaması kullanır; ayar yoksa kapalı kalır.
-- `fetch-haberler.php` yalnızca doğrulanmış yönetici oturumu ve CSRF başlığıyla çalışır.
+- Kaynak koddaki varsayılan PIN kaldırıldı. Her okul ilk kullanımda kendi bilgisayarında
+  parola belirler; açık parola yerine rastgele salt ve 210.000 turlu PBKDF2 özeti tutulur.
+- `fetch-haberler.php` yalnızca aynı origin POST isteği ve resmî MEB adresleriyle çalışır;
+  okul URL'si, haberleri veya görselleri ortak sunucu dosyasına yazılmaz.
 - Özel yönetim verisi (`seyir_admin_data`) ile açık pano kopyası (`seyir_public_data`)
   ayrıldı; pano özel anahtarı okumaz.
 - Görev adı / baş harf / gizli / yerel tam ad seçenekleri ile nöbetçi, rehber ve aktif
   ders öğretmeni görünürlük anahtarları eklendi.
-- Sunucuya uygun `data.json` içinde yapılandırılmış personel alanları anonimleştirilir;
+- Dışa aktarılan güvenli `data.json` içinde yapılandırılmış personel alanları anonimleştirilir;
   serbest metin kontrol uyarısı gösterilir. Kişisel veri içerebilen tam yedek ayrı
   `.private.json` dosyası ve belirgin uyarıyla indirilir.
 - Excel işlemlerinde kullanılan SheetJS sürümü sabitlenerek yerel barındırıldı; özel
@@ -65,7 +67,7 @@ php tests/meb-parser-test.php
 - **Logo Yükleme:** Admin panelinden her okulun kendi amblemini yükleyebilmesi için Base64 `FileReader` dosya seçici, canlı önizleme ve varsayılana sıfırlama seçeneği eklendi (`appData.okulLogo` / `localStorage` / `data.json`). Panoda anında güncellenir.
 - **Okul Adı Yönetimi:** Admin panelinden girilen okul adı panoda ve sayfa başlığında anında güncellenir.
 - **Konum Yönetimi:** Şehir, enlem ve boylam admin panelinden değiştirilebilir; hava durumu ve namaz vakitleri yeni okulun konumuna göre alınır.
-- **Kontrollü Haber Yenileme:** Admin panelinde “Haberleri Şimdi Yenile” butonu ve canlı durum rozeti bulunur. Pano ve genel kaydetme işlemi scraper'ı otomatik çağırmaz; böylece dosya izleyici yenileme döngüsü oluşmaz.
+- **Kontrollü Haber Yenileme:** MEB adresi değiştirildiğinde yalnızca bir otomatik istek yapılır; aynı URL için yinelenen istek engellenir. “Haberleri Şimdi Yenile” butonu sonraki manuel güncellemeler içindir. Pano scraper'ı çağırmaz; böylece yenileme döngüsü oluşmaz.
 - **Teknik:** `fetch-haberler.php`, MEB alan adlarıyla sınırlı dinamik URL veya `data.json` fallback'i ile beslenir; 30 dakikalık kaynak-bazlı önbellek, eşzamanlı istek kilidi, içerik değişmediyse yazmama ve dinamik `Referer` desteği kullanır.
 - **Çoklu Tema:** Eski `haberbant` ve `pgwSlider` katmanlarına ek olarak `main-carousel`, `main-slider` ve `okul-haberler-slider` tabanlı MEB temaları ortak `genel-meb-slider` ayrıştırıcısıyla desteklenir. İdil MTAL (2 haber), Selçuklu Anadolu İHL (5 haber) ve mevcut okul sitesi (5 haber) gerçek kaynaklarla doğrulandı.
 

@@ -15,8 +15,29 @@ const indexHtml = oku('index.html');
 const adminHtml = oku('admin.html');
 const adminPhp = oku('admin.php');
 const adminJs = oku('js/admin.js');
+const localAuthJs = oku('js/local-auth.js');
 const seyirJs = oku('js/seyir.js');
+const fetchPhp = oku('fetch-haberler.php');
+const fetchGorselPhp = oku('fetch-gorsel.php');
 const veri = JSON.parse(oku('data/data.json'));
+
+if ((veri.okulWebSiteUrl || '').trim() !== 'https://konyamcosihl.meb.k12.tr/') {
+    sorunlar.push('data/data.json: başlangıç MEB okul adresi eksik veya hatalı');
+}
+if (veri.okulAdi !== 'Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi') {
+    sorunlar.push('data/data.json: başlangıç okul adı eksik veya hatalı');
+}
+if (!Array.isArray(veri.mebHaberler) || veri.mebHaberler.length < 1) {
+    sorunlar.push('data/data.json: başlangıç haberleri eksik');
+} else if (veri.mebHaberler.some(haber => !/^img\/cache-haber\/[A-Za-z0-9_.-]+\.(?:jpe?g|png|webp)$/i.test(haber.gorsel || ''))) {
+    sorunlar.push('data/data.json: başlangıç haber görselleri yerel paket içinden gelmeli');
+} else {
+    for (const haber of veri.mebHaberler) {
+        if (!fs.existsSync(path.join(KOK, haber.gorsel))) {
+            sorunlar.push(`Başlangıç haber görseli eksik: ${haber.gorsel}`);
+        }
+    }
+}
 
 const ozelAlanlar = [
     'tumOgretmenler', 'ogretmenler', 'ogretmenBranslar', 'nobetciOgretmenler',
@@ -31,8 +52,11 @@ for (const alan of ozelAlanlar) {
     }
 }
 
-if (/DEFAULT_PIN|seyir_admin_pin|seyir_admin_auth/.test(adminJs)) {
-    sorunlar.push('js/admin.js: istemci taraflı varsayılan PIN/oturum kalıntısı bulundu');
+if (/DEFAULT_PIN|seyir_admin_pin/.test(adminJs + localAuthJs)) {
+    sorunlar.push('Yönetim kodunda kaynak koda gömülü varsayılan PIN kalıntısı bulundu');
+}
+if (!/PBKDF2/.test(localAuthJs) || !/210000/.test(localAuthJs) || !/crypto\.subtle/.test(localAuthJs)) {
+    sorunlar.push('js/local-auth.js: güçlü cihaz-yerel parola özeti yapılandırması eksik');
 }
 if (seyirJs.includes("localStorage.getItem('seyir_admin_data')")) {
     sorunlar.push('js/seyir.js: pano özel yönetim verisini doğrudan okuyor');
@@ -40,17 +64,26 @@ if (seyirJs.includes("localStorage.getItem('seyir_admin_data')")) {
 if (!seyirJs.includes("localStorage.getItem('seyir_public_data')")) {
     sorunlar.push('js/seyir.js: açık pano veri anahtarı bulunamadı');
 }
-if (!adminHtml.includes('<!-- SEYIR_SERVER_SESSION -->')) {
-    sorunlar.push('admin.html: sunucu oturumu enjeksiyon işareti eksik');
+if (!adminHtml.includes('js/local-auth.js') || !adminHtml.includes('local-auth-password-repeat')) {
+    sorunlar.push('admin.html: cihaz-yerel ilk parola ekranı eksik');
 }
-if (!adminHtml.includes('<!-- SEYIR_PASSWORD_CSRF -->') || !adminPhp.includes("isset($_POST['parola_degistir'])")) {
-    sorunlar.push('Yönetici parola değiştirme akışı veya CSRF alanı eksik');
+if (!/href=["']admin\.html["']/.test(indexHtml) || /href=["']admin\.php["']/.test(indexHtml)) {
+    sorunlar.push('index.html: imza kartı cihaz-yerel admin.html girişine yönlenmiyor');
 }
-if (!adminPhp.includes("isset($_POST['ilk_kurulum'])") || !adminPhp.includes("isset($_GET['seyir_probe'])")) {
-    sorunlar.push('Web ilk kurulum veya statik sunucu kontrolü eksik');
+if (!adminPhp.includes("header('Location: admin.html'")) {
+    sorunlar.push('admin.php: eski bağlantı uyumluluk yönlendirmesi eksik');
 }
-if (/href=["']admin\.html["']/.test(indexHtml)) {
-    sorunlar.push('index.html: eski ve korumasız admin.html bağlantısı bulundu');
+if (!fetchPhp.includes("REQUEST_METHOD") || !fetchPhp.includes("'POST'")) {
+    sorunlar.push('fetch-haberler.php: yalnızca POST kabul eden servis kontrolü eksik');
+}
+if (/file_put_contents|CIKTI_DOSYA|GORSEL_DIZIN/.test(fetchPhp)) {
+    sorunlar.push('fetch-haberler.php: okula özgü haberleri sunucuya yazan kalıntı bulundu');
+}
+if (!fetchPhp.includes('fetch-gorsel.php?url=') || /file_put_contents/.test(fetchGorselPhp)) {
+    sorunlar.push('Haber görselleri için yazmasız, aynı kaynaklı MEB aracısı eksik');
+}
+if (seyirJs.includes('data/meb_haberler.json')) {
+    sorunlar.push('js/seyir.js: okullar arasında ortak haber önbelleği okunuyor');
 }
 if (/\.\.\/(?:nexus-auth\.js|styles\.css|login\.html)/.test(indexHtml + adminHtml)) {
     sorunlar.push('HTML: proje dışı NEXUS bağımlılığı bulundu');
@@ -65,9 +98,9 @@ for (const [ad, html] of [['index.html', indexHtml], ['admin.html', adminHtml]])
 }
 
 const zorunluDosyalar = [
-    'admin.php', 'lib/admin-auth.php', 'lib/meb-parser.php',
+    'admin.php', 'fetch-gorsel.php', 'js/local-auth.js', 'lib/meb-parser.php',
     'css/fontawesome.min.css', 'webfonts/fa-solid-900.woff2',
-    'js/vendor/xlsx.full.min.js', 'config/admin-auth.example.php',
+    'js/vendor/xlsx.full.min.js',
     'KURULUM-GUVENLIK-KONTROL-LISTESI.md', 'KVKK-AYDINLATMA-SABLONU.md'
 ];
 for (const dosya of zorunluDosyalar) {
@@ -80,4 +113,4 @@ if (sorunlar.length > 0) {
     process.exit(1);
 }
 
-console.log('✅ Güvenlik kontrolü temiz: veri ayrımı, sunucu oturumu ve yerel bağımlılıklar doğrulandı.');
+console.log('✅ Güvenlik kontrolü temiz: cihaz-yerel parola/veri ayrımı ve yazmasız haber servisi doğrulandı.');

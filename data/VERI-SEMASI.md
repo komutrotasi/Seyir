@@ -4,11 +4,12 @@
 > JSON standardı yorum satırı desteklemediği için alan açıklamaları bu dosyada tutulur.
 
 `data.json`, panonun (`index.html`) okuyabildiği **açık ve dağıtılabilir pano verisidir**.
-Admin panelinin (`admin.php`) tam yönetim verisi bundan ayrıdır:
+Admin panelinin (`admin.html`) tam yönetim verisi bundan ayrıdır:
 
 - **`localStorage['seyir_admin_data']`:** Öğretmen ve program ayrıntılarını içerebilen özel yönetim alanı. Pano bunu okumaz.
 - **`localStorage['seyir_public_data']`:** Gizlilik seçenekleri uygulanarak üretilen yerel pano kopyası.
-- **`data/data.json`:** “Güvenli data.json İndir” işlemiyle üretilen, sunucuya yüklenebilir açık dosya.
+- **`data/data.json`:** Her yeni cihaz için Mahmud Celaleddin Ökten AİHL kimliğini ve resmî, herkese açık başlangıç haberlerini içeren; personel/öğrenci verisi içermeyen başlangıç şablonu.
+- **`localStorage['seyir_local_credentials']`:** Açık parola içermeyen PBKDF2 parola özeti ve rastgele salt.
 - **`*.private.json`:** Tam yönetim yedeği. Kişisel veri içerebilir ve web sunucusuna yüklenemez.
 
 > [!IMPORTANT]
@@ -25,10 +26,10 @@ Admin panelinin (`admin.php`) tam yönetim verisi bundan ayrıdır:
 | Alan | Tip | Yazan | Okuyan | Açıklama |
 |---|---|---|---|---|
 | `okulAdi` | `string` | admin | pano | Header'daki okul adı. Pano bunu iki satıra böler (ana isim / alt isim). |
-| `okulLogo` | `string` | admin | pano | Okulun özel logosu/amblemi (Base64 Data URI veya dosya yolu). Boşsa `img/okul_logo.png` kullanılır. |
+| `okulLogo` | `string` | admin | pano | Okulun özel logosu/amblemi (Base64 Data URI). Boşsa genel Seyir simgesi kullanılır. |
 | `slogan` | `string` | admin | — | Admin'de düzenlenir. *Panoda şu an karşılığı yoktur* (header'da yerini `daktiloYazilari` almıştır). |
 | `daktiloYazilari` | `string[]` | — | pano | Header'daki daktilo (typewriter) efektinde sırayla yazılan ifadeler. |
-| `okulWebSiteUrl` | `string` | admin | PHP | Okulun `*.meb.k12.tr` veya `*.meb.gov.tr` adresi (**Madde 3.1**). Admin panelindeki kontrollü yenileme işlemi bu kaynaktan haber çeker; pano PHP'yi çağırmaz. |
+| `okulWebSiteUrl` | `string` | admin | PHP | Okulun `*.meb.k12.tr` veya `*.meb.gov.tr` adresi (**Madde 3.1**). Adres değişince tek otomatik istek, sonrasında yenileme butonu bu kaynaktan haber çeker; pano PHP'yi çağırmaz. |
 | `konum` | `object` | admin | pano | `{ sehir, enlem, boylam }`. Hava durumu koordinatları ve namaz vakti şehri için kullanılır; varsayılan Konya'dır. |
 | `ayarlar` | `object` | admin | pano | Pano davranış ayarları → aşağıya bakın. |
 | `gizlilik` | `object` | admin | pano | Personel adı görünümü, alan görünürlüğü ve saklama süresi → aşağıya bakın. |
@@ -160,6 +161,5 @@ Bu alanlar `data.json`'a **yazılmaz**; pano tarafından bellekte üretilir:
 | Dosya | İçerik |
 |---|---|
 | `data/dini_icerik.json` | `{ ayetler: [{ar, t, s}], hadisler: [{t, s}], dualar: [{t, s}] }` — `ar` Arapça metin, `t` Türkçe meal, `s` kaynak. Arapça yalnızca **Vaktin Ayeti** kartında gösterilir (AGENTS.md Kural 3.1). |
-| `data/meb_haberler.json` | `fetch-haberler.php` çıktısı: `{ durum, guncelleme, kaynak, haberler[], istatistik }`. `istatistik.ayristirici`, kullanılan tema katmanını (`tema4-haberbant`, `tema5-pgwSlider`, `genel-meb-slider`) bildirir. |
-| `data/meb_images/` | Haber görsellerinin MIME doğrulamalı yerel önbelleği. Yerel yazma başarısızsa JSON'da doğrulanmış uzak MEB görsel URL'si tutulur. |
-| `data/php_errors.log` | PHP hata kaydı. `data/.htaccess` ile dışarıya kapatılmıştır. |
+| `data/meb_haberler.json` | Paketlenmiş başlangıç haberlerinin okunabilir örneği; pano bu ortak dosyayı çalışma zamanında okumaz. Güncel haberler cihazın `seyir_public_data` kaydından gelir. |
+| `data/meb_images/` | Yalnızca geriye dönük klasör yer tutucusu; yeni haber akışı sunucuya görsel yazmaz. |

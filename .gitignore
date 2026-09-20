@@ -1,6 +1,4 @@
-# Kimlik ve Gizli Veriler
-config/admin-auth.php
-config/admin-auth.php.tmp
+# Gizli Veriler
 *.private.json
 
 # Log ve Geçici Dosyalar
