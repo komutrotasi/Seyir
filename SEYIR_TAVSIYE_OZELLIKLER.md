@@ -19,9 +19,9 @@ Bu doküman, **Nexus Seyir Paneli**'nin işlevselliğini, görselliğini ve otom
 - **Açıklama:** Admin panelinden okulun MEB adresi değiştirildiğinde haberler tek bir kontrollü istekle (`fetch-haberler.php`) otomatik alınmalı; sonraki güncellemeler “Haberleri Şimdi Yenile” ile yapılmalı ve pano yalnızca cihaz-yerel açık veriyi okumalıdır.
 - **Teknik Detay:** Admin panelinde URL input alanı -> `pano-data.json` veya config dosyasına kayıt -> PHP scraper / API uç noktası vasıtasıyla dinamik haber akışı.
 
-### 2. 🎬 Orta Haber Alanında Video Oynatıcı Desteği (Admin Video Linki)
-- **Açıklama:** Admin panelinden haber veya duyuru için bir video linki (YouTube, MP4, Vimeo vb.) tanımlandığında veya yüklendiğinde, orta haber karusel alanı görsel yerine otomatik olarak bu videoyu oynatmalıdır.
-- **Teknik Detay:** Karusel slide yapısına HTML5 `<video>` veya `<iframe>` entegrasyonu, video bittiğinde sonraki slayta otomatik geçiş veya sessiz döngü (muted autoplay) opsiyonu.
+### 2. 🎬 Orta Haber Alanında Video Oynatıcı Desteği (YouTube & MP4) ✅
+- **Açıklama:** Admin panelinden video linki (YouTube, shorts, embed veya doğrudan MP4 URL) tanımlandığında veya yerel bilgisayardan MP4 dosyası yüklendiğinde, orta haber karuseli görsel yerine otomatik olarak bu videoyu oynatır.
+- **Teknik Detay:** Karusel slayt yapısına video tipi eklendi. YouTube için `iframe` API parametreli gömme, MP4 için HTML5 `<video playsinline muted>` desteği sağlandı. Slayt geçişleri akıllı zamanlayıcı ile yönetilir; video tamamlandığında otomatik sonraki slayta geçer, slayttan ayrılınca video durdurulur ve güvenli zaman aşımı uygulanır. Yerel MP4 yüklemeleri IndexedDB (`SeyirAudioStore`) binary blob deposunda saklanır.
 
 ---
 

@@ -854,88 +854,169 @@ const PanoTV = (function () {
     };
 
     /**
-     * Karuseli DOM'a basar. (MEB haberleri çekildiğinde de tekrar çağrılır)
+     * YouTube bağlantısından 11 karakterlik video ID'sini ayıklar
      */
-    function renderCarousel() {
+    function parseYouTubeId(url) {
+        if (!url) return null;
+        url = url.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+        const match = url.match(/(?:youtu\.be\/|(?:youtube\.com|youtube-nocookie\.com)\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/i);
+        return match ? match[1] : null;
+    }
+
+    /**
+     * Karuseli DOM'a basar. (MEB haberleri ve videolarla birlikte çağrılır)
+     */
+    async function renderCarousel() {
         if (!panoData) return;
         els.carousel.innerHTML = '';
         currentSlide = 0;
 
         let allSlides = [];
 
-        // Eğer MEB'den haberler çekildiyse, öncelik onundur.
+        // 1. Karusel Videolarını Dahil Et
+        const aktifVideolar = (Array.isArray(panoData.karuselVideolar) ? panoData.karuselVideolar : [])
+            .filter(v => v.aktif !== false)
+            .map(v => ({
+                tip: v.tur === 'youtube' ? 'video-youtube' : 'video-mp4',
+                baslik: v.baslik || '',
+                url: v.url || '',
+                mediaId: v.mediaId || null,
+                youtubeId: v.youtubeId || (v.tur === 'youtube' ? parseYouTubeId(v.url) : null),
+                sure: parseInt(v.sure, 10) || 30,
+                otomatikGec: v.otomatikGec !== false,
+                sesli: v.sesli === true,
+                altyaziKapat: v.altyaziKapat !== false,
+                dongu: v.dongu === true
+            }));
+
+        // 2. MEB Haberleri veya Fotoğraflar veya Duyurular
+        let haberSlaytlari = [];
         if (panoData.mebHaberler && panoData.mebHaberler.length > 0) {
-            allSlides = [...panoData.mebHaberler];
+            haberSlaytlari = [...panoData.mebHaberler];
         } else if (panoData.fotograflar && panoData.fotograflar.length > 0) {
             panoData.fotograflar.forEach(url => {
-                if (url.trim() !== '') allSlides.push({ tip: 'foto', gorsel: url });
+                if (url.trim() !== '') haberSlaytlari.push({ tip: 'foto', gorsel: url });
             });
         } else {
-            allSlides = [...(panoData.duyurular || [])];
+            haberSlaytlari = [...(panoData.duyurular || [])];
         }
 
-        allSlides.forEach((duyuru, index) => {
+        allSlides = [...aktifVideolar, ...haberSlaytlari];
+
+        if (allSlides.length === 0) {
+            els.carousel.innerHTML = `
+                <div class="carousel-slide active" style="text-align: center;">
+                    <h2>📢</h2>
+                    <p>Yayınlanacak haber veya duyuru bulunmuyor.</p>
+                </div>
+            `;
+            return;
+        }
+
+        for (let index = 0; index < allSlides.length; index++) {
+            const duyuru = allSlides[index];
             const slide = document.createElement('div');
             slide.className = 'carousel-slide' + (index === 0 ? ' active' : '');
-            const haberGorseli = haberGorselAdresi(duyuru);
 
-            if ((duyuru.tip === 'foto' || duyuru.tip === 'foto-haber' || duyuru.tip === 'slider') && haberGorseli) {
-                // Resimli slide: tam arka plan cover + altta ortalı başlık
-                slide.classList.add('photo-slide');
-
-                // Sadece background özelliklerini inline zorla
-                // opacity / z-index CSS .carousel-slide ve .active sınıfları üzerinden yönetilir
-                const guvenliGorsel = haberGorseli.replace(/['"\\)]/g, '');
-                slide.style.backgroundImage = `url('${guvenliGorsel}')`;
-                slide.style.backgroundSize = 'contain';
-                slide.style.backgroundPosition = 'center center';
-                slide.style.backgroundRepeat = 'no-repeat';
-                slide.style.backgroundColor = '#0f172a';
-
-                // Kırık bir haber görselini okul logosuyla maskeleyip yanlış içerik
-                // göstermeyelim. Yükleme başarısızsa nötr arka plan ve başlık kalır.
-                const gorselKontrol = new Image();
-                gorselKontrol.onerror = () => {
-                    slide.style.backgroundImage = 'linear-gradient(135deg, #0f172a, #1e293b)';
-                };
-                gorselKontrol.src = guvenliGorsel;
-
-                // Başlık altta ortalı gradient ile
-                const baslikMetni = duyuru.baslik || '';
-                slide.innerHTML = baslikMetni ? `
-                    <div style="
-                        box-sizing: border-box;
-                        position: absolute;
-                        bottom: 0; left: 0;
-                        width: 100%;
-                        padding: 80px 60px 30px 60px;
-                        background: linear-gradient(transparent, rgba(0,0,0,0.85));
-                        text-align: center;
-                        color: white;
-                        z-index: 3;
-                    ">
-                        <h3 style="
-                            white-space: normal;
-                            word-break: break-word;
-                            margin: 0;
-                            font-size: clamp(1.5rem, 2.5vw, 2.8rem);
-                            font-family: 'Outfit', sans-serif;
-                            text-shadow: 2px 2px 12px rgba(0,0,0,1);
-                            line-height: 1.4;
-                            font-weight: 700;
-                            letter-spacing: 0.01em;
-                        ">${escapeHtml(baslikMetni)}</h3>
-                    </div>
-                ` : '';
-            } else {
+            if (duyuru.tip === 'video-youtube' && duyuru.youtubeId) {
+                slide.classList.add('video-slide');
+                const muteParam = duyuru.sesli ? '0' : '1';
+                const ccParam = duyuru.altyaziKapat !== false ? '&cc_load_policy=0&iv_load_policy=3' : '';
+                const loopParam = duyuru.dongu ? `&loop=1&playlist=${escapeHtml(duyuru.youtubeId)}` : '&loop=0';
                 slide.innerHTML = `
-                    <div class="slide-badge ${escapeHtml(duyuru.renk || 'primary')}">${escapeHtml(duyuru.tarih || '')}</div>
-                    <h2>${escapeHtml(duyuru.baslik || '')}</h2>
-                    <p>${escapeHtml(duyuru.icerik || '').replace(/\n/g, '<br>')}</p>
+                    <iframe class="carousel-youtube" 
+                        data-yt-id="${escapeHtml(duyuru.youtubeId)}"
+                        data-duration="${duyuru.sure || 30}"
+                        data-auto-end="${duyuru.otomatikGec}"
+                        data-loop="${duyuru.dongu ? 'true' : 'false'}"
+                        src="https://www.youtube-nocookie.com/embed/${escapeHtml(duyuru.youtubeId)}?autoplay=1&mute=${muteParam}&controls=0${loopParam}&rel=0&playsinline=1&enablejsapi=1${ccParam}" 
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen></iframe>
                 `;
+            } else if (duyuru.tip === 'video-mp4') {
+                slide.classList.add('video-slide');
+                const mutedAttr = duyuru.sesli ? '' : 'muted';
+                const loopAttr = duyuru.dongu ? 'loop' : '';
+                let videoSrc = duyuru.url || '';
+
+                if (duyuru.mediaId && window.SeyirAudioStore) {
+                    try {
+                        const rec = await window.SeyirAudioStore.getAudio(duyuru.mediaId);
+                        if (rec && rec.blob) {
+                            videoSrc = URL.createObjectURL(rec.blob);
+                        }
+                    } catch (e) {}
+                }
+
+                slide.innerHTML = `
+                    <video class="carousel-video" 
+                        data-duration="${duyuru.sure || 30}"
+                        data-auto-end="${duyuru.otomatikGec}"
+                        data-loop="${duyuru.dongu ? 'true' : 'false'}"
+                        src="${escapeHtml(videoSrc)}" 
+                        ${mutedAttr} ${loopAttr} playsinline preload="auto"></video>
+                `;
+            } else {
+                const haberGorseli = haberGorselAdresi(duyuru);
+                if ((duyuru.tip === 'foto' || duyuru.tip === 'foto-haber' || duyuru.tip === 'slider') && haberGorseli) {
+                    slide.classList.add('photo-slide');
+                    const guvenliGorsel = haberGorseli.replace(/['"\\)]/g, '');
+                    slide.style.backgroundImage = `url('${guvenliGorsel}')`;
+                    slide.style.backgroundSize = 'contain';
+                    slide.style.backgroundPosition = 'center center';
+                    slide.style.backgroundRepeat = 'no-repeat';
+                    slide.style.backgroundColor = '#0f172a';
+
+                    const gorselKontrol = new Image();
+                    gorselKontrol.onerror = () => {
+                        slide.style.backgroundImage = 'linear-gradient(135deg, #0f172a, #1e293b)';
+                    };
+                    gorselKontrol.src = guvenliGorsel;
+
+                    const baslikMetni = duyuru.baslik || '';
+                    slide.innerHTML = baslikMetni ? `
+                        <div style="
+                            box-sizing: border-box;
+                            position: absolute;
+                            bottom: 0; left: 0;
+                            width: 100%;
+                            padding: 80px 60px 30px 60px;
+                            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+                            text-align: center;
+                            color: white;
+                            z-index: 3;
+                        ">
+                            <h3 style="
+                                white-space: normal;
+                                word-break: break-word;
+                                margin: 0;
+                                font-size: clamp(1.5rem, 2.5vw, 2.8rem);
+                                font-family: 'Outfit', sans-serif;
+                                text-shadow: 2px 2px 12px rgba(0,0,0,1);
+                                line-height: 1.4;
+                                font-weight: 700;
+                                letter-spacing: 0.01em;
+                            ">${escapeHtml(baslikMetni)}</h3>
+                        </div>
+                    ` : '';
+                } else {
+                    slide.innerHTML = `
+                        <div class="slide-badge ${escapeHtml(duyuru.renk || 'primary')}">${escapeHtml(duyuru.tarih || '')}</div>
+                        <h2>${escapeHtml(duyuru.baslik || '')}</h2>
+                        <p>${escapeHtml(duyuru.icerik || '').replace(/\n/g, '<br>')}</p>
+                    `;
+                }
             }
             els.carousel.appendChild(slide);
-        });
+        }
+
+        // Karusel slayt zamanlayıcısını başlat veya yenile
+        if (typeof scheduleNextSlide === 'function') {
+            scheduleNextSlide();
+        }
     }
 
 
@@ -1618,21 +1699,120 @@ const PanoTV = (function () {
         html.setAttribute('data-theme', 'light');
     }
 
+    let carouselSlideTimer = null;
+
+    function stopCarouselTimer() {
+        if (carouselSlideTimer) {
+            clearTimeout(carouselSlideTimer);
+            carouselSlideTimer = null;
+        }
+    }
+
+    function advanceCarouselSlide() {
+        stopCarouselTimer();
+        const slides = els.carousel.querySelectorAll('.carousel-slide');
+        if (slides.length <= 1) return;
+
+        const prevSlide = slides[currentSlide];
+        if (prevSlide) {
+            // Önceki slayttaki MP4 videosunu durdur
+            const prevVideo = prevSlide.querySelector('video.carousel-video');
+            if (prevVideo) {
+                try {
+                    prevVideo.pause();
+                    prevVideo.currentTime = 0;
+                    prevVideo.onended = null;
+                } catch (e) {}
+            }
+            // Önceki slayttaki YouTube videosunu durdur
+            const prevYt = prevSlide.querySelector('iframe.carousel-youtube');
+            if (prevYt && prevYt.contentWindow) {
+                try {
+                    prevYt.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                } catch (e) {}
+            }
+            prevSlide.classList.remove('active');
+        }
+
+        currentSlide = (currentSlide + 1) % slides.length;
+        const nextSlide = slides[currentSlide];
+        if (nextSlide) {
+            nextSlide.classList.add('active');
+        }
+
+        scheduleNextSlide();
+    }
+
+    function scheduleNextSlide() {
+        stopCarouselTimer();
+        const slides = els.carousel.querySelectorAll('.carousel-slide');
+        if (slides.length <= 1) return;
+
+        const activeSlide = slides[currentSlide];
+        if (!activeSlide) return;
+
+        const defaultDuration = (panoData && panoData.ayarlar && panoData.ayarlar.karuselSuresi) ? panoData.ayarlar.karuselSuresi : 10000;
+
+        // 1. MP4 Video Kontrolü
+        const videoEl = activeSlide.querySelector('video.carousel-video');
+        if (videoEl) {
+            const isLoop = videoEl.getAttribute('data-loop') === 'true';
+            const autoEnd = !isLoop && videoEl.getAttribute('data-auto-end') !== 'false';
+            const maxDurationSec = parseInt(videoEl.getAttribute('data-duration'), 10) || 45;
+
+            try {
+                videoEl.currentTime = 0;
+                const p = videoEl.play();
+                if (p && typeof p.catch === 'function') {
+                    p.catch(err => console.warn('Pano MP4 video autoplay:', err));
+                }
+            } catch (e) {}
+
+            if (autoEnd) {
+                videoEl.onended = () => {
+                    advanceCarouselSlide();
+                };
+                carouselSlideTimer = setTimeout(() => {
+                    advanceCarouselSlide();
+                }, (maxDurationSec + 3) * 1000);
+            } else {
+                videoEl.onended = null;
+                carouselSlideTimer = setTimeout(() => {
+                    advanceCarouselSlide();
+                }, maxDurationSec * 1000);
+            }
+            return;
+        }
+
+        // 2. YouTube Video Kontrolü
+        const ytIframe = activeSlide.querySelector('iframe.carousel-youtube');
+        if (ytIframe) {
+            const durationSec = parseInt(ytIframe.getAttribute('data-duration'), 10) || 35;
+            if (ytIframe.contentWindow) {
+                try {
+                    ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                } catch (e) {}
+            }
+            carouselSlideTimer = setTimeout(() => {
+                advanceCarouselSlide();
+            }, durationSec * 1000);
+            return;
+        }
+
+        // 3. Standart Görsel / Duyuru Slaytı
+        carouselSlideTimer = setTimeout(() => {
+            advanceCarouselSlide();
+        }, defaultDuration);
+    }
+
     /**
      * Tüm Animasyon ve Döngüleri Başlat
      */
     function startAnimations() {
-        const sure = (panoData && panoData.ayarlar && panoData.ayarlar.karuselSuresi) ? panoData.ayarlar.karuselSuresi : 10000;
+        carouselInterval = true;
 
-        // 1. Ana Karusel (Fotoğraflar ve Duyurular)
-        carouselInterval = setInterval(() => {
-            const slides = els.carousel.querySelectorAll('.carousel-slide');
-            if (slides.length === 0) return;
-
-            slides[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % slides.length;
-            slides[currentSlide].classList.add('active');
-        }, sure);
+        // 1. Ana Karusel Döngüsü (Akıllı video ve slayt zamanlayıcısı)
+        scheduleNextSlide();
 
         // 2. 3D Flip Card Döngüsü (Sağ Panel)
         const flipInner = document.getElementById('flip-inner');

@@ -59,6 +59,7 @@
     "duyurular": [],
     "sinavlar": [],
     "kayanYazi": [],
+    "karuselVideolar": [],
     "ayarlar": {
         "karuselSuresi": 5000,
         "temaOtomatik": true

@@ -557,6 +557,32 @@ html {
     box-sizing: border-box;
 }
 
+/* Video Slide Yapısı (YouTube & MP4) */
+.video-slide {
+    padding: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background-color: #000000 !important;
+}
+
+.video-slide video.carousel-video,
+.video-slide iframe.carousel-youtube {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    border: none !important;
+    display: block !important;
+    background-color: #000000 !important;
+}
+
+.video-slide-badge {
+    display: none !important;
+}
+
+.video-slide-title-bar {
+    display: none !important;
+}
+
 /* Carousel kapsayıcı */
 #pano-carousel {
     position: relative !important;

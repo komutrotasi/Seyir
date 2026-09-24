@@ -4860,3 +4860,133 @@ button {
     border-color: rgba(255, 255, 255, 0.25) !important;
     color: #f8fafc !important;
 }
+
+/* ==========================================================================
+   🎬 KARUSEL VİDEO & MEDYA YÖNETİMİ STİLLERİ
+   ========================================================================== */
+.video-thumb-preview {
+    width: 90px;
+    height: 52px;
+    border-radius: 8px;
+    background: #0f172a;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+.video-thumb-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.video-thumb-preview .play-icon-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: background 0.2s ease;
+}
+.video-thumb-preview:hover .play-icon-overlay {
+    background: rgba(0, 0, 0, 0.55);
+    color: #ef4444;
+}
+
+.video-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+.video-source-badge.badge-youtube {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+[data-theme="dark"] .video-source-badge.badge-youtube {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.video-source-badge.badge-mp4 {
+    background: #f5f3ff;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+}
+[data-theme="dark"] .video-source-badge.badge-mp4 {
+    background: rgba(124, 58, 237, 0.15);
+    color: #a78bfa;
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
+.video-type-btn-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.video-type-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1.5px solid var(--sidebar-border);
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.video-type-btn:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+.video-type-btn.active {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+[data-theme="dark"] .video-type-btn {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #f1f5f9;
+}
+[data-theme="dark"] .video-type-btn.active {
+    border-color: #818cf8;
+    background: rgba(129, 140, 248, 0.15);
+    color: #818cf8;
+}
+
+.video-preview-frame-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.video-preview-frame-wrap iframe,
+.video-preview-frame-wrap video {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+

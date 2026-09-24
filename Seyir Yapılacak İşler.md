@@ -71,9 +71,13 @@ php tests/meb-parser-test.php
 - **Teknik:** `fetch-haberler.php`, MEB alan adlarıyla sınırlı dinamik URL veya `data.json` fallback'i ile beslenir; 30 dakikalık kaynak-bazlı önbellek, eşzamanlı istek kilidi, içerik değişmediyse yazmama ve dinamik `Referer` desteği kullanır.
 - **Çoklu Tema:** Eski `haberbant` ve `pgwSlider` katmanlarına ek olarak `main-carousel`, `main-slider` ve `okul-haberler-slider` tabanlı MEB temaları ortak `genel-meb-slider` ayrıştırıcısıyla desteklenir. İdil MTAL (2 haber), Selçuklu Anadolu İHL (5 haber) ve mevcut okul sitesi (5 haber) gerçek kaynaklarla doğrulandı.
 
-### 3.2 — 🎬 Video Oynatıcı Desteği (Karusel)
-- Admin'den YouTube/MP4 link eklendiğinde karusel slaytı yerine video oynamalı.
-- **Teknik:** Slayt yapısına `tip: "video"` desteği; HTML5 `<video>` ve YouTube `<iframe>` embed ile `muted autoplay`. Video bitince sonraki slayta geçiş.
+### 3.2 — 🎬 Video Oynatıcı Desteği (Karusel, YouTube & MP4) ✅
+- **Karusel Entegrasyonu:** Admin panelinden eklenen YouTube (standart, shorts, embed) veya doğrudan MP4 (web URL veya yerel dosya yükleme) videoları ana haber karuseli slaytlarıyla dikişsiz harmanlanır.
+- **Akıllı Oynatıcı & Dinamik Zamanlayıcı:** Sabit zaman aralığı yerine dinamik slayt zamanlayıcısı geliştirildi:
+  - MP4 videoları sessiz (`muted autoplay playsinline`) başlar ve video bittiğinde (`ended` olayı) otomatik sonraki slayta geçer (güvenlik zaman aşımı korumalı).
+  - YouTube videoları `autoplay=1&mute=1&controls=0&playsinline=1&enablejsapi=1` parametreleriyle gömülür, slayttan çıkıldığında önceki video durdurulur/temizlenir.
+- **📁 Yerel Video Yükleme (IndexedDB):** Kullanıcı yerel bilgisayarından MP4 video yükleyebilir. Dosya IndexedDB (`seyir_audio_db` / `SeyirAudioStore`) üzerinde binary `Blob` olarak saklanır ve panoda `URL.createObjectURL` ile oynatılır.
+- **Admin Video Yönetim Merkezi:** Sol menüye eklenen "🎬 Video & Medya" sekmesi; Toplam Video, Aktif Yayında ve Entegrasyon KPI istatistikleri, otomatik YouTube video ID ayrıştırma ve canlı afiş (thumbnail) önizlemesi, 16:9 modal önizleme oynatıcısı, süre ayarı ve anlık aktiflik anahtarı.
 
 ### 3.3 — 📺 Ekran Koruyucu / Güç Tasarrufu Modu
 - Belirli bir saatten sonra (örn: 17:00) pano amblemli, saat vurgulu **koruyucu moda** geçmeli.
@@ -108,7 +112,7 @@ php tests/meb-parser-test.php
 | # | İş | Öncelik | Durum |
 |---|---|---|---|
 | 3.1 | Dinamik URL → haber entegrasyonu + Logo & Okul Adı | 🟢 Planlı | ✅ Tamamlandı |
-| 3.2 | Video oynatıcı karusel | 🟢 Planlı | ⏳ Bekliyor |
+| 3.2 | Video oynatıcı karusel | 🟢 Planlı | ✅ Tamamlandı |
 | 3.3 | Ekran koruyucu modu | 🟢 Planlı | ⏳ Bekliyor |
 | 3.4 | Sesli zil efekti & Teneffüs Nöbetçi Vurgusu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.5 | QR kod entegrasyonu | 🟢 Planlı | ⏳ Bekliyor |

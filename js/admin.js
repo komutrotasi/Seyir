@@ -880,6 +880,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof syncKayanSimulator === 'function') syncKayanSimulator();
             } else if (target === 'tab-zil') {
                 if (typeof renderZilUI === 'function') renderZilUI();
+            } else if (target === 'tab-medya') {
+                if (typeof renderKaruselVideoUI === 'function') renderKaruselVideoUI();
             }
 
             // Update Topbar Title
@@ -947,7 +949,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     { id: "zil_12", saat: "11:40", tur: "cikis", baslik: "4. Ders Çıkış / Öğle Arası", melodi: "varsayilan", sure: 7, aktif: true, anons: "Öğle arası başlamıştır. Afiyet olsun." }
                 ],
                 gecmis: []
-            }
+            },
+            karuselVideolar: []
         };
     }
 
@@ -1171,6 +1174,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof syncZilFormUI === 'function') syncZilFormUI();
         if (typeof renderZilTablo === 'function') renderZilTablo();
         if (typeof renderZilKPIs === 'function') renderZilKPIs();
+
+        // Karusel Video Senkronizasyonu
+        if (!Array.isArray(appData.karuselVideolar)) appData.karuselVideolar = [];
+        if (typeof renderKaruselVideoUI === 'function') renderKaruselVideoUI();
     }
 
     // ─── KAYAN YAZILAR (TICKER) YÖNETİMİ — Madde 2.4 & Gelişmiş Motor ───
@@ -10850,5 +10857,416 @@ document.addEventListener('DOMContentLoaded', () => {
             BhUI.toast(`🇹🇷 "${baslik}" zamanlandı ve kaydedildi.`, 'success');
         }
     });
+
+    // ─── 🎬 Karusel Video & Medya Dinleyicileri ───
+    document.getElementById('btn-video-ekle-modal')?.addEventListener('click', () => duzenleVideoModal(-1));
+    document.getElementById('btn-close-modal-video')?.addEventListener('click', closeVideoModal);
+    document.getElementById('btn-cancel-modal-video')?.addEventListener('click', closeVideoModal);
+    document.getElementById('btn-close-preview-video')?.addEventListener('click', closeVideoPreview);
+
+    document.querySelectorAll('.video-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tur = btn.getAttribute('data-tur');
+            if (tur) setVideoModalType(tur);
+        });
+    });
+
+    const inpYtUrl = document.getElementById('inp-modal-video-youtube-url');
+    inpYtUrl?.addEventListener('input', updateYouTubeLivePreview);
+    inpYtUrl?.addEventListener('change', updateYouTubeLivePreview);
+
+    const btnPickVideoFile = document.getElementById('btn-pick-video-file');
+    const inpVideoFilePick = document.getElementById('inp-modal-video-file-picker');
+    btnPickVideoFile?.addEventListener('click', () => inpVideoFilePick?.click());
+    inpVideoFilePick?.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        const lbl = document.getElementById('lbl-modal-video-filename');
+        if (lbl) {
+            lbl.textContent = file ? `${file.name} (${window.SeyirAudioStore ? window.SeyirAudioStore.formatBytes(file.size) : ''})` : 'Dosya seçilmedi';
+        }
+    });
+
+    // Karusel Video Kaydet Butonu
+    document.getElementById('btn-save-modal-video')?.addEventListener('click', async () => {
+        const baslik = document.getElementById('inp-modal-video-baslik')?.value.trim();
+        if (!baslik) {
+            alert('Lütfen video için bir başlık giriniz.');
+            return;
+        }
+
+        const editIdx = parseInt(document.getElementById('inp-modal-video-id')?.value, 10);
+        const videolar = getKaruselVideoVerisi();
+        const tur = currentModalVideoType;
+        let url = '';
+        let youtubeId = null;
+        let mediaId = editIdx >= 0 && videolar[editIdx] ? videolar[editIdx].mediaId : null;
+        let dosyaAdi = editIdx >= 0 && videolar[editIdx] ? videolar[editIdx].dosyaAdi : '';
+        let dosyaBoyut = editIdx >= 0 && videolar[editIdx] ? videolar[editIdx].dosyaBoyut : 0;
+
+        if (tur === 'youtube') {
+            const ytVal = document.getElementById('inp-modal-video-youtube-url')?.value.trim();
+            youtubeId = parseYouTubeId(ytVal);
+            if (!youtubeId) {
+                alert('Lütfen geçerli bir YouTube video bağlantısı giriniz.');
+                return;
+            }
+            url = ytVal;
+        } else if (tur === 'mp4-url') {
+            url = document.getElementById('inp-modal-video-mp4-url')?.value.trim();
+            if (!url) {
+                alert('Lütfen doğrudan MP4 video bağlantısını giriniz.');
+                return;
+            }
+        } else if (tur === 'mp4-file') {
+            const f = inpVideoFilePick && inpVideoFilePick.files && inpVideoFilePick.files[0];
+            if (f) {
+                mediaId = 'vid_' + Date.now();
+                dosyaAdi = f.name;
+                dosyaBoyut = f.size;
+                if (window.SeyirAudioStore) {
+                    await window.SeyirAudioStore.saveAudio(mediaId, f);
+                }
+            } else if (!mediaId) {
+                alert('Lütfen bilgisayarınızdan bir MP4 video dosyası seçiniz.');
+                return;
+            }
+        }
+
+        const sure = parseInt(document.getElementById('inp-modal-video-sure')?.value, 10) || 30;
+        const otomatikGec = document.getElementById('chk-modal-video-auto-end')?.checked !== false;
+        const sesli = document.getElementById('chk-modal-video-muted')?.checked === false;
+        const altyaziKapat = document.getElementById('chk-modal-video-hide-cc')?.checked !== false;
+        const dongu = document.getElementById('chk-modal-video-dongu')?.checked === true;
+        const aktif = document.getElementById('chk-modal-video-aktif')?.checked !== false;
+
+        const yeniVideo = {
+            id: editIdx >= 0 && videolar[editIdx] ? videolar[editIdx].id : 'vid_' + Date.now(),
+            baslik,
+            tur,
+            url,
+            youtubeId,
+            mediaId,
+            dosyaAdi,
+            dosyaBoyut,
+            sure,
+            otomatikGec,
+            sesli,
+            altyaziKapat,
+            dongu,
+            aktif
+        };
+
+        if (editIdx >= 0 && videolar[editIdx]) {
+            videolar[editIdx] = yeniVideo;
+        } else {
+            videolar.push(yeniVideo);
+        }
+
+        saveData();
+        renderKaruselVideoUI();
+        closeVideoModal();
+
+        if (typeof BhUI !== 'undefined') {
+            BhUI.toast(`🎬 "${baslik}" videosu karusele eklendi.`, 'success');
+        }
+    });
 });
+
+/* ==========================================================================
+   🎬 KARUSEL VİDEO VE MEDYA YÖNETİM FONKSİYONLARI
+   ========================================================================== */
+
+/**
+ * YouTube bağlantısından 11 karakterlik video ID'sini ayıklar
+ */
+function parseYouTubeId(url) {
+    if (!url) return null;
+    url = url.trim();
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+    const match = url.match(/(?:youtu\.be\/|(?:youtube\.com|youtube-nocookie\.com)\/(?:embed\/|v\/|watch\?v=|shorts\/|watch\?.+&v=))([\w-]{11})/i);
+    return match ? match[1] : null;
+}
+
+function getKaruselVideoVerisi() {
+    if (!appData) return [];
+    if (!Array.isArray(appData.karuselVideolar)) appData.karuselVideolar = [];
+    return appData.karuselVideolar;
+}
+
+window.renderKaruselVideoUI = function () {
+    const videolar = getKaruselVideoVerisi();
+    const toplamEl = document.getElementById('kpi-video-toplam');
+    const aktifEl = document.getElementById('kpi-video-aktif');
+    const badgeEl = document.getElementById('badge-video-sayisi');
+
+    const toplam = videolar.length;
+    const aktif = videolar.filter(v => v.aktif !== false).length;
+
+    if (toplamEl) toplamEl.textContent = toplam;
+    if (aktifEl) aktifEl.textContent = aktif;
+    if (badgeEl) badgeEl.textContent = `${aktif} / ${toplam} Video`;
+
+    renderKaruselVideoTablo();
+};
+
+window.renderKaruselVideoTablo = function () {
+    const videolar = getKaruselVideoVerisi();
+    const tbody = document.getElementById('tbody-video-listesi');
+    if (!tbody) return;
+
+    if (videolar.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 35px 15px;">
+                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🎬</div>
+                    <div style="font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--text-color);">Henüz video kaydı bulunmuyor.</div>
+                    <div style="font-size: 0.85rem; max-width: 440px; margin: 0 auto 12px auto;">
+                        Yukarıdaki <strong>"Yeni Video Ekle"</strong> butonuna tıklayarak YouTube veya MP4 videolarınızı ana karusel akışına ekleyebilirsiniz.
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    videolar.forEach((item, index) => {
+        const isAktif = item.aktif !== false;
+        const isYouTube = item.tur === 'youtube';
+        const ytId = item.youtubeId || (isYouTube ? parseYouTubeId(item.url) : null);
+        const thumbUrl = ytId 
+            ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
+            : 'img/okul_logo.png';
+
+        const turBadge = isYouTube
+            ? `<span class="video-source-badge badge-youtube"><i class="fa-brands fa-youtube"></i> YouTube</span>`
+            : `<span class="video-source-badge badge-mp4"><i class="fa-solid fa-file-video"></i> MP4 Video</span>`;
+
+        const sureMetni = item.dongu
+            ? `<div style="font-weight: 700; font-size: 0.82rem; color: #0284c7;"><i class="fa-solid fa-arrows-rotate"></i> Sürekli Döngü</div><div style="font-size:0.72rem; color:var(--text-muted);">${item.sure || 30} sn</div>`
+            : (item.otomatikGec !== false
+                ? `<span style="color: #10b981; font-weight: 700; font-size: 0.82rem;"><i class="fa-solid fa-check"></i> Bittiğinde Geç</span>`
+                : `<span style="font-weight: 600; font-size: 0.82rem; color: var(--text-muted);">${item.sure || 30} sn</span>`);
+
+        html += `
+            <tr style="${!isAktif ? 'opacity: 0.55;' : ''}">
+                <td style="text-align: center;">
+                    <input type="checkbox" ${isAktif ? 'checked' : ''} onchange="toggleVideoAktiflik(${index})" title="Aç/Kapat" style="cursor: pointer; width: 17px; height: 17px;">
+                </td>
+                <td>
+                    <div class="video-thumb-preview" onclick="onPreviewVideo(${index})" title="Önizle ve Oynat" style="cursor: pointer;">
+                        <img src="${thumbUrl}" alt="Thumbnail" onerror="this.src='img/okul_logo.png'">
+                        <div class="play-icon-overlay"><i class="fa-solid fa-play"></i></div>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); margin-bottom: 3px;">
+                        ${escapeHtml(item.baslik || 'Video')}
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(item.url || '')}">
+                        ${escapeHtml(item.url || (item.tur === 'mp4-file' ? item.dosyaAdi || 'Yerel dosya' : ''))}
+                    </div>
+                </td>
+                <td>
+                    ${turBadge}
+                </td>
+                <td>
+                    ${sureMetni}
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: inline-flex; gap: 6px;">
+                        <button type="button" class="btn-secondary btn-sm" onclick="onPreviewVideo(${index})" title="Önizle" style="padding: 5px 8px; color: #ef4444;">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button type="button" class="btn-secondary btn-sm" onclick="duzenleVideoModal(${index})" title="Düzenle" style="padding: 5px 8px;">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" class="btn-secondary btn-sm" onclick="silVideo(${index})" title="Sil" style="color: #ef4444; padding: 5px 8px;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+};
+
+window.toggleVideoAktiflik = function (index) {
+    const videolar = getKaruselVideoVerisi();
+    if (videolar[index]) {
+        videolar[index].aktif = videolar[index].aktif === false;
+        saveData();
+        renderKaruselVideoUI();
+    }
+};
+
+window.silVideo = async function (index) {
+    const videolar = getKaruselVideoVerisi();
+    if (!videolar[index]) return;
+    const v = videolar[index];
+    if (confirm(`"${v.baslik}" videosu silinsin mi?`)) {
+        if (v.mediaId && window.SeyirAudioStore) {
+            try { await window.SeyirAudioStore.deleteAudio(v.mediaId); } catch (e) {}
+        }
+        videolar.splice(index, 1);
+        saveData();
+        renderKaruselVideoUI();
+        if (typeof BhUI !== 'undefined') BhUI.toast('Video listeden silindi.', 'info');
+    }
+};
+
+let currentModalVideoType = 'youtube';
+
+function setVideoModalType(tur) {
+    currentModalVideoType = tur;
+    document.querySelectorAll('.video-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tur') === tur);
+    });
+
+    const boxYt = document.getElementById('box-video-input-youtube');
+    const boxMp4Url = document.getElementById('box-video-input-mp4-url');
+    const boxMp4File = document.getElementById('box-video-input-mp4-file');
+
+    if (boxYt) boxYt.style.display = tur === 'youtube' ? 'block' : 'none';
+    if (boxMp4Url) boxMp4Url.style.display = tur === 'mp4-url' ? 'block' : 'none';
+    if (boxMp4File) boxMp4File.style.display = tur === 'mp4-file' ? 'block' : 'none';
+}
+
+function updateYouTubeLivePreview() {
+    const inpYt = document.getElementById('inp-modal-video-youtube-url');
+    const boxPrev = document.getElementById('box-youtube-live-preview');
+    const imgThumb = document.getElementById('img-modal-youtube-thumb');
+    const lblId = document.getElementById('lbl-modal-youtube-id');
+    if (!inpYt || !boxPrev) return;
+
+    const ytId = parseYouTubeId(inpYt.value);
+    if (ytId) {
+        if (imgThumb) imgThumb.src = `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`;
+        if (lblId) lblId.textContent = ytId;
+        boxPrev.style.display = 'flex';
+    } else {
+        boxPrev.style.display = 'none';
+    }
+}
+
+window.duzenleVideoModal = function (index) {
+    const videolar = getKaruselVideoVerisi();
+    const modal = document.getElementById('modal-karusel-video');
+    if (!modal) return;
+
+    let seciliTur = 'youtube';
+    const inpFile = document.getElementById('inp-modal-video-file-picker');
+    const lblFile = document.getElementById('lbl-modal-video-filename');
+    if (inpFile) inpFile.value = '';
+    if (lblFile) lblFile.textContent = 'Dosya seçilmedi';
+
+    if (index >= 0 && videolar[index]) {
+        const item = videolar[index];
+        document.getElementById('modal-video-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Videoyu Düzenle';
+        document.getElementById('inp-modal-video-id').value = index;
+        document.getElementById('inp-modal-video-baslik').value = item.baslik || '';
+        document.getElementById('inp-modal-video-sure').value = item.sure || 30;
+        document.getElementById('chk-modal-video-auto-end').checked = item.otomatikGec !== false;
+        document.getElementById('chk-modal-video-muted').checked = item.sesli !== true;
+        document.getElementById('chk-modal-video-hide-cc').checked = item.altyaziKapat !== false;
+        document.getElementById('chk-modal-video-dongu').checked = item.dongu === true;
+        document.getElementById('chk-modal-video-aktif').checked = item.aktif !== false;
+
+        seciliTur = item.tur || 'youtube';
+        if (seciliTur === 'youtube') {
+            document.getElementById('inp-modal-video-youtube-url').value = item.url || '';
+        } else if (seciliTur === 'mp4-url') {
+            document.getElementById('inp-modal-video-mp4-url').value = item.url || '';
+        } else if (seciliTur === 'mp4-file') {
+            if (lblFile) lblFile.textContent = item.dosyaAdi ? `${item.dosyaAdi}` : 'Dosya yüklü';
+        }
+    } else {
+        document.getElementById('modal-video-title').innerHTML = '<i class="fa-solid fa-film"></i> Karusele Video Ekle';
+        document.getElementById('inp-modal-video-id').value = -1;
+        document.getElementById('inp-modal-video-baslik').value = '';
+        document.getElementById('inp-modal-video-youtube-url').value = '';
+        document.getElementById('inp-modal-video-mp4-url').value = '';
+        document.getElementById('inp-modal-video-sure').value = 30;
+        document.getElementById('chk-modal-video-auto-end').checked = true;
+        document.getElementById('chk-modal-video-muted').checked = true;
+        document.getElementById('chk-modal-video-hide-cc').checked = true;
+        document.getElementById('chk-modal-video-dongu').checked = false;
+        document.getElementById('chk-modal-video-aktif').checked = true;
+        document.getElementById('box-youtube-live-preview').style.display = 'none';
+        seciliTur = 'youtube';
+    }
+
+    setVideoModalType(seciliTur);
+    updateYouTubeLivePreview();
+
+    modal.style.display = 'flex';
+    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+};
+
+window.closeVideoModal = function () {
+    const modal = document.getElementById('modal-karusel-video');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => { modal.style.display = 'none'; }, 200);
+    }
+};
+
+window.onPreviewVideo = async function (index) {
+    const videolar = getKaruselVideoVerisi();
+    if (!videolar[index]) return;
+    const item = videolar[index];
+    const modal = document.getElementById('modal-video-preview');
+    const wrap = document.getElementById('wrap-preview-video-player');
+    const titleEl = document.getElementById('preview-video-modal-title');
+    if (!modal || !wrap) return;
+
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="fa-solid fa-play" style="color: #ef4444;"></i> ${escapeHtml(item.baslik || 'Video Önizleme')}`;
+    }
+
+    const isYouTube = item.tur === 'youtube';
+    const ytId = item.youtubeId || (isYouTube ? parseYouTubeId(item.url) : null);
+
+    if (isYouTube && ytId) {
+        const ccParam = item.altyaziKapat !== false ? '&cc_load_policy=0&iv_load_policy=3' : '';
+        const loopParam = item.dongu ? `&loop=1&playlist=${ytId}` : '';
+        wrap.innerHTML = `
+            <iframe src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&controls=1&rel=0${ccParam}${loopParam}" 
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen></iframe>
+        `;
+    } else if (item.tur === 'mp4-file' && item.mediaId && window.SeyirAudioStore) {
+        const audioRec = await window.SeyirAudioStore.getAudio(item.mediaId);
+        if (audioRec && audioRec.blob) {
+            const url = URL.createObjectURL(audioRec.blob);
+            const loopAttr = item.dongu ? 'loop' : '';
+            wrap.innerHTML = `
+                <video src="${url}" controls autoplay ${loopAttr} style="width: 100%; height: 100%; object-fit: contain;"></video>
+            `;
+        } else {
+            wrap.innerHTML = `<div style="color: white; padding: 20px;">Yerel video dosyası bulunamadı.</div>`;
+        }
+    } else if (item.url) {
+        const loopAttr = item.dongu ? 'loop' : '';
+        wrap.innerHTML = `
+            <video src="${escapeHtml(item.url)}" controls autoplay ${loopAttr} style="width: 100%; height: 100%; object-fit: contain;"></video>
+        `;
+    } else {
+        wrap.innerHTML = `<div style="color: white; padding: 20px;">Video kaynağı yüklenemedi.</div>`;
+    }
+
+    modal.style.display = 'flex';
+};
+
+window.closeVideoPreview = function () {
+    const modal = document.getElementById('modal-video-preview');
+    const wrap = document.getElementById('wrap-preview-video-player');
+    if (wrap) wrap.innerHTML = '';
+    if (modal) modal.style.display = 'none';
+};
+
 
