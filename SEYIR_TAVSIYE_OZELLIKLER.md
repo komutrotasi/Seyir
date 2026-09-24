@@ -28,7 +28,7 @@ Bu doküman, **Nexus Seyir Paneli**'nin işlevselliğini, görselliğini ve otom
 ## 💡 Sistem & Tasarım Tavsiyeleri (Roadmap)
 
 ### 3. 📺 Akıllı Tahta & TV Otomatik Modları (Kiosk & Auto-Start)
-- **Ekran Koruyucu / Güç Tasarrufu:** Okul çıkış saatlerinden sonra (örn: 17:00 sonrası) panelin amblemli ve saat vurgulu şık bir koruyucu moduna geçmesi.
+- **Ekran Koruyucu / Güç Tasarrufu Modu (Kiosk Sleep Mode) ✅:** Mesai çıkış saatleri (varsayılan: 17:30 - 07:30), hafta sonları veya hareketsizlik süresi dolduğunda TV/panoyu otomatik uykuya geçirme; OLED yanma korumalı anti-burn-in drift animasyonu, neon saat, logo, hava durumu ve namaz geri sayımı; dokunma ile anında uyanma ve 3 dk geçici uyanıklık toleransı; admin panelinden tam yönetim ve canlı test.
 - **Tam Ekran Hatırlatıcı:** Pano ilk açıldığında TV / Akıllı Tahta çözünürlüğüne otomatik uyarlanma.
 
 ### 4. 🔔 Sesli & Görsel Zil / Anons Entegrasyonu, Yerel Zil Dosyası Yükleme ve Tören Müzikleri Yayını ✅

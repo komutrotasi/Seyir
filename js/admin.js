@@ -905,7 +905,21 @@ document.addEventListener('DOMContentLoaded', () => {
             mebHaberler: [],
             okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
             konum: { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
-            ayarlar: { karuselSuresi: 5000, temaOtomatik: true, tickerDurum: true, tickerBaslik: "⚡ DUYURULAR", tickerHiz: "normal", tickerAyrac: "⚡" },
+            ayarlar: {
+                karuselSuresi: 5000,
+                temaOtomatik: true,
+                tickerDurum: true,
+                tickerBaslik: "⚡ DUYURULAR",
+                tickerHiz: "normal",
+                tickerAyrac: "⚡",
+                ekranKoruyucu: {
+                    aktif: true,
+                    baslangic: "17:30",
+                    bitis: "07:30",
+                    haftasonu: true,
+                    bostaKalmaDk: 30
+                }
+            },
             gizlilik: varsayilanGizlilikAyarlari(),
             veriYonetimi: { sonGozdenGecirme: new Date().toISOString() },
             duyurular: [],
@@ -1105,6 +1119,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (appData.ayarlar) {
             document.getElementById('inp-karuselSuresi').value = appData.ayarlar.karuselSuresi || 5000;
             document.getElementById('inp-temaOtomatik').value = appData.ayarlar.temaOtomatik ? "true" : "false";
+
+            const ek = appData.ayarlar.ekranKoruyucu || {};
+            const scAktif = document.getElementById('inp-screensaver-aktif');
+            if (scAktif) scAktif.checked = ek.aktif !== false;
+            const scBaslangic = document.getElementById('inp-screensaver-baslangic');
+            if (scBaslangic) scBaslangic.value = ek.baslangic || "17:30";
+            const scBitis = document.getElementById('inp-screensaver-bitis');
+            if (scBitis) scBitis.value = ek.bitis || "07:30";
+            const scHaftasonu = document.getElementById('chk-screensaver-haftasonu');
+            if (scHaftasonu) scHaftasonu.checked = ek.haftasonu !== false;
+            const scBosta = document.getElementById('sel-screensaver-bostakalma');
+            if (scBosta) scBosta.value = (ek.bostaKalmaDk !== undefined) ? String(ek.bostaKalmaDk) : "30";
         }
         const gizlilik = gizlilikAyarlari(appData);
         const personelModu = document.getElementById('inp-personel-gosterim');
@@ -4171,6 +4197,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const inpTickerAyrac = document.getElementById('inp-ticker-ayrac-val');
         if (inpTickerAyrac) appData.ayarlar.tickerAyrac = inpTickerAyrac.value || '⚡';
 
+        const scAktif = document.getElementById('inp-screensaver-aktif');
+        const scBaslangic = document.getElementById('inp-screensaver-baslangic');
+        const scBitis = document.getElementById('inp-screensaver-bitis');
+        const scHaftasonu = document.getElementById('chk-screensaver-haftasonu');
+        const scBosta = document.getElementById('sel-screensaver-bostakalma');
+
+        if (scAktif && scBaslangic && scBitis) {
+            appData.ayarlar.ekranKoruyucu = {
+                aktif: scAktif.checked,
+                baslangic: scBaslangic.value || "17:30",
+                bitis: scBitis.value || "07:30",
+                haftasonu: scHaftasonu ? scHaftasonu.checked : true,
+                bostaKalmaDk: scBosta ? parseInt(scBosta.value, 10) : 30
+            };
+        }
+
         saveCurrentDayDnD();
         appData.kayanYazi = document.getElementById('inp-kayan').value
             .split('\n').map(x => x.trim()).filter(Boolean);
@@ -4202,6 +4244,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // MEB adresi değiştiğinde haber yenileme ayrıca tek istek olarak otomatik çalışır.
         // Bu buton diğer pano ayarlarını yerel tarayıcıya kaydeder.
     });
+
+    // 📺 Canlı Ekran Koruyucu Önizleme / Test Butonu
+    const btnTestScreensaver = document.getElementById('btn-test-screensaver');
+    if (btnTestScreensaver) {
+        btnTestScreensaver.addEventListener('click', () => {
+            localStorage.setItem('seyir_test_screensaver', String(Date.now()));
+            BhUI.toast("📺 Canlı Ekran Koruyucu sinyali panoya gönderildi!", "info");
+        });
+    }
 
     // Açık pano JSON'u tam personel adı ve özel yönetim tabloları içermez.
     document.querySelectorAll('.btn-download-public-json').forEach(btn => btn.addEventListener('click', () => {

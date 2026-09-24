@@ -429,6 +429,63 @@
                         </div>
                     </div>
 
+                    <!-- Kart 3.3: Ekran Koruyucu & Kiosk Güç Tasarrufu Modu -->
+                    <div class="glass-card" style="margin-top: 25px;">
+                        <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h2><i class="fa-solid fa-moon" style="color: #6366f1;"></i> Ekran Koruyucu &amp; Güç Tasarrufu Modu</h2>
+                                <p>Mesai bitiminde veya hafta sonlarında TV / Akıllı Tahta ekranlarını korur, piksel yanmasını (OLED Burn-in) önler ve enerji tasarrufu sağlar.</p>
+                            </div>
+                            <div style="display: inline-flex; align-items: center; gap: 10px;">
+                                <label class="switch-toggle" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">
+                                    <input type="checkbox" id="inp-screensaver-aktif" checked style="width: 20px; height: 20px; accent-color: #6366f1; cursor: pointer;">
+                                    <span style="color: var(--text-main);">Otomatik Uyku Aktif</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(99, 102, 241, 0.05); border: 1.5px solid rgba(99, 102, 241, 0.2); border-radius: 14px; padding: 20px; margin-top: 15px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 18px;">
+                                <div>
+                                    <label for="inp-screensaver-baslangic" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px; color: var(--text-main);">
+                                        <i class="fa-regular fa-clock" style="color: #6366f1;"></i> Uyku Başlangıç Saati
+                                    </label>
+                                    <input type="time" id="inp-screensaver-baslangic" value="17:30" class="form-control" style="font-weight: 600;">
+                                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 4px;">Akşam mesai bitişinde uykuya geçer</small>
+                                </div>
+                                <div>
+                                    <label for="inp-screensaver-bitis" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px; color: var(--text-main);">
+                                        <i class="fa-regular fa-sun" style="color: #f59e0b;"></i> Uyanma (Bitiş) Saati
+                                    </label>
+                                    <input type="time" id="inp-screensaver-bitis" value="07:30" class="form-control" style="font-weight: 600;">
+                                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 4px;">Sabah mesai başlangıcında panoyu açar</small>
+                                </div>
+                                <div>
+                                    <label for="sel-screensaver-bostakalma" style="font-weight: 700; font-size: 0.88rem; display: block; margin-bottom: 6px; color: var(--text-main);">
+                                        <i class="fa-solid fa-hourglass-half" style="color: #10b981;"></i> Boşta Kalma (Hareketsizlik)
+                                    </label>
+                                    <select id="sel-screensaver-bostakalma" class="form-control" style="font-weight: 600;">
+                                        <option value="0">Devre Dışı (Sadece Saat Bazlı)</option>
+                                        <option value="15">15 Dakika Hareketsiz Kalınca</option>
+                                        <option value="30" selected>30 Dakika Hareketsiz Kalınca (Önerilen)</option>
+                                        <option value="60">60 Dakika Hareketsiz Kalınca</option>
+                                    </select>
+                                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 4px;">Ekrana dokunulmadığında otomatik uyur</small>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.08);">
+                                <label style="display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text-main);">
+                                    <input type="checkbox" id="chk-screensaver-haftasonu" checked style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                                    <span>📅 Hafta sonu boyunca tam gün uyku modunda kal</span>
+                                </label>
+                                <button type="button" id="btn-test-screensaver" class="btn-action-purple" style="padding: 9px 18px; font-size: 0.88rem; border-radius: 9px; display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Canlı Test Et (Panoda Göster)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Kart 2: Sistem ve Veri Yönetimi -->
                     <div class="glass-card" style="margin-top: 25px;">
                         <div class="section-header">
@@ -4321,7 +4378,7 @@
     <script src="js/sehir-koordinat.js?v=20260922_5f6f637b"></script>
     <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
     <script src="js/local-auth.js?v=20260917_a8e68658"></script>
-    <script src="js/admin.js?v=20260924_27e9c4a4"></script>
+    <script src="js/admin.js?v=20260924_9c1abbf8"></script>
 </body>
 
 </html>

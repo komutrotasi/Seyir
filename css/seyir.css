@@ -2537,3 +2537,151 @@ html {
         border-color: #10b981;
     }
 }
+
+/* ============================================================
+   3.3 — EKRAN KORUYUCU & KİOSK GÜÇ TASARRUFU MODU (SCREENSAVER)
+   ============================================================ */
+.screensaver-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0a0f1d 0%, #030712 100%);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.screensaver-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Piksel Yanığı Koruması (OLED / LED Anti-Burnin Drift Animasyonu) */
+.screensaver-drift-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+    max-width: 900px;
+    animation: screensaverDrift 45s ease-in-out infinite alternate;
+}
+
+@keyframes screensaverDrift {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(14px, -10px); }
+    50% { transform: translate(-12px, 12px); }
+    75% { transform: translate(-14px, -8px); }
+    100% { transform: translate(10px, 14px); }
+}
+
+.screensaver-logo-wrap {
+    margin-bottom: 18px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.screensaver-logo {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.45));
+    animation: screensaverLogoPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes screensaverLogoPulse {
+    0% { transform: scale(0.96); opacity: 0.85; filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.3)); }
+    100% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 35px rgba(129, 140, 248, 0.6)); }
+}
+
+.screensaver-school-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: -0.3px;
+    margin-bottom: 22px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    opacity: 0.92;
+}
+
+.screensaver-time-wrap {
+    margin-bottom: 24px;
+}
+
+.screensaver-time {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(4.5rem, 10vw, 8.5rem);
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    line-height: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.4));
+    font-variant-numeric: tabular-nums;
+}
+
+.screensaver-date {
+    font-size: clamp(1rem, 1.8vw, 1.45rem);
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: 10px;
+    letter-spacing: 0.4px;
+}
+
+.screensaver-widgets-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.screensaver-widget {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.screensaver-widget .sc-icon {
+    font-size: 1.15rem;
+}
+
+.screensaver-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #64748b;
+    background: rgba(15, 23, 42, 0.5);
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    letter-spacing: 0.3px;
+}
+
+.screensaver-hint .sc-dot {
+    color: #475569;
+}

@@ -271,6 +271,14 @@ const PanoTV = (function () {
                     cizelge: []
                 }
             }, fileData, localData || {});
+            if (!panoData.ayarlar) panoData.ayarlar = {};
+            panoData.ayarlar.ekranKoruyucu = Object.assign({
+                aktif: true,
+                baslangic: "17:30",
+                bitis: "07:30",
+                haftasonu: true,
+                bostaKalmaDk: 30
+            }, (fileData && fileData.ayarlar && fileData.ayarlar.ekranKoruyucu) || {}, (localData && localData.ayarlar && localData.ayarlar.ekranKoruyucu) || {});
             panoData.konum = Object.assign(
                 { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
                 fileData.konum || {},
@@ -1043,6 +1051,181 @@ const PanoTV = (function () {
         if (globalNamazTimes) {
             updateNamazUI();
         }
+
+        checkScreensaverState(d);
+    }
+
+    // -------------------------------------------------------------
+    // 📺 3.3 — EKRAN KORUYUCU & GÜÇ TASARRUFU (KIOSK SLEEP MODE)
+    // -------------------------------------------------------------
+    let screensaverActive = false;
+    let screensaverTestForced = false;
+    let screensaverWakeGraceUntil = 0; // ms zaman damgası
+    let lastUserInteractionTime = Date.now();
+
+    function registerScreensaverUserActivity() {
+        lastUserInteractionTime = Date.now();
+        if (screensaverActive) {
+            // Ekrana dokunulduğunda veya fare hareketinde 3 dakika geçici uyanıklık tanı
+            screensaverWakeGraceUntil = Date.now() + (3 * 60 * 1000);
+            hideScreensaver();
+        }
+    }
+
+    function parseClockToMinutes(str) {
+        if (!str || typeof str !== 'string') return null;
+        const p = str.split(':');
+        if (p.length < 2) return null;
+        const h = parseInt(p[0], 10);
+        const m = parseInt(p[1], 10);
+        if (isNaN(h) || isNaN(m)) return null;
+        return h * 60 + m;
+    }
+
+    function checkScreensaverState(d) {
+        const scEl = document.getElementById('pano-screensaver');
+        if (!scEl) return;
+
+        const cfg = (panoData && panoData.ayarlar && panoData.ayarlar.ekranKoruyucu) || {
+            aktif: true,
+            baslangic: "17:30",
+            bitis: "07:30",
+            haftasonu: true,
+            bostaKalmaDk: 30
+        };
+
+        const nowMs = Date.now();
+
+        // 1. Canlı test tetiklenmişse doğrudan göster
+        if (screensaverTestForced) {
+            showScreensaver(d);
+            return;
+        }
+
+        // 2. Özellik kapatılmışsa panoyu uyutma
+        if (cfg.aktif === false) {
+            if (screensaverActive) hideScreensaver();
+            return;
+        }
+
+        // 3. Kullanıcı dokunup uyandırdıysa geçici uyanma süresi dolana dek uykuya dönme
+        if (nowMs < screensaverWakeGraceUntil) {
+            if (screensaverActive) hideScreensaver();
+            return;
+        }
+
+        let shouldSleep = false;
+        const day = d.getDay(); // 0: Pazar, 6: Cumartesi
+        const isWeekend = (day === 0 || day === 6);
+
+        // A) Hafta sonu tam gün uyku kontrolü
+        if (cfg.haftasonu && isWeekend) {
+            shouldSleep = true;
+        }
+
+        // B) Mesai saatleri dışı uyku kontrolü (Gece yarısı geçişini tam destekler)
+        if (!shouldSleep) {
+            const startMins = parseClockToMinutes(cfg.baslangic || "17:30");
+            const endMins = parseClockToMinutes(cfg.bitis || "07:30");
+            if (startMins !== null && endMins !== null) {
+                const curMins = d.getHours() * 60 + d.getMinutes();
+                const inRange = (startMins <= endMins)
+                    ? (curMins >= startMins && curMins < endMins)
+                    : (curMins >= startMins || curMins < endMins);
+                if (inRange) {
+                    shouldSleep = true;
+                }
+            }
+        }
+
+        // C) Boşta kalma (hareketsizlik) süresi kontrolü
+        if (!shouldSleep) {
+            const idleMin = parseInt(cfg.bostaKalmaDk, 10);
+            if (idleMin > 0) {
+                const idleElapsedMs = nowMs - lastUserInteractionTime;
+                if (idleElapsedMs >= idleMin * 60 * 1000) {
+                    shouldSleep = true;
+                }
+            }
+        }
+
+        if (shouldSleep) {
+            showScreensaver(d);
+        } else if (screensaverActive) {
+            hideScreensaver();
+        }
+    }
+
+    function showScreensaver(d) {
+        const scEl = document.getElementById('pano-screensaver');
+        if (!scEl) return;
+
+        if (!screensaverActive) {
+            scEl.classList.add('active');
+            scEl.setAttribute('aria-hidden', 'false');
+            screensaverActive = true;
+        }
+
+        // Canlı Saat ve Tarih
+        const timeEl = document.getElementById('screensaver-time');
+        const dateEl = document.getElementById('screensaver-date');
+        if (timeEl) timeEl.textContent = d.toLocaleTimeString('tr-TR');
+        if (dateEl) {
+            dateEl.textContent = d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        // Okul Adı & Logo
+        const nameEl = document.getElementById('screensaver-school-name');
+        const logoEl = document.getElementById('screensaver-logo');
+        if (nameEl && panoData && panoData.okulAdi) {
+            const tamAd = panoData.okulAdi + (panoData.okulTuru ? (' ' + panoData.okulTuru) : '');
+            if (nameEl.textContent !== tamAd) nameEl.textContent = tamAd;
+        }
+        if (logoEl && panoData && panoData.okulLogo) {
+            if (logoEl.getAttribute('src') !== panoData.okulLogo) {
+                logoEl.src = panoData.okulLogo;
+            }
+        }
+
+        // Canlı Hava Durumu
+        const wIconEl = document.getElementById('screensaver-weather-icon');
+        const wTextEl = document.getElementById('screensaver-weather-text');
+        const headerWIcon = document.getElementById('header-weather-icon');
+        const headerWTemp = document.getElementById('header-weather-temp');
+        const headerWDesc = document.getElementById('header-weather-desc');
+        if (wTextEl && headerWTemp) {
+            const tempVal = headerWTemp.textContent.trim();
+            const descVal = headerWDesc ? headerWDesc.textContent.trim() : '';
+            wTextEl.textContent = `${tempVal} · ${descVal}`;
+        }
+        if (wIconEl && headerWIcon) {
+            wIconEl.textContent = headerWIcon.textContent.trim() || '🌤️';
+        }
+
+        // Canlı Namaz Vakti & Geri Sayım
+        const nTextEl = document.getElementById('screensaver-namaz-text');
+        const elAdi = document.getElementById('namaz-vakit-adi');
+        const elSaat = document.getElementById('namaz-vakit-saat');
+        const elKalan = document.getElementById('namaz-kalan-sure');
+        if (nTextEl) {
+            if (elAdi && elKalan && elKalan.textContent.trim()) {
+                nTextEl.textContent = `${elAdi.textContent.trim()} Vaktine: ${elKalan.textContent.trim()}`;
+            } else if (elAdi && elSaat) {
+                nTextEl.textContent = `${elAdi.textContent.trim()}: ${elSaat.textContent.trim()}`;
+            } else {
+                nTextEl.textContent = 'Vakit Bilgisi Aktif';
+            }
+        }
+    }
+
+    function hideScreensaver() {
+        const scEl = document.getElementById('pano-screensaver');
+        if (scEl) {
+            scEl.classList.remove('active');
+            scEl.setAttribute('aria-hidden', 'true');
+        }
+        screensaverActive = false;
+        screensaverTestForced = false;
     }
 
     /**
@@ -1985,9 +2168,23 @@ const PanoTV = (function () {
         }, 5000);
         setInterval(fetchSchoolWeather, 1800000);
 
+        // Etkileşim dinleyicileri (Ekran koruyucu uyandırma)
+        ['mousemove', 'mousedown', 'touchstart', 'keydown', 'wheel'].forEach(evt => {
+            window.addEventListener(evt, registerScreensaverUserActivity, { passive: true });
+        });
+
+        const scOverlay = document.getElementById('pano-screensaver');
+        if (scOverlay) {
+            scOverlay.addEventListener('click', registerScreensaverUserActivity);
+        }
+
         // Admin paneli başka sekmede kaydettiğinde yalnızca açık pano kopyasını yenile.
         window.addEventListener('storage', (event) => {
             if (event.key === 'seyir_public_data') fetchData();
+            if (event.key === 'seyir_test_screensaver') {
+                screensaverTestForced = true;
+                showScreensaver(new Date());
+            }
         });
 
         // Veriyi periyodik yenileme (varsayılan 10 dakika)

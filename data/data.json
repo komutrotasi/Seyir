@@ -62,7 +62,14 @@
     "karuselVideolar": [],
     "ayarlar": {
         "karuselSuresi": 5000,
-        "temaOtomatik": true
+        "temaOtomatik": true,
+        "ekranKoruyucu": {
+            "aktif": true,
+            "baslangic": "17:30",
+            "bitis": "07:30",
+            "haftasonu": true,
+            "bostaKalmaDk": 30
+        }
     },
     "gizlilik": {
         "personelAdiGosterim": "gorev",

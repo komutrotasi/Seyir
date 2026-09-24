@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="css/fontawesome.min.css?v=20260917_ded1c367">
 
     <!-- PanoTV Styles -->
-    <link rel="stylesheet" href="css/seyir.css?v=20260924_8987fc46">
+    <link rel="stylesheet" href="css/seyir.css?v=20260924_bb6dc6d0">
 </head>
 
 <body>
@@ -314,12 +314,43 @@
         </div>
     </div>
 
+    <!-- 3.3 — EKRAN KORUYUCU & KİOSK GÜÇ TASARRUFU OVERLAY -->
+    <div id="pano-screensaver" class="screensaver-overlay" aria-hidden="true">
+        <div class="screensaver-drift-container" id="screensaver-drift-container">
+            <div class="screensaver-logo-wrap">
+                <img id="screensaver-logo" src="img/okul_logo.png" alt="Logo" class="screensaver-logo" onerror="this.src='img/okul_logo.png'">
+            </div>
+            <div class="screensaver-school-name" id="screensaver-school-name">
+                Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi
+            </div>
+            <div class="screensaver-time-wrap">
+                <div class="screensaver-time" id="screensaver-time">--:--:--</div>
+                <div class="screensaver-date" id="screensaver-date">--</div>
+            </div>
+            <div class="screensaver-widgets-row">
+                <div class="screensaver-widget" id="screensaver-weather-widget">
+                    <span class="sc-icon" id="screensaver-weather-icon">🌤️</span>
+                    <span class="sc-val" id="screensaver-weather-text">Hava Durumu Yükleniyor...</span>
+                </div>
+                <div class="screensaver-widget" id="screensaver-namaz-widget">
+                    <span class="sc-icon">🕌</span>
+                    <span class="sc-val" id="screensaver-namaz-text">Vakit Yükleniyor...</span>
+                </div>
+            </div>
+            <div class="screensaver-hint">
+                <span><i class="fa-regular fa-moon"></i> Ekran Koruma &amp; Güç Tasarrufu Modu</span>
+                <span class="sc-dot">·</span>
+                <span>Uyanmak için dokunun veya fareyi hareket ettirin</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Türkiye 81 İl Koordinat ve API Eşleme Modülü -->
     <script src="js/sehir-koordinat.js?v=20260922_5f6f637b"></script>
     <!-- Yerel Ses ve Müzik Depolama Modülü -->
     <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
     <!-- PanoTV Core Logic -->
-    <script src="js/seyir.js?v=20260924_d822927d"></script>
+    <script src="js/seyir.js?v=20260924_eea89a46"></script>
 </body>
 
 </html>

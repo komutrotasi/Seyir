@@ -79,9 +79,12 @@ php tests/meb-parser-test.php
 - **📁 Yerel Video Yükleme (IndexedDB):** Kullanıcı yerel bilgisayarından MP4 video yükleyebilir. Dosya IndexedDB (`seyir_audio_db` / `SeyirAudioStore`) üzerinde binary `Blob` olarak saklanır ve panoda `URL.createObjectURL` ile oynatılır.
 - **Admin Video Yönetim Merkezi:** Sol menüye eklenen "🎬 Video & Medya" sekmesi; Toplam Video, Aktif Yayında ve Entegrasyon KPI istatistikleri, otomatik YouTube video ID ayrıştırma ve canlı afiş (thumbnail) önizlemesi, 16:9 modal önizleme oynatıcısı, süre ayarı ve anlık aktiflik anahtarı.
 
-### 3.3 — 📺 Ekran Koruyucu / Güç Tasarrufu Modu
-- Belirli bir saatten sonra (örn: 17:00) pano amblemli, saat vurgulu **koruyucu moda** geçmeli.
-- **Teknik:** `seyir.js` içinde saate bağlı `checkScreensaver()` fonksiyonu + CSS overlay.
+### 3.3 — 📺 Ekran Koruyucu / Güç Tasarrufu Modu (Kiosk Sleep Mode) ✅
+- **Otomatik Uyku & Güç Tasarrufu:** Mesai saatleri dışında (varsayılan: `17:30` - `07:30`), hafta sonlarında veya belirlenen süre boyunca hareketsiz kalındığında (15, 30, 60 dk) TV ve Akıllı Tahtalar otomatik uyku moduna geçer.
+- **Piksel Yanması Koruması (OLED / LED Anti-Burn-in):** Ekran koruyucu açıkken içeriğin durağan kalıp pikselleri yıpratmasını önlemek için 45 saniyelik mikro pozisyon kaydırma animasyonu (`screensaverDrift`) ve yumuşak logo nabzı (`screensaverLogoPulse`) eklendi.
+- **Zengin Bilgi Ekranı:** Koyu OLED zemin üzerinde okul logosu, okul adı, büyük neon saat (`HH:MM:SS`), tam tarih, canlı hava durumu ve sonraki vakit geri sayım kartı.
+- **Akıllı Uyandırma & Geçici Uyanıklık (Grace Period):** Ekrana dokunulduğunda, fare hareketinde veya klavye tuşuna basıldığında ekran koruyucu anında gizlenir; mesai dışı saatte uyanıldığında kullanıcının işlem yapabilmesi için 3 dakikalık geçici uyanıklık süresi tanınır.
+- **Admin Yönetim Kartı & Canlı Test:** Admin panelinde Genel Ayarlar altına eklenen yönetim kartı; başlangıç/bitiş saati ayarı, hafta sonu tam gün uyku anahtarı, boşta kalma süresi seçicisi ve diğer sekmedeki panoya anında test sinyali gönderen `Canlı Test Et` butonu.
 
 ### 3.4 — 🔔 Sesli & Görsel Zil Efekti, Yerel Zil Dosyası Yükleme, Tören Müzikleri ve Nöbetçi Öğretmen Vurgusu ✅
 - **Web Audio Sentezleyici & Çoklu Melodi:** Harici ses dosyasına ihtiyaç bırakmayan, saf Web Audio API akorları ile 7 farklı okul melodisi (`modern`, `westminster`, `chime`, `klasik`, `marimba`, `fanfare`, `alarm`).
@@ -113,7 +116,7 @@ php tests/meb-parser-test.php
 |---|---|---|---|
 | 3.1 | Dinamik URL → haber entegrasyonu + Logo & Okul Adı | 🟢 Planlı | ✅ Tamamlandı |
 | 3.2 | Video oynatıcı karusel | 🟢 Planlı | ✅ Tamamlandı |
-| 3.3 | Ekran koruyucu modu | 🟢 Planlı | ⏳ Bekliyor |
+| 3.3 | Ekran koruyucu modu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.4 | Sesli zil efekti & Teneffüs Nöbetçi Vurgusu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.5 | QR kod entegrasyonu | 🟢 Planlı | ⏳ Bekliyor |
 | 3.6 | PWA / Service Worker | 🟢 Planlı | ⏳ Bekliyor |
