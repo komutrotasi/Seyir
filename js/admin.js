@@ -1761,6 +1761,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icerikSayac && icerikInput) {
             icerikSayac.textContent = `${icerikInput.value.length} / 250`;
         }
+
+        // Canlı QR Kod Önizleme
+        const linkInput = document.getElementById('inline-d-link');
+        const linkVal = (linkInput && linkInput.value.trim()) || '';
+        const prevQrBox = document.getElementById('prev-card-qr-box');
+        const prevQrCode = document.getElementById('prev-card-qr-code');
+        const prevQrUrl = document.getElementById('prev-card-qr-url');
+
+        if (prevQrBox && prevQrCode) {
+            if (linkVal) {
+                prevQrBox.style.display = 'flex';
+                if (prevQrUrl) prevQrUrl.textContent = linkVal;
+                prevQrCode.innerHTML = '';
+                if (typeof QRCode !== 'undefined') {
+                    try {
+                        new QRCode(prevQrCode, {
+                            text: linkVal,
+                            width: 44,
+                            height: 44,
+                            colorDark: "#0f172a",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    } catch (e) {}
+                }
+            } else {
+                prevQrBox.style.display = 'none';
+                prevQrCode.innerHTML = '';
+            }
+        }
     }
 
     // Hızlı Şablon Uygulayıcı
@@ -1768,32 +1798,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const baslikEl = document.getElementById('inline-d-baslik');
         const icerikEl = document.getElementById('inline-d-icerik');
         const renkEl = document.getElementById('inline-d-renk');
+        const linkEl = document.getElementById('inline-d-link');
 
         const sablonlar = {
             kurs: {
                 baslik: 'Hafta Sonu DYK Kursları',
                 renk: 'secondary', // Yeşil
-                icerik: 'Hafta sonu Destekleme ve Yetiştirme Kurslarımız cumartesi ve pazar günleri saat 09:00\'da başlayacaktır. Tüm öğrencilerimizin dersliklerinde hazır bulunmaları rica olunur.'
+                icerik: 'Hafta sonu Destekleme ve Yetiştirme Kurslarımız cumartesi ve pazar günleri saat 09:00\'da başlayacaktır. Tüm öğrencilerimizin dersliklerinde hazır bulunmaları rica olunur.',
+                link: 'https://e-kurs.meb.gov.tr/'
             },
             veli: {
                 baslik: '1. Dönem Genel Veli Toplantısı',
                 renk: 'primary', // Mavi
-                icerik: 'Öğrencilerimizin akademik ve sosyal gelişimlerini değerlendirmek üzere pazar günü saat 13:00\'te okulumuz konferans salonunda genel veli toplantısı yapılacaktır.'
+                icerik: 'Öğrencilerimizin akademik ve sosyal gelişimlerini değerlendirmek üzere pazar günü saat 13:00\'te okulumuz konferans salonunda genel veli toplantısı yapılacaktır.',
+                link: 'https://konyamcosihl.meb.k12.tr/'
             },
             etkinlik: {
                 baslik: 'TÜBİTAK ve TEKNOFEST Başarımız',
                 renk: 'purple', // Mor
-                icerik: 'Okulumuz teknoloji takımı, TEKNOFEST bölge finallerinde dereceye girerek Türkiye finallerine katılmaya hak kazanmıştır. Öğrenci ve danışman öğretmenlerimizi tebrik ederiz.'
+                icerik: 'Okulumuz teknoloji takımı, TEKNOFEST bölge finallerinde dereceye girerek Türkiye finallerine katılmaya hak kazanmıştır. Öğrenci ve danışman öğretmenlerimizi tebrik ederiz.',
+                link: 'https://www.teknofest.org/'
             },
             acil: {
                 baslik: 'Önemli İdari Duyuru',
                 renk: 'danger', // Kırmızı
-                icerik: 'Hava muhalefeti sebebiyle yarın okulumuzda eğitim-öğretime bir (1) gün ara verilmiştir. Tüm veli ve öğrencilerimize önemle duyurulur.'
+                icerik: 'Hava muhalefeti sebebiyle yarın okulumuzda eğitim-öğretime bir (1) gün ara verilmiştir. Tüm veli ve öğrencilerimize önemle duyurulur.',
+                link: ''
             },
             tatil: {
                 baslik: 'Ara Tatil Başlangıcı',
                 renk: 'accent', // Turuncu
-                icerik: '1. Dönem ara tatili Cuma günü ders bitimiyle başlayacaktır. Tüm öğrencilerimize ve öğretmenlerimize verimli ve dinlendirici bir tatil dileriz.'
+                icerik: '1. Dönem ara tatili Cuma günü ders bitimiyle başlayacaktır. Tüm öğrencilerimize ve öğretmenlerimize verimli ve dinlendirici bir tatil dileriz.',
+                link: 'https://www.meb.gov.tr/'
             }
         };
 
@@ -1803,6 +1839,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (baslikEl) baslikEl.value = sablon.baslik;
         if (icerikEl) icerikEl.value = sablon.icerik;
         if (renkEl) renkEl.value = sablon.renk;
+        if (linkEl) linkEl.value = sablon.link || '';
 
         updateDuyuruLivePreview();
         if (icerikEl) icerikEl.focus();
@@ -1864,8 +1901,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                         </div>
                         <p style="margin: 0 0 10px 0; color: #334155; font-size: 0.9rem; line-height: 1.5;">${escapeHtml(d.icerik || '')}</p>
-                        <div style="display: flex; align-items: center; gap: 12px; font-size: 0.8rem; color: #64748b;">
+                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: #64748b;">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHtml(d.tarih || '')}</span>
+                            ${(d.link || d.url) ? `
+                            <span style="display: inline-flex; align-items: center; gap: 5px; color: #6366f1; font-weight: 700; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.25);">
+                                <i class="fa-solid fa-qrcode"></i> QR Kod:
+                                <a href="${escapeHtml(d.link || d.url)}" target="_blank" rel="noopener noreferrer" style="color: #6366f1; text-decoration: underline; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(d.link || d.url)}</a>
+                            </span>
+                            ` : ''}
                         </div>
                     </div>
                     <div class="list-item-actions" style="margin-left: 15px; display: flex; gap: 6px;">
@@ -1893,10 +1936,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const baslikEl = document.getElementById('inline-d-baslik');
         const icerikEl = document.getElementById('inline-d-icerik');
         const renkEl = document.getElementById('inline-d-renk');
+        const linkEl = document.getElementById('inline-d-link');
 
         if (baslikEl) baslikEl.value = d.baslik || '';
         if (icerikEl) icerikEl.value = d.icerik || '';
         if (renkEl) renkEl.value = d.renk || 'secondary';
+        if (linkEl) linkEl.value = d.link || d.url || '';
 
         const textAdd = document.getElementById('text-add-inline-duyuru');
         if (textAdd) textAdd.textContent = "Güncelle";
@@ -1932,6 +1977,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const baslik = (document.getElementById('inline-d-baslik').value || '').trim();
             const icerik = (document.getElementById('inline-d-icerik').value || '').trim();
             const renk = document.getElementById('inline-d-renk').value || 'secondary';
+            const link = (document.getElementById('inline-d-link').value || '').trim();
 
             if (!baslik) return alert("Başlık boş olamaz.");
 
@@ -1943,6 +1989,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const duyuruObj = {
                 baslik: baslik,
                 icerik: icerik,
+                link: link,
                 tarih: dateStr,
                 gorsel: "",
                 renk: renk,
@@ -1972,6 +2019,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Temizle
             document.getElementById('inline-d-baslik').value = "";
             document.getElementById('inline-d-icerik').value = "";
+            document.getElementById('inline-d-link').value = "";
             document.getElementById('inline-d-renk').value = "secondary";
 
             renderDuyurular();
@@ -1984,6 +2032,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editingDuyuruIndex = -1;
             document.getElementById('inline-d-baslik').value = "";
             document.getElementById('inline-d-icerik').value = "";
+            document.getElementById('inline-d-link').value = "";
             document.getElementById('inline-d-renk').value = "secondary";
             const textAdd = document.getElementById('text-add-inline-duyuru');
             if (textAdd) textAdd.textContent = "Duyuru Ekle";
@@ -2003,6 +2052,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inpIcerikEl) inpIcerikEl.addEventListener('input', updateDuyuruLivePreview);
     const inpRenkEl = document.getElementById('inline-d-renk');
     if (inpRenkEl) inpRenkEl.addEventListener('change', updateDuyuruLivePreview);
+    const inpLinkEl = document.getElementById('inline-d-link');
+    if (inpLinkEl) inpLinkEl.addEventListener('input', updateDuyuruLivePreview);
 
     const aramaInputEl = document.getElementById('duyuru-arama-input');
     if (aramaInputEl) aramaInputEl.addEventListener('input', renderDuyurular);

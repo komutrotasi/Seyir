@@ -100,9 +100,12 @@ php tests/meb-parser-test.php
 - **Teneffüste Nöbetçi Öğretmen Öne Çıkarma:** Teneffüs başladığında otomatik olarak nöbetçi paneline geçiş (`#flip-inner` flip), canlı yeşil nabız rozeti (`.nobet-active-tag`, `nobetTagPulse`, `.duty-ping`), nöbetçi kartlarında 3D yükselme ve zümrüt ışığı (`.is-teneffus-duty`), zil anında 15 saniyelik parıltı (`.bell-duty-shimmer`).
 - **Admin Açma/Kapama Ayarları:** Teneffüs nöbetçi vurgusu (`nobetciVurgu`), neon görsel efekt (`neonEfekt`) ve tören ekranı admin panelinden bağımsız olarak yönetilebilir.
 
-### 3.5 — 📱 QR Kod Entegrasyonu
-- Duyuru kartlarının yanında dinamik QR kod alanı (PDF/Afiş için).
-- **Teknik:** `qrcode.js` ile duyuruya URL girildiğinde otomatik QR üretimi.
+### 3.5 — 📱 QR Kod Entegrasyonu (Dinamik Karekod & Belge/Afiş Bağlantısı) ✅
+- **Otomatik & Dinamik QR Kod Üretimi:** Duyuru veya afişe ait web bağlantısı (PDF kılavuz, form, MEB duyurusu vb.) girildiğinde, dijital panodaki duyuru kartının yanında otomatik olarak yüksek kontrastlı ve taranabilir QR Kod (`.duyuru-qr-wrapper`) oluşturulur.
+- **📱 Akıllı Telefonla Anında Tarama:** Koridorda veya sınıfta TV / Akıllı Tahta ekranına bakan öğrenci, öğretmen ve veliler cep telefonu kamerasıyla QR kodu taratarak ilgili resmi belgeye, afişe veya başvuru formuna anında ulaşabilir.
+- **Akıllı Tahta Dokunma Desteği:** Etkileşimli akıllı tahtalarda panodaki QR kod rozetine doğrudan dokunulduğunda bağlantı yeni sekmede açılır.
+- **Admin Canlı Önizleme & Hızlı Şablonlar:** Admin panelinde duyuru formu içerisine "🔗 Bağlantı & QR Kod URL" alanı eklendi; URL girildiği anda canlı önizleme kartında mini QR kodu gerçek zamanlı render edilir. Hızlı şablonlar (DYK Kursları, TEKNOFEST, Veli Toplantısı vb.) örnek QR bağlantılarıyla zenginleştirildi.
+- **📦 %100 Çevrimdışı & Yerel Bağımsızlık:** Dış CDN veya üçüncü taraf servislere ihtiyaç duymadan, doğrudan `js/vendor/qrcode.min.js` üzerinden yerel olarak çalışır; internet kesintilerinde dahi kesintisiz QR üretimi sağlanır.
 
 ### 3.6 — 🌐 Çevrimdışı Çalışma (PWA / Service Worker)
 - İnternet bağlantısı koptuğunda son kaydedilen verilerle çalışmaya devam.
@@ -118,7 +121,7 @@ php tests/meb-parser-test.php
 | 3.2 | Video oynatıcı karusel | 🟢 Planlı | ✅ Tamamlandı |
 | 3.3 | Ekran koruyucu modu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.4 | Sesli zil efekti & Teneffüs Nöbetçi Vurgusu | 🟢 Planlı | ✅ Tamamlandı |
-| 3.5 | QR kod entegrasyonu | 🟢 Planlı | ⏳ Bekliyor |
+| 3.5 | QR kod entegrasyonu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.6 | PWA / Service Worker | 🟢 Planlı | ⏳ Bekliyor |
 
 ---

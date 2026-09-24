@@ -2685,3 +2685,57 @@ html {
 .screensaver-hint .sc-dot {
     color: #475569;
 }
+
+/* ============================================================
+   3.5 — DUYURU KARTLARI DİNAMİK QR KOD BİLEŞENİ
+   ============================================================ */
+.duyuru-qr-wrapper {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+.duyuru-qr-wrapper:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.45);
+    border-color: #818cf8;
+}
+
+.duyuru-qr-box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.duyuru-qr-box canvas,
+.duyuru-qr-box img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+.duyuru-qr-sub {
+    font-size: 0.64rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+

@@ -676,7 +676,21 @@
                                         </div>
                                         <textarea id="inline-d-icerik" class="form-control" rows="3" maxlength="250"
                                             style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; min-height: 90px; padding: 10px 14px; line-height: 1.5;"
-                                            placeholder="Duyuru metnini, tarihini veya detaylı açıklamayı buraya yazın..."></textarea>
+                                    </div>
+
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <label for="inline-d-link" style="font-weight: 700; font-size: 0.88rem; color: #334155; margin: 0;">
+                                                <i class="fa-solid fa-qrcode" style="color: #6366f1;"></i> Bağlantı &amp; QR Kod URL (İsteğe Bağlı)
+                                            </label>
+                                            <span style="font-size: 0.75rem; color: #6366f1; font-weight: 700;">📱 Panoda QR Üretilir</span>
+                                        </div>
+                                        <input type="url" id="inline-d-link" class="form-control"
+                                            placeholder="https://... (Web sitesi, PDF afiş, form veya kılavuz bağlantısı)"
+                                            style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; font-weight: 600; padding: 10px 14px;">
+                                        <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+                                            Bağlantı girildiğinde TV panosundaki duyuru kartının yanında otomatik taranabilir QR Kod görüntülenir.
+                                        </small>
                                     </div>
 
                                     <!-- Butonlar -->
@@ -723,6 +737,15 @@
                                         </div>
                                         <div id="prev-card-icerik" style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.45; border-top: 1.5px dashed rgba(16, 185, 129, 0.25); padding-top: 8px; min-height: 48px; max-height: 90px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">
                                             Duyuru içeriği burada akıllı tahtadaki görünümüyle canlı olarak önizlenecektir...
+                                        </div>
+                                        <div id="prev-card-qr-box" style="display: none; align-items: center; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed rgba(255,255,255,0.15);">
+                                            <div id="prev-card-qr-code" style="background: #ffffff; padding: 4px; border-radius: 8px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>
+                                            <div style="font-size: 0.76rem; color: #cbd5e1; line-height: 1.35; min-width: 0; flex: 1;">
+                                                <span style="font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 4px;">
+                                                    <i class="fa-solid fa-qrcode" style="color: #60a5fa;"></i> Taranabilir QR Kod
+                                                </span>
+                                                <span id="prev-card-qr-url" style="color: #94a3b8; font-size: 0.72rem; word-break: break-all; display: block; margin-top: 2px;"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -4375,10 +4398,11 @@
         </div>
     </div>
 
+    <script src="js/vendor/qrcode.min.js?v=20260924_517b55d3"></script>
     <script src="js/sehir-koordinat.js?v=20260922_5f6f637b"></script>
     <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
     <script src="js/local-auth.js?v=20260917_a8e68658"></script>
-    <script src="js/admin.js?v=20260924_9c1abbf8"></script>
+    <script src="js/admin.js?v=20260924_9e4e50e7"></script>
 </body>
 
 </html>

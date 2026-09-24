@@ -801,6 +801,19 @@ const PanoTV = (function () {
                             ? hamIcerik
                             : escapeHtml(hamIcerik).replace(/\n/g, '<br>');
 
+                        const itemLink = (item.link || item.url || '').trim();
+                        let qrHtml = '';
+                        let qrUniqueId = '';
+                        if (itemLink) {
+                            qrUniqueId = `duyuru-qr-${idx}-${Math.random().toString(36).substring(2, 7)}`;
+                            qrHtml = `
+                                <div class="duyuru-qr-wrapper" data-qr-url="${escapeHtml(itemLink)}" data-qr-id="${qrUniqueId}" title="Karekod ile bağlantıyı açın">
+                                    <div class="duyuru-qr-box" id="${qrUniqueId}"></div>
+                                    <div class="duyuru-qr-sub"><i class="fa-solid fa-qrcode"></i> <span>TARA</span></div>
+                                </div>
+                            `;
+                        }
+
                         gridHtml += `
                             <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
                                 <div class="duyuru-acc-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
@@ -822,7 +835,12 @@ const PanoTV = (function () {
                                     </div>
                                 </div>
                                 <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 0.88rem; color: #e2e8f0; line-height: 1.45; flex: 1; font-weight: 500;">
-                                    ${itemIcerik}
+                                    <div style="display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;">
+                                        <div style="flex: 1; min-width: 0;">
+                                            ${itemIcerik}
+                                        </div>
+                                        ${qrHtml}
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -830,6 +848,33 @@ const PanoTV = (function () {
 
                     gridHtml += '</div>';
                     duyuruGrid.innerHTML = gridHtml;
+
+                    // QR Kodları dinamik olarak üret ve etkileşim dinleyicilerini bağla
+                    const qrWrappers = duyuruGrid.querySelectorAll('.duyuru-qr-wrapper');
+                    qrWrappers.forEach(wrap => {
+                        const url = wrap.getAttribute('data-qr-url');
+                        const targetId = wrap.getAttribute('data-qr-id');
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl && url && typeof QRCode !== 'undefined') {
+                            targetEl.innerHTML = '';
+                            try {
+                                new QRCode(targetEl, {
+                                    text: url,
+                                    width: 60,
+                                    height: 60,
+                                    colorDark: "#0f172a",
+                                    colorLight: "#ffffff",
+                                    correctLevel: QRCode.CorrectLevel.M
+                                });
+                            } catch (e) {
+                                console.warn("QR oluşturulamadı:", e);
+                            }
+                        }
+                        wrap.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                        });
+                    });
                 } else {
                     duyuruGrid.innerHTML = `
                         <div class="duyuru-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; text-align: center;">
