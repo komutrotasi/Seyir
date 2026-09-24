@@ -11387,4 +11387,38 @@ window.closeVideoPreview = function () {
     if (modal) modal.style.display = 'none';
 };
 
+// 🌐 3.6 — Admin Service Worker & Çevrimdışı Durum Göstergesi
+if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+            // console.log('Admin ServiceWorker kayıtlı:', reg.scope);
+        }).catch((err) => {
+            console.warn('Admin ServiceWorker kayıt hatası:', err);
+        });
+    });
+}
+
+function updateAdminOnlineStatus() {
+    const pill = document.getElementById('admin-offline-pill');
+    if (!pill) return;
+    if (!navigator.onLine) {
+        pill.style.display = 'inline-flex';
+        pill.classList.remove('online-back');
+        pill.innerHTML = '<i class="fa-solid fa-plane-slash"></i> <span>Çevrimdışı</span>';
+    } else {
+        if (pill.style.display !== 'none' && !pill.classList.contains('online-back')) {
+            pill.classList.add('online-back');
+            pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Bağlantı Kuruldu</span>';
+            setTimeout(() => {
+                pill.style.display = 'none';
+                pill.classList.remove('online-back');
+            }, 3000);
+        }
+    }
+}
+window.addEventListener('online', updateAdminOnlineStatus);
+window.addEventListener('offline', updateAdminOnlineStatus);
+updateAdminOnlineStatus();
+
+
 

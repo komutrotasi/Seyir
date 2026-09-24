@@ -1,0 +1,26 @@
+{
+    "name": "Seyir Dijital Okul Panosu",
+    "short_name": "Seyir Pano",
+    "description": "Akıllı Tahta ve TV Ekranları İçin Modern, Çevrimdışı Destekli Dijital Okul Bilgi Panosu",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "landscape",
+    "background_color": "#020617",
+    "theme_color": "#0f172a",
+    "lang": "tr",
+    "icons": [
+        {
+            "src": "img/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "img/okul_logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

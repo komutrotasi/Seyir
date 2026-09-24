@@ -6,9 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr https://*.ytimg.com https://*.youtube.com; font-src 'self' data:; connect-src 'self'; media-src 'self' blob: data: https:; object-src 'none'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'">
     <title>Pano Yönetim Paneli</title>
+    <!-- Favicon & PWA Manifest -->
+    <link rel="shortcut icon" href="img/favicon.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Seyir Admin">
     <!-- Yerel Font Awesome: yönetim ekranı üçüncü taraf CDN'e font isteği göndermez. -->
     <link rel="stylesheet" href="css/fontawesome.min.css?v=20260917_ded1c367">
-    <link rel="stylesheet" href="css/admin.css?v=20260924_5ad49a2d">
+    <link rel="stylesheet" href="css/admin.css?v=20260924_e005ec68">
     <!-- SheetJS 0.20.3 yerel kopya: özel yönetim verisi üçüncü taraf betiğe açılmaz. -->
     <script src="js/vendor/xlsx.full.min.js?v=20260924_6b3130af"></script>
 
@@ -121,6 +128,10 @@
                 </div>
 
                 <div class="topbar-right">
+                    <!-- Çevrimdışı Durum Rozeti -->
+                    <div id="admin-offline-pill" class="header-offline-pill" style="display: none;" title="Çevrimdışı Mod — Yerel önbellek aktif">
+                        <i class="fa-solid fa-plane-slash"></i> <span>Çevrimdışı</span>
+                    </div>
                     <!-- Hızlı Araçlar (AGENTS.md Kural 6: Akıllı Tahta / Tam Ekran / Tema / Bildirim / Ayarlar) -->
                     <div class="header-action-tools">
                         <a href="index.html" class="btn-tool-icon" title="Akıllı Tahta / Canlı Pano Modu" aria-label="Akıllı Tahta / Canlı Pano Moduna Geç">
@@ -4402,7 +4413,7 @@
     <script src="js/sehir-koordinat.js?v=20260922_5f6f637b"></script>
     <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
     <script src="js/local-auth.js?v=20260917_a8e68658"></script>
-    <script src="js/admin.js?v=20260924_9e4e50e7"></script>
+    <script src="js/admin.js?v=20260924_336ec532"></script>
 </body>
 
 </html>

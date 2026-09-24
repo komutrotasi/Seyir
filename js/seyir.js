@@ -1420,9 +1420,30 @@ const PanoTV = (function () {
 
                 if (descEl) descEl.textContent = desc;
                 if (iconEl) iconEl.textContent = emoji;
+
+                // 3.6 — Çevrimdışı Mod için son geçerli hava durumunu yerel önbelleğe kaydet
+                try {
+                    localStorage.setItem('seyir_cached_weather', JSON.stringify({
+                        temp: `${temp}°C ${konumBaslik}`,
+                        desc: desc,
+                        emoji: emoji
+                    }));
+                } catch (err) {}
             }
         } catch (e) {
-            console.error("Hava durumu çekilemedi:", e);
+            console.error("Hava durumu çekilemedi, çevrimdışı önbellek kontrol ediliyor:", e);
+            try {
+                const cwRaw = localStorage.getItem('seyir_cached_weather');
+                if (cwRaw) {
+                    const cw = JSON.parse(cwRaw);
+                    const tempEl = document.getElementById('header-weather-temp');
+                    const descEl = document.getElementById('header-weather-desc');
+                    const iconEl = document.getElementById('header-weather-icon');
+                    if (tempEl && cw.temp) tempEl.textContent = cw.temp;
+                    if (descEl && cw.desc) descEl.textContent = cw.desc;
+                    if (iconEl && cw.emoji) iconEl.textContent = cw.emoji;
+                }
+            } catch (err) {}
         }
     }
 
@@ -2231,6 +2252,43 @@ const PanoTV = (function () {
                 showScreensaver(new Date());
             }
         });
+
+        // 🌐 3.6 — Service Worker (PWA & Çevrimdışı Çalışma)
+        if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then((reg) => {
+                    // console.log('ServiceWorker kayıtlı:', reg.scope);
+                }).catch((err) => {
+                    console.warn('ServiceWorker kayıt hatası:', err);
+                });
+            });
+        }
+
+        // Çevrimdışı / Çevrimiçi Bağlantı Durumu Takibi
+        function updateOnlineStatusUI() {
+            const badge = document.getElementById('header-offline-pill');
+            if (!badge) return;
+            if (!navigator.onLine) {
+                badge.style.display = 'inline-flex';
+                badge.classList.remove('online-back');
+                badge.innerHTML = '<i class="fa-solid fa-plane-slash"></i> <span>Çevrimdışı Mod</span>';
+            } else {
+                if (badge.style.display !== 'none' && !badge.classList.contains('online-back')) {
+                    badge.classList.add('online-back');
+                    badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Bağlantı Kuruldu</span>';
+                    setTimeout(() => {
+                        badge.style.display = 'none';
+                        badge.classList.remove('online-back');
+                    }, 3500);
+                    fetchData();
+                    fetchNamazVakitleri();
+                    fetchSchoolWeather();
+                }
+            }
+        }
+        window.addEventListener('online', updateOnlineStatusUI);
+        window.addEventListener('offline', updateOnlineStatusUI);
+        updateOnlineStatusUI();
 
         // Veriyi periyodik yenileme (varsayılan 10 dakika)
         const yenilemeSuresi = 600000;

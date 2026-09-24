@@ -48,8 +48,8 @@ Bu doküman, **Nexus Seyir Paneli**'nin işlevselliğini, görselliğini ve otom
   - Kartlarda canlı "🟢 NÖBETTE" rozeti ve zil anında 15 saniyelik ışıltı dalgası (`.bell-duty-shimmer`, `nobetciCardShimmer`) belirir.
 - **Yönetim Paneli & Kişiselleştirme:** Admin zil yönetiminden ses düzeyi, melodi türleri, çalma süresi, hafta sonu sessizliği, Web Speech Türkçe sesli anons, teneffüs nöbetçi vurgusu, neon görsel efekt ve tören ekranı ayrı ayrı açılıp kapatılabilir.
 
-### 5. 🌐 Çevrimdışı Çalışma Desteği (Offline PWA & Local Cache)
-- **Kesintisiz Yayın:** İnternet bağlantısı koptuğunda ders programı, nöbetçi öğretmenler ve namaz vakitlerinin son kaydedilen verilerle ekranda çalışmaya devam etmesi.
+### 5. 🌐 Çevrimdışı Çalışma Desteği (Offline PWA & Local Cache) ✅
+- **Kesintisiz Yayın & Service Worker:** İnternet bağlantısı koptuğunda ders programı, nöbetçi öğretmenler, duyurular, hava durumu ve namaz vakitlerinin Service Worker önbelleği ve `localStorage` ile ekranda kesintisiz çalışmaya devam etmesi; dinamik çevrimdışı rozeti ve `manifest.json` PWA desteği.
 
 ### 6. 📱 Mobil / Okut-Oku QR Kod Entegrasyonu ✅
 - **Duyuru QR Kodları:** Duyuruların ve afişlerin yanında, öğrencilerin ve velilerin akıllı telefonlarıyla okutup detaylı dokümana (PDF/Afiş/Form/Kılavuz) anında ulaşabileceği %100 yerel ve dinamik QR kod alanı. Akıllı tahtalarda tek dokunuşla yeni sekmede açılma imkânı. Admin panelinde canlı QR kod önizlemesi ve örnek şablonlar.

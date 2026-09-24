@@ -107,9 +107,12 @@ php tests/meb-parser-test.php
 - **Admin Canlı Önizleme & Hızlı Şablonlar:** Admin panelinde duyuru formu içerisine "🔗 Bağlantı & QR Kod URL" alanı eklendi; URL girildiği anda canlı önizleme kartında mini QR kodu gerçek zamanlı render edilir. Hızlı şablonlar (DYK Kursları, TEKNOFEST, Veli Toplantısı vb.) örnek QR bağlantılarıyla zenginleştirildi.
 - **📦 %100 Çevrimdışı & Yerel Bağımsızlık:** Dış CDN veya üçüncü taraf servislere ihtiyaç duymadan, doğrudan `js/vendor/qrcode.min.js` üzerinden yerel olarak çalışır; internet kesintilerinde dahi kesintisiz QR üretimi sağlanır.
 
-### 3.6 — 🌐 Çevrimdışı Çalışma (PWA / Service Worker)
-- İnternet bağlantısı koptuğunda son kaydedilen verilerle çalışmaya devam.
-- **Teknik:** Service Worker ile kritik varlıkların (ders programı, nöbet, namaz vakti) önbelleğe alınması.
+### 3.6 — 🌐 Çevrimdışı Çalışma (PWA / Service Worker & Kesintisiz Yayın) ✅
+- **Otomatik Service Worker (`sw.js`):** Pano kabuğu (App Shell), CSS'ler, fontlar, JS kütüphaneleri (`qrcode.min.js`, `xlsx`, `sehir-koordinat`, `audio-store`, `seyir.js`), `data.json`, `dini_icerik.json` ve `meb_haberler.json` yerel tarayıcı önbelleğine (CacheStorage) otomatik kaydedilir.
+- **Hibrit Ağ & Önbellek Stratejisi (Network-First & Stale-While-Revalidate):** Veri dosyaları internet varken ağdan en güncel haliyle çekilir ve önbellek güncellenir; internet koptuğunda sıfır hata ve sıfır beyaz ekran ile anında önbellekten servis edilir.
+- **Dinamik Çevrimdışı Rozeti (`#header-offline-pill`):** İnternet bağlantısı kesildiğinde panoda zarif kehribar renkli `Çevrimdışı Mod (Önbellek)` uyarısı belirir; internet geri geldiğinde yeşil `Bağlantı Kuruldu` rozetiyle veriler arka planda otomatik yenilenir.
+- **Ezan Vakitleri & Hava Durumu Önbelleği:** İnternet kesilse bile günün namaz vakitleri ve son geçerli hava durumu yerel hafızadan (`localStorage`) gösterilmeye devam eder.
+- **📱 PWA & Web App Manifest (`manifest.json`):** Akıllı Tahta, TV, tablet veya bilgisayarlarda bağımsız masaüstü/kiosk uygulaması gibi yüklenebilir (standalone display, tam ekran ve yatay mod uyumlu).
 
 ---
 
@@ -122,7 +125,7 @@ php tests/meb-parser-test.php
 | 3.3 | Ekran koruyucu modu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.4 | Sesli zil efekti & Teneffüs Nöbetçi Vurgusu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.5 | QR kod entegrasyonu | 🟢 Planlı | ✅ Tamamlandı |
-| 3.6 | PWA / Service Worker | 🟢 Planlı | ⏳ Bekliyor |
+| 3.6 | PWA / Service Worker | 🟢 Planlı | ✅ Tamamlandı |
 
 ---
 

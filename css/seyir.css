@@ -2739,3 +2739,39 @@ html {
     text-transform: uppercase;
 }
 
+/* ============================================================
+   3.6 — ÇEVRİMDIŞI ÇALIŞMA (OFFLINE PWA) DURUM ROZETİ
+   ============================================================ */
+.header-offline-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1.5px solid rgba(245, 158, 11, 0.45);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+    letter-spacing: 0.3px;
+    animation: offlinePulse 2.5s infinite ease-in-out;
+    user-select: none;
+    transition: all 0.3s ease;
+}
+
+@keyframes offlinePulse {
+    0%, 100% { opacity: 0.88; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.03); }
+}
+
+.header-offline-pill.online-back {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.45);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+    animation: none;
+}
+
+
