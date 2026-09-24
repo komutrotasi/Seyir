@@ -6032,8 +6032,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 appData.dersHavuzuLise = [];
                 appData.dersHavuzuOrtaokul = [];
             }
-            if (document.getElementById('chk-reset-zaman').checked) {
+            if (document.getElementById('chk-reset-zaman')?.checked) {
                 appData.dersProgrami = {};
+            }
+            if (document.getElementById('chk-reset-duyurular')?.checked) {
+                appData.duyurular = [];
+            }
+            if (document.getElementById('chk-reset-sinavlar')?.checked) {
+                appData.sinavlar = [];
+            }
+            if (document.getElementById('chk-reset-kayanyazi')?.checked) {
+                appData.kayanYazi = [];
+            }
+            if (document.getElementById('chk-reset-videolar')?.checked) {
+                appData.karuselVideolar = [];
             }
 
             saveData();
@@ -6041,6 +6053,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof populateForms === 'function') populateForms();
             if (typeof renderProgramMatrix === 'function') renderProgramMatrix();
             if (typeof renderEslestirmeClassButtons === 'function') renderEslestirmeClassButtons();
+            if (typeof renderDuyurular === 'function') renderDuyurular();
+            if (typeof renderSinavlar === 'function') renderSinavlar();
+            if (typeof renderKayanYazilar === 'function') renderKayanYazilar();
+            if (typeof renderKaruselVideoUI === 'function') renderKaruselVideoUI();
 
             btnCloseReset.click();
             BhUI.toast('Seçili veriler başarıyla sıfırlandı.', 'success');
