@@ -410,13 +410,20 @@ const PanoTV = (function () {
             // Gün hesaplama
             const gunler = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
             const bugunAd = gunler[new Date().getDay()];
+            let nobetHedefGun = bugunAd;
+            // Hafta sonu panoyu boş bırakmak yerine Pazartesi nöbetçilerini göster
+            if (nobetHedefGun === "Cumartesi" || nobetHedefGun === "Pazar") {
+                nobetHedefGun = "Pazartesi";
+            }
 
             let gunlukNobetciler = [];
             if (!gizlilik.nobetciGoster) {
                 nobetcilerContainer.innerHTML = '<li class="nobetci-card"><div class="nobetci-info"><span class="isim" style="color:var(--text-muted);">Nöbetçi bilgisi gizlilik ayarıyla kapalı</span></div></li>';
-            } else if (panoData.nobetciGunluk && panoData.nobetciGunluk[bugunAd] && panoData.nobetciGunluk[bugunAd].length > 0) {
-                gunlukNobetciler = panoData.nobetciGunluk[bugunAd].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
-            } else if (panoData.nobetciOgretmenler && Array.isArray(panoData.nobetciOgretmenler)) {
+            } else if (panoData.nobetciGunluk && panoData.nobetciGunluk[nobetHedefGun] && panoData.nobetciGunluk[nobetHedefGun].length > 0) {
+                gunlukNobetciler = panoData.nobetciGunluk[nobetHedefGun].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
+            } else if (panoData.nobet_programi && panoData.nobet_programi[nobetHedefGun] && panoData.nobet_programi[nobetHedefGun].length > 0) {
+                gunlukNobetciler = panoData.nobet_programi[nobetHedefGun].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
+            } else if (panoData.nobetciOgretmenler && Array.isArray(panoData.nobetciOgretmenler) && panoData.nobetciOgretmenler.length > 0) {
                 gunlukNobetciler = panoData.nobetciOgretmenler.filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
             }
 
@@ -735,15 +742,17 @@ const PanoTV = (function () {
                 const allItems = [...highPriority, ...normalItems];
 
                 if (allItems.length > 0) {
-                    let gridHtml = '<div class="duyuru-accordion-list">';
-
-                    // Masaüstü ekranlarda yan yana 3 tane açık duyuru/sınav göster (3'ten fazlaysa döngüsel geçiş)
+                    // Masaüstü ekranlarda yan yana açık duyuru/sınav göster (3'ten fazlaysa döngüsel geçiş)
                     const total = allItems.length;
                     const startIdx = (window.duyuruGridIndex || 0) % total;
                     let displayItems = [];
                     for (let i = 0; i < Math.min(3, total); i++) {
                         displayItems.push(allItems[(startIdx + i) % total]);
                     }
+
+                    const dispCount = displayItems.length;
+                    const colStyle = dispCount === 1 ? 'grid-template-columns: 1fr;' : (dispCount === 2 ? 'grid-template-columns: 1fr 1fr;' : 'grid-template-columns: repeat(3, 1fr);');
+                    let gridHtml = `<div class="duyuru-accordion-list" style="${colStyle} width: 100%; height: 100%;">`;
 
                     displayItems.forEach((item, idx) => {
                         const renk = String(item.renk || '').toLowerCase();
@@ -815,7 +824,7 @@ const PanoTV = (function () {
                         }
 
                         gridHtml += `
-                            <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+                            <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; height: 100%;">
                                 <div class="duyuru-acc-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                         <div style="background: ${themeColor}22; color: ${themeColor}; border: 1px solid ${themeColor}50; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 2px 8px ${themeColor}30;">
@@ -834,9 +843,9 @@ const PanoTV = (function () {
                                         <i class="fa-solid fa-chevron-down acc-arrow" style="font-size: 0.82rem; color: #94a3b8; transition: transform 0.3s ease; transform: rotate(180deg);"></i>
                                     </div>
                                 </div>
-                                <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 0.88rem; color: #e2e8f0; line-height: 1.45; flex: 1; font-weight: 500;">
+                                <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 0.88rem; color: #e2e8f0; line-height: 1.45; flex: 1; font-weight: 500; min-height: 0;">
                                     <div style="display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;">
-                                        <div style="flex: 1; min-width: 0;">
+                                        <div style="flex: 1; min-width: 0; max-height: 110px; overflow-y: auto; scrollbar-width: none;">
                                             ${itemIcerik}
                                         </div>
                                         ${qrHtml}

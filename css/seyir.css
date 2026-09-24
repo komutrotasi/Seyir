@@ -928,6 +928,8 @@ html {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    flex: 1.1 !important;
+    min-height: 270px !important;
 }
 
 [data-theme="dark"] .duyuru-grid-widget {
@@ -2410,18 +2412,26 @@ html {
     }
 }
 
-/* PC Masaüstü Görünümünde Duyuruları Yan Yana 3 Açık Kart Olarak Gösterme Kuralı */
+/* PC Masaüstü Görünümünde Duyuruları Yan Yana Açık Kartlar Olarak Gösterme Kuralı */
 .duyuru-accordion-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     width: 100%;
     box-sizing: border-box;
+    align-items: stretch;
 }
 
 @media (min-width: 601px) {
     .duyuru-acc-body {
         display: block !important;
+        max-height: 125px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .duyuru-acc-body::-webkit-scrollbar {
+        display: none;
     }
 
     .acc-arrow-box {
@@ -2430,6 +2440,8 @@ html {
 
     .duyuru-accordion-card {
         cursor: default !important;
+        height: 100%;
+        box-sizing: border-box;
     }
 }
 

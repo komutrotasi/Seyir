@@ -56,9 +56,79 @@
         "enlem": 37.8874,
         "boylam": 32.5334
     },
-    "duyurular": [],
-    "sinavlar": [],
-    "kayanYazi": [],
+    "duyurular": [
+        {
+            "baslik": "Hafta Sonu DYK Kursları Başlıyor",
+            "icerik": "2026-2027 Eğitim Öğretim Yılı 1. Dönem Destekleme ve Yetiştirme Kurslarımız Cumartesi ve Pazar günleri saat 09:00'da başlayacaktır. Tüm öğrencilerimizin dersliklerinde hazır bulunmaları önemle rica olunur.",
+            "renk": "primary",
+            "oncelik": "normal",
+            "tarih": "24.09.2026",
+            "link": "https://konyamcosihl.meb.k12.tr"
+        },
+        {
+            "baslik": "1. Dönem Genel Veli Toplantısı",
+            "icerik": "Öğrencilerimizin akademik ve sosyal gelişimlerini değerlendirmek üzere 1. Dönem Veli Toplantısı bu Pazar saat 13:30'da okulumuz konferans salonunda yapılacaktır.",
+            "renk": "secondary",
+            "oncelik": "normal",
+            "tarih": "23.09.2026",
+            "link": ""
+        },
+        {
+            "baslik": "TEKNOFEST 2026 Proje Başvuruları",
+            "icerik": "Havacılık, Uzay ve Teknoloji Festivali TEKNOFEST 2026 proje başvuruları başlamıştır. Takım kurmak isteyen öğrencilerimiz Bilişim Teknolojileri laboratuvarına başvurabilirler.",
+            "renk": "danger",
+            "oncelik": "acil",
+            "tarih": "24.09.2026",
+            "link": "https://www.teknofest.org"
+        }
+    ],
+    "sinavlar": [
+        {
+            "ders": "Matematik",
+            "dersSaati": "3. Ders",
+            "saat": "10:10",
+            "siniflar": "9/A, 9/B, 10/A, 10/B, 11/A, 11/B, 12/A, 12/B",
+            "tarih": "24.09.2026",
+            "tur": "1. Dönem 1. Ortak Yazılı Sınavı"
+        },
+        {
+            "ders": "Türk Dili ve Edebiyatı",
+            "dersSaati": "4. Ders",
+            "saat": "11:00",
+            "siniflar": "9/A, 9/B, 10/A, 10/B, 11/A, 11/B",
+            "tarih": "25.09.2026",
+            "tur": "1. Dönem 1. Ortak Yazılı Sınavı"
+        },
+        {
+            "ders": "Fizik",
+            "dersSaati": "2. Ders",
+            "saat": "09:20",
+            "siniflar": "9/A, 9/B, 10/A, 10/B, 11/A",
+            "tarih": "28.09.2026",
+            "tur": "1. Dönem 1. Ortak Yazılı Sınavı"
+        },
+        {
+            "ders": "Kimya",
+            "dersSaati": "5. Ders",
+            "saat": "11:50",
+            "siniflar": "9/A, 10/A, 11/A",
+            "tarih": "30.09.2026",
+            "tur": "1. Dönem 1. Ortak Yazılı Sınavı"
+        },
+        {
+            "ders": "Biyoloji",
+            "dersSaati": "3. Ders",
+            "saat": "10:10",
+            "siniflar": "9/A, 9/B, 10/A, 11/A",
+            "tarih": "02.10.2026",
+            "tur": "1. Dönem 1. Ortak Yazılı Sınavı"
+        }
+    ],
+    "kayanYazi": [
+        "2026-2027 Eğitim Öğretim Yılında Tüm Öğretmen ve Öğrencilerimize Üstün Başarılar Dileriz.",
+        "TEKNOFEST 2026 Proje Başvuruları İçin Bilişim ve Teknoloji Kulübüne Başvurabilirsiniz.",
+        "Hafta Sonu DYK Kurslarımız Cumartesi Günü Saat 09:00'da Başlayacaktır."
+    ],
     "karuselVideolar": [],
     "ayarlar": {
         "karuselSuresi": 5000,
@@ -79,7 +149,1743 @@
         "saklamaSuresiGun": 365
     },
     "nobet_programi": {},
-    "dersProgramiLise": {},
+    "dersProgramiLise": [
+        {
+            "ders": "1. Ders",
+            "saat": "08:30 - 09:10"
+        },
+        {
+            "ders": "2. Ders",
+            "saat": "09:20 - 10:00"
+        },
+        {
+            "ders": "3. Ders",
+            "saat": "10:10 - 10:50"
+        },
+        {
+            "ders": "4. Ders",
+            "saat": "11:00 - 11:40"
+        },
+        {
+            "ders": "5. Ders",
+            "saat": "11:50 - 12:30"
+        },
+        {
+            "ders": "6. Ders",
+            "saat": "13:30 - 14:10"
+        },
+        {
+            "ders": "7. Ders",
+            "saat": "14:20 - 15:00"
+        },
+        {
+            "ders": "8. Ders",
+            "saat": "15:10 - 15:50"
+        }
+    ],
     "ogretmenler": [],
-    "ogretmenBranslar": []
+    "ogretmenBranslar": [],
+    "tumOgretmenler": [],
+    "sinifRehberlik": {},
+    "nobetciGunluk": {},
+    "dersProgramiDetay": {
+        "9/A": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            }
+        },
+        "9/B": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            }
+        },
+        "10/A": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            }
+        },
+        "10/B": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            }
+        },
+        "11/A": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            }
+        },
+        "11/B": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            }
+        },
+        "12/A": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            }
+        },
+        "12/B": {
+            "Pazartesi": {
+                "0": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Din Kültürü",
+                    "ogretmen": "Hatice Aydın",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Bilişim Teknolojileri",
+                    "ogretmen": "Elif Yıldız",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Beden Eğitimi",
+                    "ogretmen": "Emre Aksoy",
+                    "type": "ders"
+                }
+            },
+            "Salı": {
+                "0": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Felsefe",
+                    "ogretmen": "Burak Doğan",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Müzik",
+                    "ogretmen": "Seda Polat",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Görsel Sanatlar",
+                    "ogretmen": "Deniz Kılıç",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Arapça",
+                    "ogretmen": "Hasan Can",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                }
+            },
+            "Çarşamba": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Rehberlik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                }
+            },
+            "Perşembe": {
+                "0": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Matematik",
+                    "ogretmen": "Ahmet Yılmaz",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Türk Dili ve Edebiyatı",
+                    "ogretmen": "Ayşe Demir",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Fizik",
+                    "ogretmen": "Mehmet Kaya",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "İngilizce",
+                    "ogretmen": "Hüseyin Arslan",
+                    "type": "ders"
+                }
+            },
+            "Cuma": {
+                "0": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "1": {
+                    "ders": "Kimya",
+                    "ogretmen": "Fatma Çelik",
+                    "type": "ders"
+                },
+                "2": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "3": {
+                    "ders": "Biyoloji",
+                    "ogretmen": "Ali Öztürk",
+                    "type": "ders"
+                },
+                "4": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "5": {
+                    "ders": "Tarih",
+                    "ogretmen": "Zeynep Şahin",
+                    "type": "ders"
+                },
+                "6": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                },
+                "7": {
+                    "ders": "Coğrafya",
+                    "ogretmen": "Mustafa Koç",
+                    "type": "ders"
+                }
+            }
+        }
+    },
+    "sinifDersOgretmen": {},
+    "tamamlamaAtamalari": {}
 }
