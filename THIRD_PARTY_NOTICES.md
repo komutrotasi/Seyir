@@ -2,12 +2,12 @@
 
 Seyir içinde ağdan çalıştırılmak yerine sürümü sabitlenerek yerel sunulan bileşenler:
 
-## SheetJS Community Edition 0.18.5
+## SheetJS Community Edition 0.20.3
 
 - Dosya: `js/vendor/xlsx.full.min.js`
-- Kaynak: `https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js`
+- Kaynak: `https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js`
 - Lisans: Apache License 2.0
-- SHA-256: `c9506197caf809a075b6dee1da0d36fb19da7158ffe8a88e7b0c96c5d8623c99`
+- SHA-256: `cc015130aa8521e7f088f88898eba949ccdcbfb38df0bd129b44b7273c3a6f41`
 
 ## Font Awesome Free 6.4.0
 
@@ -18,4 +18,3 @@ Seyir içinde ağdan çalıştırılmak yerine sürümü sabitlenerek yerel sunu
 - WOFF2 SHA-256: `7152a6933ee3d690ec2af3d09da9d701723d16aa3410a6d80f28ff8866f3b880`
 
 Telif bildirimleri dağıtılan dosyaların içinde de korunmuştur.
-

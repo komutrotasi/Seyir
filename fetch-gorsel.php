@@ -8,6 +8,8 @@
 error_reporting(0);
 ini_set('display_errors', 0);
 
+require_once __DIR__ . '/lib/rate-limit.php';
+
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 
@@ -35,9 +37,29 @@ function seyirGorselAcikIpMi($ip) {
     ) !== false;
 }
 
+function seyirGorselHizSiniri($limit = 180, $pencere = 60) {
+    return !seyirHizSiniriniAsiyorMu('gorsel', $limit, $pencere);
+}
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     header('Allow: GET');
     seyirGorselHata('Yalnızca GET isteğine izin verilir.', 405);
+}
+
+if (!seyirGorselHizSiniri()) {
+    header('Retry-After: 60');
+    seyirGorselHata('Çok fazla görsel isteği gönderildi.', 429);
+}
+
+$referer = (string) ($_SERVER['HTTP_REFERER'] ?? '');
+$refererHost = strtolower((string) parse_url($referer, PHP_URL_HOST));
+$sunucuHost = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+$fetchSite = strtolower((string) ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
+if (
+    $refererHost === '' || $sunucuHost === '' || !hash_equals($sunucuHost, $refererHost) ||
+    ($fetchSite !== '' && $fetchSite !== 'same-origin')
+) {
+    seyirGorselHata('İstek kaynağına izin verilmedi.', 403);
 }
 
 $url = trim((string) ($_GET['url'] ?? ''));
@@ -49,7 +71,8 @@ $sema = isset($parcalar['scheme']) ? strtolower((string) $parcalar['scheme']) : 
 if (
     !$parcalar || $sema !== 'https' || !seyirGorselMebHostMu($host) ||
     !empty($parcalar['user']) || !empty($parcalar['pass']) ||
-    (!empty($parcalar['port']) && (int) $parcalar['port'] !== 443)
+    (!empty($parcalar['port']) && (int) $parcalar['port'] !== 443) ||
+    preg_match('/[\x00-\x20\x7f]/', $url)
 ) {
     seyirGorselHata('Yalnızca resmî HTTPS MEB görsellerine izin verilir.', 400);
 }
@@ -95,29 +118,8 @@ if (function_exists('curl_init')) {
     $httpKod = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $baglantiHatasi = curl_error($ch);
     curl_close($ch);
-} elseif (ini_get('allow_url_fopen')) {
-    $ctx = stream_context_create(array(
-        'http' => array(
-            'method' => 'GET',
-            'header' => "User-Agent: Seyir-Dijital-Pano/1.0\r\n" .
-                        "Referer: https://" . $host . "/\r\n" .
-                        "Accept: image/webp,image/png,image/jpeg,image/gif;q=0.9,*/*;q=0.1\r\n",
-            'timeout' => 25,
-            'follow_location' => 0,
-            'ignore_errors' => true
-        ),
-        'ssl' => array('verify_peer' => true, 'verify_peer_name' => true)
-    ));
-    $govde = @file_get_contents($url, false, $ctx, 0, $azamiBoyut + 1);
-    $yanitBasliklari = isset($http_response_header) ? $http_response_header : array();
-    if (!empty($yanitBasliklari[0]) && preg_match('~\s(\d{3})\s~', $yanitBasliklari[0], $kodEslesme)) {
-        $httpKod = (int) $kodEslesme[1];
-    }
-    $boyutAsildi = is_string($govde) && strlen($govde) > $azamiBoyut;
-    $basarili = is_string($govde) && !$boyutAsildi;
-    if (!$basarili) $baglantiHatasi = 'PHP HTTPS akışı başarısız.';
 } else {
-    seyirGorselHata('Sunucuda cURL veya allow_url_fopen desteği etkin değil.', 503);
+    seyirGorselHata('Güvenli dış bağlantı için PHP cURL eklentisi zorunludur.', 503);
 }
 
 if ($boyutAsildi) seyirGorselHata('Görsel dosyası 8 MB sınırını aşıyor.', 413);

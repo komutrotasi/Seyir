@@ -16,13 +16,22 @@ const PanoTV = (function () {
     let targetDate = null;
     let namazViewToggle = 0;
     let globalNamazTimes = [
-        { name: 'İmsak', time: '04:45' },
-        { name: 'Güneş', time: '06:12' },
-        { name: 'Öğle', time: '12:58' },
-        { name: 'İkindi', time: '16:35' },
-        { name: 'Akşam', time: '19:42' },
-        { name: 'Yatsı', time: '21:05' }
+        { name: 'İmsak', time: '05:00' },
+        { name: 'Güneş', time: '06:30' },
+        { name: 'Öğle', time: '12:48' },
+        { name: 'İkindi', time: '16:14' },
+        { name: 'Akşam', time: '18:54' },
+        { name: 'Yatsı', time: '20:10' }
     ];
+    try {
+        const rawCachedNamaz = localStorage.getItem('seyir_cached_namaz_v1');
+        if (rawCachedNamaz) {
+            const parsedCached = JSON.parse(rawCachedNamaz);
+            if (parsedCached && Array.isArray(parsedCached.vakitler) && parsedCached.vakitler.length === 6) {
+                globalNamazTimes = parsedCached.vakitler;
+            }
+        }
+    } catch (e) {}
     let dersScrollPos = 0;
     let dersScrollDir = 1;
     let animFrame = null;
@@ -214,9 +223,9 @@ const PanoTV = (function () {
             }
 
             panoData = Object.assign({
-                okulAdi: "Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi",
+                okulAdi: "Mahmud Celaleddin Ökten",
+                okulTuru: "Anadolu İmam Hatip Lisesi",
                 okulLogo: "img/okul_logo.png",
-                slogan: "Okulun Dijital Nabzı",
                 daktiloYazilari: [
                     "Medya Okulu",
                     "Teknoloji Okulu",
@@ -249,13 +258,34 @@ const PanoTV = (function () {
                 ogretmenBranslar: [],
                 dersProgrami: {},
                 nobetciOgretmenler: {},
-                nobetciGunluk: {}
+                nobetciGunluk: {},
+                zilYonetimi: {
+                    aktif: true,
+                    melodiOgrenci: "modern",
+                    melodiOgretmen: "chime",
+                    melodiCikis: "westminster",
+                    sesSeviyesi: 80,
+                    calmaSuresi: 8,
+                    haftasonuSessiz: true,
+                    sesliAnons: false,
+                    cizelge: []
+                }
             }, fileData, localData || {});
             panoData.konum = Object.assign(
-                { sehir: "", enlem: null, boylam: null },
+                { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
                 fileData.konum || {},
                 (localData && localData.konum) || {}
             );
+
+            // Eğer enlem/boylam eksikse SeyirKonum üzerinden il ve ilçe adına göre koordinatları tamamla
+            if ((panoData.konum.enlem === null || panoData.konum.boylam === null || panoData.konum.enlem === '' || panoData.konum.boylam === '') && panoData.konum.sehir && typeof SeyirKonum !== 'undefined') {
+                const eslesen = SeyirKonum.koordinatGetir(panoData.konum.sehir, panoData.konum.ilce);
+                if (eslesen) {
+                    panoData.konum.enlem = eslesen.enlem;
+                    panoData.konum.boylam = eslesen.boylam;
+                    if (eslesen.ilce && !panoData.konum.ilce) panoData.konum.ilce = eslesen.ilce;
+                }
+            }
 
             // ✅ ÖNCE: Sayfayı hemen render et (ağ beklemeden)
             renderData();
@@ -270,6 +300,14 @@ const PanoTV = (function () {
 
             // ✅ Arka planda Namaz Vakitlerini çek
             fetchNamazVakitleri();
+
+            // ✅ Arka planda Hava Durumunu çek (konum verisi hazır olduktan sonra)
+            fetchSchoolWeather();
+
+            // ✅ Akıllı Okul Zili Motorunu Başlat
+            if (typeof initSeyirPanoZilEngine === 'function') {
+                initSeyirPanoZilEngine();
+            }
 
         } catch (error) {
             console.error("PanoTV Veri Hatası:", error);
@@ -316,31 +354,41 @@ const PanoTV = (function () {
         };
 
         // OKUL LOGOSU GÜNCELLEME (Özel Logo Desteği)
+        const anaIsim = panoData.okulAdi || '';
+        const okulTuru = panoData.okulTuru || '';
+        const tamOkulAdi = okulTuru ? `${anaIsim} ${okulTuru}` : anaIsim;
         const logoImg = document.querySelector('.pano-okul-logo-img');
+
         if (logoImg) {
             if (panoData.okulLogo && typeof panoData.okulLogo === 'string' && panoData.okulLogo.trim() !== '') {
                 logoImg.src = panoData.okulLogo;
             } else {
                 logoImg.src = 'img/okul_logo.png';
             }
-            if (panoData.okulAdi) {
-                logoImg.alt = escapeHtml(panoData.okulAdi) + ' Logosu';
+            if (tamOkulAdi) {
+                logoImg.alt = escapeHtml(tamOkulAdi) + ' Logosu';
             }
         }
 
-        if (els.okulAdi && panoData.okulAdi) {
-            const parts = panoData.okulAdi.split(" ");
-            if (parts.length > 2) {
-                const mid = Math.ceil(parts.length / 2);
-                const mainName = parts.slice(0, mid).join(" ");
-                const subName = parts.slice(mid).join(" ");
-                els.okulAdi.innerHTML = `<span class="okul-ana-isim">${escapeHtml(mainName)}</span><span class="okul-alt-isim">${escapeHtml(subName)}</span>`;
+        if (els.okulAdi && anaIsim) {
+            if (okulTuru) {
+                els.okulAdi.innerHTML = `<span class="okul-ana-isim">${escapeHtml(anaIsim)}</span><span class="okul-alt-isim">${escapeHtml(okulTuru)}</span>`;
             } else {
-                els.okulAdi.innerHTML = `<span class="okul-ana-isim">${escapeHtml(panoData.okulAdi)}</span>`;
+                const parts = anaIsim.split(" ");
+                if (parts.length > 2) {
+                    const mid = Math.ceil(parts.length / 2);
+                    const mainName = parts.slice(0, mid).join(" ");
+                    const subName = parts.slice(mid).join(" ");
+                    els.okulAdi.innerHTML = `<span class="okul-ana-isim">${escapeHtml(mainName)}</span><span class="okul-alt-isim">${escapeHtml(subName)}</span>`;
+                } else {
+                    els.okulAdi.innerHTML = `<span class="okul-ana-isim">${escapeHtml(anaIsim)}</span>`;
+                }
             }
-            document.title = panoData.okulAdi + " | Seyir Dijital Pano";
+            document.title = tamOkulAdi + " | Seyir Dijital Pano";
         }
-        if (els.slogan && panoData.slogan) els.slogan.textContent = panoData.slogan;
+        if (els.slogan) {
+            els.slogan.textContent = panoData.slogan || '';
+        }
 
         const avatarColors = ['#F43F5E', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B'];
         const classColors = ['#F43F5E', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#06B6D4', '#EAB308'];
@@ -387,9 +435,10 @@ const PanoTV = (function () {
                             🛡️
                         </div>
                         <div class="card-info-content" style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-                            <!-- ÜST SATIR: Nöbet Yeri (Soldan Hizalı Rozet) -->
-                            <div style="display: flex; align-items: center; justify-content: flex-start; width: 100%;">
-                                ${yer ? `<span class="yer" style="font-size: 0.8rem; font-weight: 800; color: ${nColor}; display: inline-flex; align-items: center; gap: 4px; background: ${nColor}20; border: 1px solid ${nColor}40; padding: 2px 8px; border-radius: 6px; text-align: left; white-space: nowrap;">📍 ${escapeHtml(yer)}</span>` : '<span style="font-size: 0.8rem; color: #94a3b8;">Nöbet Alanı</span>'}
+                            <!-- ÜST SATIR: Nöbet Yeri (Soldan Hizalı Rozet) & Canlı Görev Rozeti -->
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                ${yer ? `<span class="yer" style="font-size: 0.82rem; font-weight: 800; color: ${nColor}; display: inline-flex; align-items: center; gap: 4px; background: ${nColor}25; border: 1.5px solid ${nColor}; padding: 3px 9px; border-radius: 7px; text-align: left; white-space: nowrap; box-shadow: 0 1px 4px ${nColor}30;">📍 ${escapeHtml(yer)}</span>` : '<span style="font-size: 0.8rem; color: #94a3b8;">Nöbet Alanı</span>'}
+                                <span class="nobet-card-duty-badge"><span class="duty-ping"></span> Görevde</span>
                             </div>
                             <!-- ALT SATIR: Öğretmen İsmi (Sağdan Hizalı ve Satıra Sığsın) -->
                             <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
@@ -521,25 +570,46 @@ const PanoTV = (function () {
         const tickerText = document.getElementById('pano-ticker-text');
 
         if (panoData) {
-            // Ticker Mantığı (Sadece Kayan Yazı)
+            // Ticker Mantığı (Kayan Yazı & Özelleştirilebilir Şerit)
             let tickerArr = [];
+            const tickerAyarlar = panoData.ayarlar || {};
+            const tickerDurum = tickerAyarlar.tickerDurum !== false;
 
-            if (panoData.kayanYazi && panoData.kayanYazi.length > 0) {
+            if (panoData.kayanYazi && panoData.kayanYazi.length > 0 && tickerDurum) {
                 // Sadece geçerli, boş olmayan yazıları al
-                const gecerliYazilar = panoData.kayanYazi.filter(k => k && k.trim() !== "");
+                const gecerliYazilar = panoData.kayanYazi.filter(k => k && String(k).trim() !== "");
                 gecerliYazilar.forEach(k => {
-                    if (k.includes("⚡")) {
-                        tickerArr.push(escapeHtml(k));
-                    } else {
-                        tickerArr.push(`⚡ ${escapeHtml(k.trim())}`);
-                    }
+                    tickerArr.push(escapeHtml(String(k).trim()));
                 });
             }
 
             if (tickerWrapper && tickerText) {
                 const panoContainer = document.querySelector('.pano-container');
-                if (tickerArr.length > 0) {
-                    tickerText.innerHTML = tickerArr.join('<span style="margin: 0 40px; color: var(--text-muted, #6B7280); font-size: 1.5rem; line-height: 0;">&middot;</span>');
+                if (tickerArr.length > 0 && tickerDurum) {
+                    const ayrac = tickerAyarlar.tickerAyrac || '⚡';
+                    const ayracHtml = `<span style="margin: 0 35px; color: var(--accent-indigo, #6366F1); font-size: 1.3rem; line-height: 0;">${escapeHtml(ayrac)}</span>`;
+                    tickerText.innerHTML = tickerArr.join(ayracHtml);
+
+                    // Şerit Başlığı Rozetini Güncelle
+                    const tickerLabel = document.querySelector('.ticker-label');
+                    if (tickerLabel && tickerAyarlar.tickerBaslik) {
+                        tickerLabel.textContent = tickerAyarlar.tickerBaslik;
+                    }
+
+                    // Akış Hızını Dinamik Güncelle
+                    let duration = 35;
+                    const hizAyari = tickerAyarlar.tickerHiz;
+                    if (hizAyari === 'yavas') duration = 50;
+                    else if (hizAyari === 'hizli') duration = 22;
+                    else if (typeof hizAyari === 'number') duration = hizAyari;
+
+                    // Metin uzunluğuna göre ölçekleme
+                    const totalChars = tickerArr.join(' ').length;
+                    if (totalChars > 400) {
+                        duration = Math.max(duration, Math.round(totalChars * 0.1));
+                    }
+                    tickerText.style.animationDuration = duration + 's';
+
                     tickerWrapper.style.display = 'flex';
                     if (panoContainer) panoContainer.style.paddingBottom = '60px';
                 } else {
@@ -552,53 +622,167 @@ const PanoTV = (function () {
                 const duyurular = panoData.duyurular || [];
                 const sinavlar = panoData.sinavlar || [];
 
-                // Sınavları duyuru formatına çevir
-                const formattedSinavlar = sinavlar.map(s => ({
-                    baslik: `${s.ders || ''} Sınavı`,
-                    // Bu içerik bilinçli olarak HTML üretir; alan değerleri tek tek escape edilir.
-                    icerik: `<b>Sınıflar:</b> ${escapeHtml(s.siniflar || '-')}<br><b>Tarih & Saat:</b> ⏰ ${escapeHtml(s.tarih || '')} - ${escapeHtml(s.saat || '')}`,
-                    icerikHtml: true,
-                    isSinav: true,
-                    _sortDate: s.tarih ? parseTurkishDate(s.tarih) : 0
-                }));
+                // Sınavları duyuru formatına çevir ve zaman durumunu hesapla
+                const nowZero = new Date();
+                nowZero.setHours(0, 0, 0, 0);
+                const oneDayMs = 24 * 60 * 60 * 1000;
 
-                // Duyuruları tarihe göre sırala (en yeni üstte)
+                const formattedSinavlar = sinavlar.map(s => {
+                    const sDateMs = s.tarih ? parseTurkishDate(s.tarih) : 0;
+                    let diffDays = null;
+                    let countdownText = 'Sınav Programı';
+                    let countdownColor = '#60a5fa';
+                    let isToday = false;
+                    let isTomorrow = false;
+                    let isPast = false;
+
+                    if (sDateMs > 0) {
+                        const targetZero = new Date(sDateMs);
+                        targetZero.setHours(0, 0, 0, 0);
+                        diffDays = Math.round((targetZero.getTime() - nowZero.getTime()) / oneDayMs);
+                        if (diffDays === 0) {
+                            countdownText = '🔴 BUGÜN';
+                            countdownColor = '#ef4444';
+                            isToday = true;
+                        } else if (diffDays === 1) {
+                            countdownText = '🟠 YARIN';
+                            countdownColor = '#f59e0b';
+                            isTomorrow = true;
+                        } else if (diffDays > 1) {
+                            countdownText = `⏳ ${diffDays} Gün Kaldı`;
+                            countdownColor = '#3b82f6';
+                        } else {
+                            countdownText = 'Tamamlandı';
+                            countdownColor = '#64748b';
+                            isPast = true;
+                        }
+                    }
+
+                    const turText = s.tur ? escapeHtml(s.tur) : 'Ortak Sınav';
+                    const dersText = escapeHtml(s.ders || 'Ders');
+                    const saatBilgisi = s.dersSaati
+                        ? `${escapeHtml(s.dersSaati)}${s.saat ? ' (' + escapeHtml(s.saat) + ')' : ''}`
+                        : (s.saat ? escapeHtml(s.saat) : 'Ders Saati');
+
+                    return {
+                        baslik: `${dersText} Sınavı`,
+                        icerik: `<b>Kapsam:</b> ${turText}<br><b>Sınıflar:</b> ${escapeHtml(s.siniflar || '-')}<br><b>Tarih & Saat:</b> 📅 ${escapeHtml(s.tarih || '')} &nbsp;·&nbsp; ⏰ ${saatBilgisi}`,
+                        icerikHtml: true,
+                        isSinav: true,
+                        sinavBadge: countdownText,
+                        sinavBadgeColor: countdownColor,
+                        isToday,
+                        isTomorrow,
+                        isPast,
+                        _diffDays: diffDays !== null ? diffDays : 999,
+                        _sortDate: sDateMs
+                    };
+                });
+
+                // Sınavları sırala (Bugün, Yarın, en yakın tarihliler önce; geçmişler en sona)
+                const sortedSinavlar = [...formattedSinavlar].sort((a, b) => {
+                    if (a.isToday && !b.isToday) return -1;
+                    if (!a.isToday && b.isToday) return 1;
+                    if (a.isTomorrow && !b.isTomorrow) return -1;
+                    if (!a.isTomorrow && b.isTomorrow) return 1;
+                    if (!a.isPast && !b.isPast) return a._sortDate - b._sortDate;
+                    if (!a.isPast && b.isPast) return -1;
+                    if (a.isPast && !b.isPast) return 1;
+                    return b._sortDate - a._sortDate;
+                });
+
+                // Duyuruları tarihe göre sırala (Acil en üstte, sonra tarih azalan)
                 const sortedDuyurular = [...duyurular].sort((a, b) => {
+                    const aAcil = a.oncelik === 'acil' || a.tip === 'acil' ? 1 : 0;
+                    const bAcil = b.oncelik === 'acil' || b.tip === 'acil' ? 1 : 0;
+                    if (aAcil !== bAcil) return bAcil - aAcil;
                     const dA = a.tarih ? parseTurkishDate(a.tarih) : 0;
                     const dB = b.tarih ? parseTurkishDate(b.tarih) : 0;
                     return dB - dA;
                 });
 
-                const allItems = [...sortedDuyurular, ...formattedSinavlar];
+                // Eski geçmiş sınavları (3 günden eski) TV panosundan gizle (admin listesinde görünür)
+                const aktifSinavlar = sortedSinavlar.filter(s => s._diffDays === null || s._diffDays >= -2);
+
+                // Öncelikli harmanlama: Acil duyurular ve Bugün/Yarın sınavlar en üstte yer alır
+                const highPriority = [];
+                const normalItems = [];
+
+                sortedDuyurular.forEach(d => {
+                    if (d.oncelik === 'acil' || d.tip === 'acil') {
+                        highPriority.push(d);
+                    } else {
+                        normalItems.push(d);
+                    }
+                });
+
+                aktifSinavlar.forEach(s => {
+                    if (s.isToday || s.isTomorrow) {
+                        highPriority.push(s);
+                    } else {
+                        normalItems.push(s);
+                    }
+                });
+
+                const allItems = [...highPriority, ...normalItems];
 
                 if (allItems.length > 0) {
                     let gridHtml = '<div class="duyuru-accordion-list">';
 
-                    // Masaüstü ekranlarda yan yana 3 tane açık duyuru/sınav göster
-                    const displayItems = allItems.slice(0, 3);
+                    // Masaüstü ekranlarda yan yana 3 tane açık duyuru/sınav göster (3'ten fazlaysa döngüsel geçiş)
+                    const total = allItems.length;
+                    const startIdx = (window.duyuruGridIndex || 0) % total;
+                    let displayItems = [];
+                    for (let i = 0; i < Math.min(3, total); i++) {
+                        displayItems.push(allItems[(startIdx + i) % total]);
+                    }
 
                     displayItems.forEach((item, idx) => {
+                        const renk = String(item.renk || '').toLowerCase();
                         let itemEmoji = '📢';
-                        let themeColor = '#fbbf24';
-                        let bgGrad = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
-                        let borderColor = 'rgba(245, 158, 11, 0.45)';
+                        let themeColor = '#3b82f6';
+                        let bgGrad = 'linear-gradient(135deg, #0c2340 0%, #0f172a 100%)';
+                        let borderColor = 'rgba(59, 130, 246, 0.5)';
                         let badgeText = 'Genel Duyuru';
 
-                        if (item.oncelik === 'acil' || item.tip === 'acil') {
-                            itemEmoji = '🚨';
-                            themeColor = '#f87171';
-                            borderColor = 'rgba(239, 68, 68, 0.45)';
-                            badgeText = 'Acil İlan';
-                        } else if (item.isSinav) {
+                        if (item.isSinav) {
                             itemEmoji = '📝';
-                            themeColor = '#60a5fa';
-                            borderColor = 'rgba(59, 130, 246, 0.45)';
-                            badgeText = 'Sınav Programı';
-                        } else if (idx % 3 === 1) {
-                            itemEmoji = 'ℹ️';
-                            themeColor = '#34d399';
-                            borderColor = 'rgba(16, 185, 129, 0.45)';
+                            themeColor = item.sinavBadgeColor || '#60a5fa';
+                            borderColor = item.isToday ? 'rgba(239, 68, 68, 0.6)' : (item.isTomorrow ? 'rgba(245, 158, 11, 0.6)' : 'rgba(59, 130, 246, 0.45)');
+                            bgGrad = item.isToday
+                                ? 'linear-gradient(135deg, #2d1010 0%, #0f172a 100%)'
+                                : (item.isTomorrow ? 'linear-gradient(135deg, #2b1804 0%, #0f172a 100%)' : 'linear-gradient(135deg, #0c2340 0%, #0f172a 100%)');
+                            badgeText = item.sinavBadge || 'Sınav Programı';
+                        } else if (item.oncelik === 'acil' || item.tip === 'acil' || renk === 'danger' || renk === 'acil' || renk === 'kirmizi') {
+                            itemEmoji = '🚨';
+                            themeColor = '#ef4444';
+                            borderColor = 'rgba(239, 68, 68, 0.55)';
+                            bgGrad = 'linear-gradient(135deg, #2d0e0e 0%, #0f172a 100%)';
+                            badgeText = 'Acil İlan';
+                        } else if (renk === 'secondary' || renk === 'success' || renk === 'yesil' || renk === 'green') {
+                            itemEmoji = '🌿';
+                            themeColor = '#10b981';
+                            borderColor = 'rgba(16, 185, 129, 0.55)';
+                            bgGrad = 'linear-gradient(135deg, #062e22 0%, #0f172a 100%)';
                             badgeText = 'Genel Bilgilendirme';
+                        } else if (renk === 'accent' || renk === 'warning' || renk === 'turuncu' || renk === 'orange') {
+                            itemEmoji = '⚡';
+                            themeColor = '#f59e0b';
+                            borderColor = 'rgba(245, 158, 11, 0.55)';
+                            bgGrad = 'linear-gradient(135deg, #2b1804 0%, #0f172a 100%)';
+                            badgeText = 'Önemli Duyuru';
+                        } else if (renk === 'purple' || renk === 'mor' || renk === 'violet') {
+                            itemEmoji = '✨';
+                            themeColor = '#a855f7';
+                            borderColor = 'rgba(168, 85, 247, 0.55)';
+                            bgGrad = 'linear-gradient(135deg, #230b3b 0%, #0f172a 100%)';
+                            badgeText = 'Özel Etkinlik';
+                        } else {
+                            itemEmoji = '📢';
+                            themeColor = '#3b82f6';
+                            borderColor = 'rgba(59, 130, 246, 0.5)';
+                            bgGrad = 'linear-gradient(135deg, #0c2340 0%, #0f172a 100%)';
+                            badgeText = 'Genel Duyuru';
                         }
 
                         const itemBaslik = escapeHtml(item.baslik || 'Duyuru');
@@ -877,13 +1061,32 @@ const PanoTV = (function () {
      */
     async function fetchSchoolWeather() {
         try {
-            const konum = Object.assign({ sehir: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
+            const konum = Object.assign({ sehir: '', ilce: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
+            // Eğer koordinatlar eksikse ancak şehir/ilçe adı varsa SeyirKonum ile koordinatları otomatik çöz
+            if ((konum.enlem === null || konum.boylam === null || konum.enlem === '' || konum.boylam === '') && konum.sehir && typeof SeyirKonum !== 'undefined') {
+                const eslesen = SeyirKonum.koordinatGetir(konum.sehir, konum.ilce);
+                if (eslesen) {
+                    konum.enlem = eslesen.enlem;
+                    konum.boylam = eslesen.boylam;
+                    if (eslesen.ilce && !konum.ilce) konum.ilce = eslesen.ilce;
+                }
+            }
             if (konum.enlem === null || konum.boylam === null || konum.enlem === '' || konum.boylam === '') return;
             const hamEnlem = Number(konum.enlem);
             const hamBoylam = Number(konum.boylam);
             if (!Number.isFinite(hamEnlem) || hamEnlem < -90 || hamEnlem > 90 || !Number.isFinite(hamBoylam) || hamBoylam < -180 || hamBoylam > 180) return;
             const enlem = hamEnlem;
             const boylam = hamBoylam;
+            const tempEl = document.getElementById('header-weather-temp');
+            const descEl = document.getElementById('header-weather-desc');
+            const ilceAdi = (konum.ilce && typeof konum.ilce === 'string') ? konum.ilce.trim() : '';
+            const sehirAdi = (konum.sehir && typeof konum.sehir === 'string') ? konum.sehir.trim() : '';
+            const konumBaslik = ilceAdi || sehirAdi || 'Okul Konumu';
+
+            if (tempEl) {
+                tempEl.textContent = `--°C ${konumBaslik}`;
+            }
+
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(enlem)}&longitude=${encodeURIComponent(boylam)}&current_weather=true`);
             if (!res.ok) return;
             const json = await res.json();
@@ -891,22 +1094,20 @@ const PanoTV = (function () {
                 const temp = Math.round(json.current_weather.temperature);
                 const code = json.current_weather.weathercode;
 
-                const tempEl = document.getElementById('header-weather-temp');
-                const descEl = document.getElementById('header-weather-desc');
-                const iconEl = document.getElementById('header-weather-icon');
+                if (tempEl) tempEl.textContent = `${temp}°C ${konumBaslik}`;
 
-                if (tempEl) tempEl.textContent = `${temp}°C ${konum.sehir || 'Okul Konumu'}`;
-
-                let desc = 'Açık / Güneşli';
+                let desc = 'Açık & Güneşli';
                 let emoji = '☀️';
 
                 if (code === 0) { desc = 'Açık & Güneşli'; emoji = '☀️'; }
-                else if (code >= 1 && code <= 3) { desc = 'Parçalı Bulutlu'; emoji = '⛅'; }
+                else if (code === 1 || code === 2) { desc = 'Parçalı Bulutlu'; emoji = '⛅'; }
+                else if (code === 3) { desc = 'Çok Bulutlu / Kapalı'; emoji = '☁️'; }
                 else if (code >= 45 && code <= 48) { desc = 'Sisli'; emoji = '🌫️'; }
                 else if (code >= 51 && code <= 67) { desc = 'Yağmurlu'; emoji = '🌧️'; }
                 else if (code >= 71 && code <= 77) { desc = 'Kar Yağışlı'; emoji = '🌨️'; }
                 else if (code >= 80 && code <= 82) { desc = 'Sağanak Yağışlı'; emoji = '🌧️'; }
-                else if (code >= 95) { desc = 'Fırtınalı'; emoji = '⛈️'; }
+                else if (code === 85 || code === 86) { desc = 'Kar Sağanağı'; emoji = '🌨️'; }
+                else if (code >= 95) { desc = 'Gök Gürültülü Fırtına'; emoji = '⛈️'; }
 
                 if (descEl) descEl.textContent = desc;
                 if (iconEl) iconEl.textContent = emoji;
@@ -1006,14 +1207,14 @@ const PanoTV = (function () {
             <!-- VAKTİN NAMAZI KARTI (5 Saniyede Bir Dönüşen Yüzler) -->
             <div class="dini-card namaz-card" style="width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
                 <div id="namaz-card-view1" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%;">
-                    <div class="dini-type" style="width: 100%; text-align: left;">🕌 Vaktin Namazı</div>
+                    <div class="dini-type" id="namaz-vakit-tipi" style="width: 100%; text-align: left;">🕌 Vaktin Namazı</div>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; width: 100%;">
                         <span class="vakit-adi" id="namaz-vakit-adi" style="font-size: 1.35rem; font-weight: 800; color: #e9d5ff;">...</span>
                         <span class="vakit-saat" id="namaz-vakit-saat" style="font-size: 2.0rem; font-weight: 900; color: #ffffff;">...</span>
                     </div>
                 </div>
                 <div id="namaz-card-view2" style="display: none; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%;">
-                    <div class="dini-type" style="color: #c084fc; width: 100%; text-align: left;">⏳ Vaktin Çıkmasına</div>
+                    <div class="dini-type" id="namaz-kalan-etiket" style="color: #c084fc; width: 100%; text-align: left;">⏳ Vaktin Çıkmasına</div>
                     <div style="display: flex; align-items: center; justify-content: center; margin-top: 4px; width: 100%;">
                         <span class="vakit-saat" id="namaz-kalan-sure" style="font-size: 2.1rem; font-weight: 900; color: #ffffff; letter-spacing: 1px; font-family: 'Outfit', monospace;">--:--:--</span>
                     </div>
@@ -1126,16 +1327,37 @@ const PanoTV = (function () {
 
         const view1 = document.getElementById('namaz-card-view1');
         const view2 = document.getElementById('namaz-card-view2');
+        const elTip = document.getElementById('namaz-vakit-tipi');
         const elAdi = document.getElementById('namaz-vakit-adi');
         const elSaat = document.getElementById('namaz-vakit-saat');
         const elKalan = document.getElementById('namaz-kalan-sure');
+        const elKalanEtiket = document.getElementById('namaz-kalan-etiket');
 
         if (!view1 || !view2) {
             renderDiniIcerik(lastVakitIndex >= 0 ? lastVakitIndex : 0);
             return;
         }
 
-        if (elAdi) elAdi.textContent = currentVakit.name + ':';
+        let gosterimAdi = currentVakit.name;
+        if (currentVakit.name === 'İmsak') {
+            gosterimAdi = 'Sabah (İmsak)';
+            if (elTip) elTip.textContent = '🕌 Vaktin Namazı';
+        } else if (currentVakit.name === 'Güneş') {
+            gosterimAdi = 'Güneş';
+            if (elTip) elTip.textContent = '🕌 Güncel Vakit (Kuşluk)';
+        } else {
+            if (elTip) elTip.textContent = '🕌 Vaktin Namazı';
+        }
+
+        if (elKalanEtiket) {
+            if (currentVakit.name === 'İmsak' || nextVakit.name === 'Güneş') {
+                elKalanEtiket.textContent = '⏳ Güneş Doğuşuna:';
+            } else {
+                elKalanEtiket.textContent = `⏳ ${nextVakit.name} Vaktine:`;
+            }
+        }
+
+        if (elAdi) elAdi.textContent = gosterimAdi + ':';
         if (elSaat) elSaat.textContent = currentVakit.time;
         if (elKalan) elKalan.textContent = remainingStr;
 
@@ -1343,6 +1565,48 @@ const PanoTV = (function () {
         };
 
         renderStatus(statusLise);
+
+        // Teneffüs anında nöbetçi öğretmenleri öne çıkarma ve canlı vurgulama (Madde 4)
+        const isTeneffus = !!(statusLise && (statusLise.text === 'Teneffüs' || statusLise.icon === '☕'));
+        applyTeneffusDutyHighlight(isTeneffus);
+    }
+
+    /**
+     * Teneffüs Vaktinde Nöbetçi Öğretmen Kartlarını Canlı Vurgula ve Öne Çıkar
+     */
+    let lastTeneffusAutoFlipped = false;
+    function applyTeneffusDutyHighlight(isTeneffus) {
+        const nobetBaslikEl = document.getElementById('pano-nobet-baslik');
+        if (nobetBaslikEl) {
+            if (isTeneffus) {
+                nobetBaslikEl.innerHTML = `🛡️ NÖBETÇİ ÖĞRETMENLER <span class="nobet-active-tag"><span class="duty-ping"></span> GÖREVDE</span>`;
+            } else {
+                nobetBaslikEl.innerHTML = `🛡️ NÖBETÇİ ÖĞRETMENLER`;
+            }
+        }
+
+        const cards = document.querySelectorAll('#pano-nobetciler-back .nobetci-card');
+        cards.forEach(card => {
+            if (isTeneffus) {
+                card.classList.add('is-teneffus-duty');
+            } else {
+                card.classList.remove('is-teneffus-duty');
+            }
+        });
+
+        // Teneffüs başladığında nöbetçiler arkada kalmasın, otomatik öne dönsün
+        const config = (panoData && panoData.zilYonetimi) || {};
+        if (config.nobetciVurgu !== false) {
+            const flipInner = document.getElementById('flip-inner');
+            if (flipInner) {
+                if (isTeneffus && !lastTeneffusAutoFlipped) {
+                    flipInner.classList.add('is-flipped');
+                    lastTeneffusAutoFlipped = true;
+                } else if (!isTeneffus && lastTeneffusAutoFlipped) {
+                    lastTeneffusAutoFlipped = false;
+                }
+            }
+        }
     }
 
 
@@ -1384,14 +1648,45 @@ const PanoTV = (function () {
      */
     async function fetchNamazVakitleri() {
         try {
-            const konum = Object.assign({ sehir: '' }, (panoData && panoData.konum) || {});
-            if (!String(konum.sehir || '').trim()) return;
-            const apiUrl = 'https://api.aladhan.com/v1/timingsByCity?city=' +
-                encodeURIComponent(konum.sehir) + '&country=Turkey&method=13';
+            const konum = Object.assign({ sehir: '', ilce: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
+
+            // SeyirKonum ile koordinatları ve ASCII şehir/ilçe adını tamamla
+            let asciiSehir = '';
+            let asciiIlce = '';
+            if (typeof SeyirKonum !== 'undefined' && konum.sehir) {
+                const eslesen = SeyirKonum.koordinatGetir(konum.sehir, konum.ilce);
+                if (eslesen) {
+                    if (konum.enlem === null || konum.boylam === null || konum.enlem === '' || konum.boylam === '') {
+                        konum.enlem = eslesen.enlem;
+                        konum.boylam = eslesen.boylam;
+                    }
+                    asciiSehir = eslesen.asciiSehir;
+                    asciiIlce = eslesen.asciiIlce;
+                    if (eslesen.ilce && !konum.ilce) konum.ilce = eslesen.ilce;
+                }
+            }
+
+            const enlem = Number(konum.enlem);
+            const boylam = Number(konum.boylam);
+            let apiUrl = '';
+
+            // Koordinat varsa AlAdhan koordinat API'si (enlem/boylam ile Türkçe karakter hatası %100 önlenir)
+            if (Number.isFinite(enlem) && Number.isFinite(boylam) && enlem >= -90 && enlem <= 90 && boylam >= -180 && boylam <= 180) {
+                apiUrl = `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(enlem)}&longitude=${encodeURIComponent(boylam)}&method=13`;
+            } else if (asciiSehir || konum.sehir) {
+                // Koordinat yoksa ASCII adı ile şehir bazlı sorgu
+                const sorguSehir = asciiSehir || konum.sehir;
+                apiUrl = 'https://api.aladhan.com/v1/timingsByCity?city=' +
+                    encodeURIComponent(sorguSehir) + '&country=Turkey&method=13';
+            } else {
+                return;
+            }
+
             const res = await fetch(apiUrl);
-            if (!res.ok) throw new Error('API Hatası');
+            if (!res.ok) throw new Error('API Hatası: ' + res.status);
             const json = await res.json();
-            const timings = json.data.timings;
+            const timings = json && json.data && json.data.timings;
+            if (!timings) throw new Error('Vakit verisi eksik');
 
             const hamVakitler = [
                 { name: 'İmsak', time: timings.Imsak },
@@ -1410,13 +1705,29 @@ const PanoTV = (function () {
             if (temizVakitler.length === hamVakitler.length) {
                 globalNamazTimes = temizVakitler;
                 namazVeriGunu = new Date().toDateString();
+                try {
+                    localStorage.setItem('seyir_cached_namaz_v1', JSON.stringify({
+                        gun: namazVeriGunu,
+                        konum: `${konum.sehir}/${konum.ilce}`,
+                        vakitler: temizVakitler
+                    }));
+                } catch (e) {}
             } else {
                 console.warn('Namaz vakitleri eksik/bozuk geldi, mevcut vakitler korunuyor.', timings);
             }
 
             updateNamazUI();
         } catch (error) {
-            console.warn('Namaz vakitleri API hatası, yerel varsayılan vakitler aktif:', error);
+            console.warn('Namaz vakitleri API hatası, yerel/önbellek vakitler aktif:', error);
+            try {
+                const rawCachedNamaz = localStorage.getItem('seyir_cached_namaz_v1');
+                if (rawCachedNamaz) {
+                    const parsedCached = JSON.parse(rawCachedNamaz);
+                    if (parsedCached && Array.isArray(parsedCached.vakitler) && parsedCached.vakitler.length === 6) {
+                        globalNamazTimes = parsedCached.vakitler;
+                    }
+                }
+            } catch (e) {}
             updateNamazUI();
         }
     }
@@ -1559,4 +1870,403 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initScaleEngine);
 } else {
     initScaleEngine();
+}
+
+// ============================================================================
+// 🔔 SEYİR PANO (AKILLI TAHTA / TV) CANLI ZİL ZAMANLAYICI MOTORU
+// ============================================================================
+
+let seyirPanoZilEngine = null;
+let seyirPanoSonCalanDakika = "";
+let seyirPanoSonCalanTorenDakika = "";
+let seyirPanoZilInterval = null;
+let seyirPanoAktifTorenAudio = null;
+
+function initSeyirPanoZilEngine() {
+    if (seyirPanoZilInterval) return; // Zaten çalışıyor
+
+    // Web Audio Synthesizer
+    class PanoZilAudioEngine {
+        constructor() {
+            this.ctx = null;
+            this.activeOscs = [];
+        }
+
+        initContext() {
+            if (!this.ctx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) this.ctx = new AudioCtx();
+            }
+            if (this.ctx && this.ctx.state === 'suspended') {
+                this.ctx.resume().catch(() => {});
+            }
+            return this.ctx;
+        }
+
+        stop() {
+            this.activeOscs.forEach(o => {
+                try { o.stop(); o.disconnect(); } catch (e) {}
+            });
+            this.activeOscs = [];
+            if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            if (window.SeyirAudioStore && typeof window.SeyirAudioStore.stopAll === 'function') {
+                window.SeyirAudioStore.stopAll();
+            }
+        }
+
+        playChime(freq, startTime, duration = 1.8, volume = 0.5, type = 'sine') {
+            const ctx = this.initContext();
+            if (!ctx) return;
+
+            const harmonics = [
+                { m: 1.0, g: 0.75, d: 1.0 },
+                { m: 2.0, g: 0.25, d: 0.8 },
+                { m: 3.01, g: 0.15, d: 0.6 }
+            ];
+
+            harmonics.forEach(h => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq * h.m, startTime);
+
+                const peak = Math.max(0.0005, volume * h.g);
+                gain.gain.setValueAtTime(0.0001, startTime);
+                gain.gain.exponentialRampToValueAtTime(peak, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, startTime + (duration * h.d));
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(startTime);
+                osc.stop(startTime + (duration * h.d) + 0.05);
+                this.activeOscs.push(osc);
+            });
+        }
+
+        playMelody(type, durationSeconds = 8, volumePercent = 80, customAudioId = null) {
+            this.stop();
+
+            // Yerel Özel Ses Dosyası Oynatma Kontrolü
+            if (type === 'custom' || customAudioId) {
+                if (window.SeyirAudioStore && typeof window.SeyirAudioStore.playAudio === 'function') {
+                    window.SeyirAudioStore.playAudio(customAudioId, volumePercent).then(audioObj => {
+                        if (!audioObj) {
+                            this.playMelody('modern', durationSeconds, volumePercent);
+                        }
+                    }).catch(() => {
+                        this.playMelody('modern', durationSeconds, volumePercent);
+                    });
+                    return;
+                }
+            }
+
+            const ctx = this.initContext();
+            if (!ctx) return;
+
+            const vol = Math.min(1.0, Math.max(0.05, (volumePercent / 100) * 0.65));
+            const now = ctx.currentTime + 0.05;
+
+            if (type === 'westminster') {
+                const notes = [659.25, 587.33, 523.25, 392.00];
+                let offset = 0;
+                const repeats = Math.max(1, Math.floor(durationSeconds / 3.2));
+                for (let r = 0; r < repeats; r++) {
+                    notes.forEach(f => {
+                        if (offset < durationSeconds) this.playChime(f, now + offset, 1.2, vol, 'sine');
+                        offset += 0.72;
+                    });
+                    offset += 0.4;
+                }
+            } else if (type === 'chime') {
+                const chord = [523.25, 659.25, 783.99, 1046.50];
+                let offset = 0;
+                const repeats = Math.max(1, Math.floor(durationSeconds / 2.2));
+                for (let r = 0; r < repeats; r++) {
+                    chord.forEach(f => {
+                        if (offset < durationSeconds) this.playChime(f, now + offset, 1.8, vol * 0.9, 'sine');
+                        offset += 0.32;
+                    });
+                    offset += 0.6;
+                }
+            } else {
+                // Modern okul melodisi
+                const notes = [523.25, 659.25, 783.99, 1046.50, 880.00, 783.99];
+                let offset = 0;
+                const repeats = Math.max(1, Math.floor(durationSeconds / 3));
+                for (let r = 0; r < repeats; r++) {
+                    notes.forEach(f => {
+                        if (offset < durationSeconds) this.playChime(f, now + offset, 1.6, vol, 'sine');
+                        offset += 0.42;
+                    });
+                    offset += 0.7;
+                }
+            }
+        }
+    }
+
+    seyirPanoZilEngine = new PanoZilAudioEngine();
+
+    // Kullanıcı ekrana dokununca ses kilidini aç
+    ['click', 'touchstart', 'keydown'].forEach(evt => {
+        document.addEventListener(evt, () => {
+            if (seyirPanoZilEngine) seyirPanoZilEngine.initContext();
+        }, { passive: true });
+    });
+
+    // Pano Ekranında Canlı Zil Bildirimi Göster
+    function gosterPanoZilBanner(zil, sure) {
+        const config = (panoData && panoData.zilYonetimi) || {};
+
+        // Ekranda neon parlama dalgası efekti
+        if (config.neonEfekt !== false) {
+            const scaleWrapper = document.getElementById('pano-scale-wrapper') || document.body;
+            scaleWrapper.classList.add('bell-screen-glow');
+            setTimeout(() => {
+                scaleWrapper.classList.remove('bell-screen-glow');
+            }, (sure + 1) * 1000);
+        }
+
+        let bgGradient = 'linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95))';
+        let subText = 'OKUL ZİLİ ÇALIYOR';
+        let icon = '🔔';
+
+        if (zil.tur === 'cikis') {
+            bgGradient = 'linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95))';
+            subText = '☕ TENEFFÜS VAKTİ';
+            icon = '🏃';
+
+            // Teneffüste nöbetçi öğretmenler tarafına otomatik çevir ve kartları parlat
+            const flipInner = document.getElementById('flip-inner');
+            if (flipInner && !flipInner.classList.contains('is-flipped')) {
+                flipInner.classList.add('is-flipped');
+            }
+            document.querySelectorAll('#pano-nobetciler-back .nobetci-card').forEach(c => c.classList.add('bell-duty-shimmer'));
+            setTimeout(() => {
+                document.querySelectorAll('#pano-nobetciler-back .nobetci-card').forEach(c => c.classList.remove('bell-duty-shimmer'));
+            }, Math.max(12000, (sure + 3) * 1000));
+        } else if (zil.tur === 'ogretmen') {
+            bgGradient = 'linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(124, 58, 237, 0.95))';
+            subText = '👨‍🏫 ÖĞRETMEN HAZIRLIK ZİLİ';
+            icon = '⏳';
+        } else if (zil.tur === 'ogrenci') {
+            bgGradient = 'linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95))';
+            subText = '📖 DERS BAŞLADI';
+            icon = '🔔';
+
+            // Ders başladığında dersler yüzüne dön
+            const flipInner = document.getElementById('flip-inner');
+            if (flipInner && flipInner.classList.contains('is-flipped')) {
+                flipInner.classList.remove('is-flipped');
+            }
+        }
+
+        let banner = document.getElementById('seyir-live-bell-banner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'seyir-live-bell-banner';
+            banner.style.cssText = `
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                z-index: 99999;
+                color: #ffffff;
+                padding: 16px 24px;
+                border-radius: 16px;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                font-family: inherit;
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.35);
+                animation: panoBellPulse 1s infinite alternate ease-in-out;
+                transition: opacity 0.5s ease, transform 0.5s ease;
+                transform: translateY(-20px);
+                opacity: 0;
+            `;
+            document.body.appendChild(banner);
+
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes panoBellPulse {
+                    from { transform: translateY(0) scale(1); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35); }
+                    to { transform: translateY(0) scale(1.03); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        banner.style.background = bgGradient;
+        banner.innerHTML = `
+            <div style="font-size: 2.2rem; line-height: 1;">${icon}</div>
+            <div>
+                <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; opacity: 0.95;">${subText}</div>
+                <div style="font-size: 1.25rem; font-weight: 900;">${escapeHtml(zil.baslik || 'Okul Zili')}</div>
+            </div>
+        `;
+
+        banner.style.display = 'flex';
+        requestAnimationFrame(() => {
+            banner.style.opacity = '1';
+            banner.style.transform = 'translateY(0)';
+        });
+
+        setTimeout(() => {
+            banner.style.opacity = '0';
+            banner.style.transform = 'translateY(-20px)';
+            setTimeout(() => { banner.style.display = 'none'; }, 500);
+        }, (sure + 1) * 1000);
+    }
+
+    // Pano Ekranında Canlı Tören / İstiklal Marşı Başlat
+    function calPanoToren(toren) {
+        if (!toren || !toren.audioId || !window.SeyirAudioStore) return;
+
+        if (seyirPanoAktifTorenAudio) {
+            try { seyirPanoAktifTorenAudio.pause(); } catch (e) {}
+            seyirPanoAktifTorenAudio = null;
+        }
+
+        const overlay = document.getElementById('pano-ceremony-overlay');
+        const titleEl = document.getElementById('ceremony-display-title');
+        const subEl = document.getElementById('ceremony-display-sub');
+        const statusEl = document.getElementById('ceremony-status-text');
+
+        if (toren.torenModu !== false && overlay) {
+            if (titleEl) titleEl.textContent = (toren.baslik || 'SAYGI DURUŞU VE İSTİKLAL MARŞI').toLocaleUpperCase('tr-TR');
+            if (subEl) subEl.textContent = '🇹🇷 ' + ((panoData && panoData.okulAdi) || 'Millî Eğitim Bakanlığı');
+            if (statusEl) statusEl.textContent = (toren.baslik || 'Müzik') + ' çalınıyor...';
+            overlay.classList.add('active');
+        }
+
+        window.SeyirAudioStore.playAudio(toren.audioId, toren.sesSeviyesi || 95, () => {
+            if (overlay) overlay.classList.remove('active');
+            seyirPanoAktifTorenAudio = null;
+        }).then(audioObj => {
+            seyirPanoAktifTorenAudio = audioObj;
+            if (!audioObj && overlay && overlay.classList.contains('active')) {
+                if (statusEl) statusEl.textContent = '🔊 Sesi Başlatmak İçin Ekrana Dokunun / Tıklayın';
+                const unlockHandler = () => {
+                    document.removeEventListener('click', unlockHandler);
+                    document.removeEventListener('touchstart', unlockHandler);
+                    calPanoToren(toren);
+                };
+                document.addEventListener('click', unlockHandler, { once: true });
+                document.addEventListener('touchstart', unlockHandler, { once: true });
+            }
+        });
+    }
+
+    const btnCloseCeremony = document.getElementById('btn-close-ceremony');
+    if (btnCloseCeremony) {
+        btnCloseCeremony.addEventListener('click', () => {
+            if (window.SeyirAudioStore) window.SeyirAudioStore.stopAll();
+            const overlay = document.getElementById('pano-ceremony-overlay');
+            if (overlay) overlay.classList.remove('active');
+            seyirPanoAktifTorenAudio = null;
+        });
+    }
+
+    // Uzaktan Canlı Tören / Müzik Tetikleme Dinleyicisi (Yönetici Paneli -> Pano Ekranı)
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'seyir_toren_trigger' && e.newValue) {
+            try {
+                const payload = JSON.parse(e.newValue);
+                if (payload && payload.audioId) {
+                    calPanoToren(payload);
+                }
+            } catch (err) {}
+        } else if (e.key === 'seyir_toren_stop') {
+            if (window.SeyirAudioStore) window.SeyirAudioStore.stopAll();
+            const overlay = document.getElementById('pano-ceremony-overlay');
+            if (overlay) overlay.classList.remove('active');
+            seyirPanoAktifTorenAudio = null;
+        }
+    });
+
+    // 1 Saniyelik Zil Zamanlayıcı Döngüsü
+    seyirPanoZilInterval = setInterval(() => {
+        if (!panoData || !panoData.zilYonetimi) return;
+        const config = panoData.zilYonetimi;
+
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const isHaftasonu = (dayOfWeek === 0 || dayOfWeek === 6);
+
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const dakikaStr = `${hh}:${mm}`;
+
+        // Ders Zili Kontrolü (Hafta sonu sessizliği ve sistem aktiflik kontrolü)
+        const dersZiliCalabilir = (config.aktif !== false) && !(config.haftasonuSessiz !== false && isHaftasonu);
+        if (dersZiliCalabilir && seyirPanoSonCalanDakika !== dakikaStr && (ss === '00' || ss === '01')) {
+            const aktifZiller = (config.cizelge || []).filter(z => z.aktif !== false);
+            const eslesen = aktifZiller.find(z => z.saat === dakikaStr);
+            if (eslesen) {
+                seyirPanoSonCalanDakika = dakikaStr;
+
+                let customAudioId = null;
+                let melodi = eslesen.melodi;
+
+                if (eslesen.customAudioId) {
+                    customAudioId = eslesen.customAudioId;
+                    melodi = 'custom';
+                } else if (!melodi || melodi === 'varsayilan') {
+                    if (eslesen.tur === 'ogrenci') {
+                        melodi = config.melodiOgrenci || 'modern';
+                        if (melodi === 'custom') customAudioId = 'zil_ogrenci_custom';
+                    } else if (eslesen.tur === 'ogretmen') {
+                        melodi = config.melodiOgretmen || 'chime';
+                        if (melodi === 'custom') customAudioId = 'zil_ogretmen_custom';
+                    } else if (eslesen.tur === 'cikis') {
+                        melodi = config.melodiCikis || 'westminster';
+                        if (melodi === 'custom') customAudioId = 'zil_cikis_custom';
+                    } else {
+                        melodi = 'modern';
+                    }
+                } else if (melodi === 'custom') {
+                    if (eslesen.tur === 'ogrenci') customAudioId = 'zil_ogrenci_custom';
+                    else if (eslesen.tur === 'ogretmen') customAudioId = 'zil_ogretmen_custom';
+                    else if (eslesen.tur === 'cikis') customAudioId = 'zil_cikis_custom';
+                }
+
+                const sure = parseInt(eslesen.sure, 10) || parseInt(config.calmaSuresi, 10) || 8;
+                const ses = parseInt(config.sesSeviyesi, 10) || 80;
+
+                seyirPanoZilEngine.playMelody(melodi, sure, ses, customAudioId);
+                gosterPanoZilBanner(eslesen, sure);
+
+                // Sesli Anons
+                if (config.sesliAnons && eslesen.anons && eslesen.anons.trim() && window.speechSynthesis) {
+                    setTimeout(() => {
+                        try {
+                            const u = new SpeechSynthesisUtterance(eslesen.anons.trim());
+                            u.lang = 'tr-TR';
+                            window.speechSynthesis.speak(u);
+                        } catch (e) {}
+                    }, Math.min(2500, sure * 600));
+                }
+            }
+        }
+
+        // Tören & Zamanlanmış Müzikler Kontrolü
+        if (config.torenMuzikleri && Array.isArray(config.torenMuzikleri) && config.torenMuzikleri.length > 0) {
+            if (seyirPanoSonCalanTorenDakika !== dakikaStr && (ss === '00' || ss === '01')) {
+                const aktifTorenler = config.torenMuzikleri.filter(m => m.aktif !== false);
+                const eslesenToren = aktifTorenler.find(m => {
+                    if (m.saat !== dakikaStr) return false;
+                    if (!Array.isArray(m.gunler) || m.gunler.length === 0) return true;
+                    return m.gunler.includes(dayOfWeek);
+                });
+                if (eslesenToren) {
+                    seyirPanoSonCalanTorenDakika = dakikaStr;
+                    calPanoToren(eslesenToren);
+                }
+            }
+        }
+    }, 1000);
 }

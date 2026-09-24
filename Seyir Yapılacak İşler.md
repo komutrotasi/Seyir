@@ -79,9 +79,19 @@ php tests/meb-parser-test.php
 - Belirli bir saatten sonra (örn: 17:00) pano amblemli, saat vurgulu **koruyucu moda** geçmeli.
 - **Teknik:** `seyir.js` içinde saate bağlı `checkScreensaver()` fonksiyonu + CSS overlay.
 
-### 3.4 — 🔔 Sesli & Görsel Zil Efekti
-- Ders giriş/çıkış dakikalarında görsel neon parlama efekti.
-- **Not:** `bell-anons-overlay` HTML yapısı, `playSchoolBellSound()` (Web Audio) ve `checkSchoolBellTrigger()` **zaten mevcut**. Kalan iş: efektin ders saatleriyle uçtan uca doğrulanması ve admin'den açma/kapama ayarı.
+### 3.4 — 🔔 Sesli & Görsel Zil Efekti, Yerel Zil Dosyası Yükleme, Tören Müzikleri ve Nöbetçi Öğretmen Vurgusu ✅
+- **Web Audio Sentezleyici & Çoklu Melodi:** Harici ses dosyasına ihtiyaç bırakmayan, saf Web Audio API akorları ile 7 farklı okul melodisi (`modern`, `westminster`, `chime`, `klasik`, `marimba`, `fanfare`, `alarm`).
+- **📁 Yerel Ses Dosyası Yükleme (IndexedDB):** Kullanıcı yerel bilgisayarından MP3/WAV/OGG/AAC/M4A zil seslerini Öğrenci, Öğretmen veya Çıkış ziline ya da münferit bir ders ziline özel atayabilir. Ses dosyaları `localStorage` kotasını tüketmemek için IndexedDB (`seyir_audio_db`) üzerinde binary `Blob` olarak saklanır.
+- **🇹🇷 Tören & Zamanlanmış Müzikler Paneli (İstiklal Marşı, Saygı Duruşu & Fon Müzikleri):**
+  - İstiklal Marşı, Saygı Duruşu sireni veya teneffüs fon müzikleri yerel bilgisayardan yüklenir.
+  - İstenen gün (Pzt, Cum vb.) ve saate göre otomatik çalma programı tanımlanabilir.
+  - Admin panelinden tek tıkla anlık canlı başlatma ("▶ Çal") ve durdurma ("⏹ Durdur") butonları.
+  - Canlı tetikleme ve zamanlanan saat geldiğinde dijital panoda (`index.html`) isteğe bağlı tam ekran dalgalanan Türk Bayrağı ve tören bilgi kartı (`#pano-ceremony-overlay`) otomatik açılır.
+- **Saniyelik Gerçek Zamanlı Motor:** Hem panoda (`seyir.js`) hem de admin panelinde (`admin.js`) çalışan saniyelik zamanlayıcı; gün ve saat kontrolü, hafta sonu sessizlik kuralı.
+- **Admin Zil Yönetimi Modülü:** Sol menüye eklenen kapsamlı yönetim sekmesi, KPI istatistik kartları, tek tıkla ders saatleriyle otomatik zil oluşturma, özel zil ekleme/düzenleme, anlık canlı test ve geçmiş günlüğü.
+- **Görsel Zil Dalgası & Neon Aura:** Zil çaldığında panoda zarif ambient neon çevre ışıması (`.bell-screen-glow`, `screenBellAura`) ve zil türüne göre dinamik renklenen tam genişlikli banner.
+- **Teneffüste Nöbetçi Öğretmen Öne Çıkarma:** Teneffüs başladığında otomatik olarak nöbetçi paneline geçiş (`#flip-inner` flip), canlı yeşil nabız rozeti (`.nobet-active-tag`, `nobetTagPulse`, `.duty-ping`), nöbetçi kartlarında 3D yükselme ve zümrüt ışığı (`.is-teneffus-duty`), zil anında 15 saniyelik parıltı (`.bell-duty-shimmer`).
+- **Admin Açma/Kapama Ayarları:** Teneffüs nöbetçi vurgusu (`nobetciVurgu`), neon görsel efekt (`neonEfekt`) ve tören ekranı admin panelinden bağımsız olarak yönetilebilir.
 
 ### 3.5 — 📱 QR Kod Entegrasyonu
 - Duyuru kartlarının yanında dinamik QR kod alanı (PDF/Afiş için).
@@ -100,7 +110,7 @@ php tests/meb-parser-test.php
 | 3.1 | Dinamik URL → haber entegrasyonu + Logo & Okul Adı | 🟢 Planlı | ✅ Tamamlandı |
 | 3.2 | Video oynatıcı karusel | 🟢 Planlı | ⏳ Bekliyor |
 | 3.3 | Ekran koruyucu modu | 🟢 Planlı | ⏳ Bekliyor |
-| 3.4 | Sesli zil efekti (doğrulama + ayar) | 🟢 Planlı | ⏳ Bekliyor |
+| 3.4 | Sesli zil efekti & Teneffüs Nöbetçi Vurgusu | 🟢 Planlı | ✅ Tamamlandı |
 | 3.5 | QR kod entegrasyonu | 🟢 Planlı | ⏳ Bekliyor |
 | 3.6 | PWA / Service Worker | 🟢 Planlı | ⏳ Bekliyor |
 

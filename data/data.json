@@ -1,7 +1,7 @@
 {
-    "okulAdi": "Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi",
+    "okulAdi": "Mahmud Celaleddin Ökten",
+    "okulTuru": "Anadolu İmam Hatip Lisesi",
     "okulLogo": "img/okul_logo.png",
-    "slogan": "Okulun Dijital Nabzı",
     "daktiloYazilari": [
         "Medya Okulu",
         "Teknoloji Okulu",
@@ -52,8 +52,9 @@
     "okulWebSiteUrl": "https://konyamcosihl.meb.k12.tr/",
     "konum": {
         "sehir": "Konya",
-        "enlem": null,
-        "boylam": null
+        "ilce": "Karatay",
+        "enlem": 37.8874,
+        "boylam": 32.5334
     },
     "duyurular": [],
     "sinavlar": [],

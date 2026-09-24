@@ -9,7 +9,8 @@ açtığı bilgisayarın ilgili tarayıcı profilinde saklanır.
 - HTTPS zorunludur. Yerel parola özeti Web Crypto ile yalnızca güvenli bağlantıda çalışır.
 - `index.html` ve `admin.html` normal statik dosya olarak sunulmalıdır.
 - PHP 7.2+ yalnızca `fetch-haberler.php` ve `fetch-gorsel.php` haber aracıları için gereklidir.
-- PHP sunucusunun dış HTTPS bağlantısı için cURL veya `allow_url_fopen` desteği gerekir.
+- PHP sunucusunun dış HTTPS bağlantısı için cURL eklentisi gerekir. Güvenli IP sabitlemesi
+  sağlanamadığından `allow_url_fopen` yedeği bilinçli olarak kullanılmaz.
 - Haber servisi yalnızca resmî `meb.k12.tr` ve `meb.gov.tr` adreslerini kabul eder.
 - `config/nginx-seyir.conf.example` veya kökteki `.htaccess` kuralları uygulanmalıdır.
 

@@ -31,9 +31,22 @@ Bu doküman, **Nexus Seyir Paneli**'nin işlevselliğini, görselliğini ve otom
 - **Ekran Koruyucu / Güç Tasarrufu:** Okul çıkış saatlerinden sonra (örn: 17:00 sonrası) panelin amblemli ve saat vurgulu şık bir koruyucu moduna geçmesi.
 - **Tam Ekran Hatırlatıcı:** Pano ilk açıldığında TV / Akıllı Tahta çözünürlüğüne otomatik uyarlanma.
 
-### 4. 🔔 Sesli & Görsel Zil / Anons Entegrasyonu
-- **Zil Uyarı Efekti:** Ders giriş/çıkış saniyelerinde tatlı bir sesli uyarı veya ekranda neon parlama efekti.
-- **Nöbetçi Öğretmen Öne Çıkarma:** Teneffüs başladığında ilgili katın nöbetçi öğretmen kartının dikey olarak hafifçe öne vurgulanması.
+### 4. 🔔 Sesli & Görsel Zil / Anons Entegrasyonu, Yerel Zil Dosyası Yükleme ve Tören Müzikleri Yayını ✅
+- **Gerçek Zamanlı Zil Motoru & Web Audio:** Harici MP3 dosyası gerektirmeyen, Web Audio API osilatörleriyle oluşturulmuş 7 farklı akor/melodi (Modern Okul Melodisi, Westminster Çanı, Kristal Chime, Klasik Zil, Marimba, Fanfar, Acil Durum Sireni).
+- **📁 Yerel Ses Dosyası ile Zil Değiştirme (IndexedDB Motoru):** Kullanıcı bilgisayarından MP3/WAV/OGG ses dosyalarını yükleyerek varsayılan öğrenci, öğretmen veya çıkış zillerini ya da belirli bir ders zilini özelleştirebilir. Büyük ses dosyaları `localStorage` kotasını aşmamak için IndexedDB (`seyir_audio_db`) üzerinde güvenle barındırılır.
+- **🇹🇷 Tören & Zamanlanmış Müzik Yayını (İstiklal Marşı & Saygı Duruşu):**
+  - Pazartesi İstiklal Marşı, Cuma kapanış töreni, 10 Kasım Saygı Duruşu sireni veya teneffüs müzikleri yerel bilgisayardan yüklenir.
+  - İstenen gün ve saat seçilerek zamanlanmış otomatik çalma sağlanır.
+  - Canlı anlık tetikleme ("▶ Çal") ve durdurma ("⏹ Durdur") imkânı.
+  - Çalma esnasında dijital panoda (`index.html`) tam ekran dalgalanan Türk Bayrağı ve tören bilgi kartı animasyonu (`#pano-ceremony-overlay`) görüntülenebilir.
+- **Zamanlayıcı & Otomatik Çizelge Eşleme:** Saniyelik gerçek zamanlı kontrol motoru; tek tıkla okul ders saatlerinden öğrenci giriş, öğretmen hazırlık ve teneffüs/çıkış zillerini otomatik oluşturma.
+- **Canlı Görsel Neon Işık Dalgası:** Zil çaldığında panoda zarif ambient neon çevre ışıması (`.bell-screen-glow`, `screenBellAura`) ve zil türüne göre dinamik renklenen tam genişlikli üst bildirim banner'ı.
+- **Teneffüste Nöbetçi Öğretmenleri Öne Çıkarma:**
+  - Teneffüs başladığı anda ön/arka yüz kartı otomatik olarak **Nöbetçi Öğretmenler** paneline çevrilir (`#flip-inner` flip).
+  - Başlıkta canlı yeşil nabız rozeti (`.nobet-active-tag`, `nobetTagPulse`, `.duty-ping`) devreye girer.
+  - Nöbetçi öğretmen kartları 3D yükselme ve zümrüt yeşili çevre ışıması (`.is-teneffus-duty`, `translateY(-2px) scale(1.018)`) kazanır.
+  - Kartlarda canlı "🟢 NÖBETTE" rozeti ve zil anında 15 saniyelik ışıltı dalgası (`.bell-duty-shimmer`, `nobetciCardShimmer`) belirir.
+- **Yönetim Paneli & Kişiselleştirme:** Admin zil yönetiminden ses düzeyi, melodi türleri, çalma süresi, hafta sonu sessizliği, Web Speech Türkçe sesli anons, teneffüs nöbetçi vurgusu, neon görsel efekt ve tören ekranı ayrı ayrı açılıp kapatılabilir.
 
 ### 5. 🌐 Çevrimdışı Çalışma Desteği (Offline PWA & Local Cache)
 - **Kesintisiz Yayın:** İnternet bağlantısı koptuğunda ders programı, nöbetçi öğretmenler ve namaz vakitlerinin son kaydedilen verilerle ekranda çalışmaya devam etmesi.

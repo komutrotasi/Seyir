@@ -6,7 +6,7 @@
  * PHP 7.2+ uyumlu.
  *
  * ─── Madde 1.1: cPanel cURL/haber çekme düzeltmesi ───
- *   - cURL + stream_context çift katmanlı fallback
+ *   - DNS/IP sabitlemeli cURL bağlantısı ve kesin yanıt boyutu sınırı
  *   - User-Agent, Referer, Accept header'ları
  *   - Yapılandırılmış JSON hata yanıtı
  *   - haberbant, pgwSlider ve Owl Carousel tabanlı farklı MEB temaları
@@ -16,6 +16,7 @@
  */
 
 require_once __DIR__ . '/lib/meb-parser.php';
+require_once __DIR__ . '/lib/rate-limit.php';
 
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -25,6 +26,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
 
+function seyirHaberHizSiniri($limit = 12, $pencere = 60) {
+    return !seyirHizSiniriniAsiyorMu('haber', $limit, $pencere);
+}
+
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     http_response_code(405);
     header('Allow: POST');
@@ -32,21 +37,38 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     exit;
 }
 
+if (!seyirHaberHizSiniri()) {
+    http_response_code(429);
+    header('Retry-After: 60');
+    echo json_encode(array('durum' => 'hata', 'kod' => 429, 'mesaj' => 'Çok fazla haber yenileme isteği gönderildi.'), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+$icerikUzunlugu = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+if ($icerikUzunlugu > 8192) {
+    http_response_code(413);
+    echo json_encode(array('durum' => 'hata', 'kod' => 413, 'mesaj' => 'İstek gövdesi sınırı aşıldı.'), JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // Tarayıcı çağrılarında yalnızca aynı alan adından gelen istekleri kabul et.
 $istekOrigin = isset($_SERVER['HTTP_ORIGIN']) ? (string) $_SERVER['HTTP_ORIGIN'] : '';
 $sunucuHost = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
-if ($istekOrigin !== '') {
-    $originHost = strtolower((string) parse_url($istekOrigin, PHP_URL_HOST));
-    if ($originHost === '' || $sunucuHost === '' || !hash_equals($sunucuHost, $originHost)) {
-        http_response_code(403);
-        echo json_encode(array('durum' => 'hata', 'kod' => 403, 'mesaj' => 'İstek kaynağına izin verilmedi.'), JSON_UNESCAPED_UNICODE);
-        exit;
-    }
+$originHost = strtolower((string) parse_url($istekOrigin, PHP_URL_HOST));
+$fetchSite = strtolower((string) ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? ''));
+if (
+    $istekOrigin === '' || $originHost === '' || $sunucuHost === '' ||
+    !hash_equals($sunucuHost, $originHost) ||
+    ($fetchSite !== '' && $fetchSite !== 'same-origin')
+) {
+    http_response_code(403);
+    echo json_encode(array('durum' => 'hata', 'kod' => 403, 'mesaj' => 'İstek kaynağına izin verilmedi.'), JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 // ─── Madde 3.1: Dinamik Okul Web Sitesi ve URL Belirleme ───
 $istenenUrl = trim((string) ($_POST['url'] ?? ''));
-if ($istenenUrl === '') {
+if ($istenenUrl === '' || strlen($istenenUrl) > 4096) {
     http_response_code(400);
     echo json_encode(array('durum' => 'hata', 'kod' => 400, 'mesaj' => 'Okul web sitesi adresi zorunludur.'), JSON_UNESCAPED_UNICODE);
     exit;
@@ -102,6 +124,11 @@ function isGuvenliUrl($url, $host, &$hata, $dnsKontrol = true) {
     $scheme = isset($parsed['scheme']) ? strtolower($parsed['scheme']) : '';
     if ($scheme !== 'https') {
         $hata = 'Yalnızca HTTPS kaynaklarına izin verilir.';
+        return false;
+    }
+
+    if (!empty($parsed['user']) || !empty($parsed['pass']) || preg_match('/[\x00-\x20\x7f]/', (string) $url)) {
+        $hata = 'Kimlik bilgisi veya geçersiz karakter içeren adresler engellendi.';
         return false;
     }
 
@@ -181,7 +208,7 @@ function seyirGorselProxyAdresi($url) {
 }
 
 /**
- * cPanel Uyumlu Güvenli HTTP GET İsteği (cURL → stream_context fallback)
+ * cPanel Uyumlu Güvenli HTTP GET İsteği
  * Madde 1.1: cURL + User-Agent + Referer + Accept header'ları
  */
 function httpGet($url, &$hataBilgisi = '') {
@@ -197,71 +224,81 @@ function httpGet($url, &$hataBilgisi = '') {
         return false;
     }
 
-    // ── 1. Yöntem: cURL (Tercih edilen) ──
-    if (function_exists('curl_init')) {
-        $ch = curl_init();
-        $curlAyarlar = array(
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS => 5,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-            CURLOPT_HTTPHEADER => array(
-                'Referer: ' . $kaynakBase . '/',
-                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language: tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Connection: keep-alive'
-            ),
-            CURLOPT_ENCODING => '' // gzip/deflate otomatik
-        );
-        if (defined('CURLOPT_PROTOCOLS') && defined('CURLPROTO_HTTPS')) {
-            $curlAyarlar[CURLOPT_PROTOCOLS] = CURLPROTO_HTTPS;
-        }
-        if (defined('CURLOPT_REDIR_PROTOCOLS') && defined('CURLPROTO_HTTPS')) {
-            $curlAyarlar[CURLOPT_REDIR_PROTOCOLS] = CURLPROTO_HTTPS;
-        }
-        curl_setopt_array($ch, $curlAyarlar);
-        $data = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $etkinUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        $curlError = curl_error($ch);
-        $curlErrno = curl_errno($ch);
-        curl_close($ch);
-
-        if ($data !== false && $httpCode >= 200 && $httpCode < 400 && strlen($data) > 100 && isUrlAllowed($etkinUrl)) {
-            return $data;
-        }
-        $hataBilgisi = "cURL başarısız: HTTP $httpCode, errno=$curlErrno, $curlError";
+    if (!function_exists('curl_init')) {
+        $hataBilgisi = 'Güvenli dış bağlantı için PHP cURL eklentisi zorunludur.';
+        return false;
     }
 
-    // ── 2. Yöntem: file_get_contents (Fallback) ──
-    if (ini_get('allow_url_fopen')) {
-        $ctx = stream_context_create(array(
-            'http' => array(
-                'method'  => 'GET',
-                'header'  => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\r\n" .
-                             "Referer: " . $kaynakBase . "/\r\n" .
-                             "Accept: text/html,application/xhtml+xml,*/*;q=0.8\r\n" .
-                             "Accept-Language: tr-TR,tr;q=0.9\r\n",
-                'timeout' => 30,
-                'follow_location' => 1,
-                'max_redirects' => 5,
-            ),
-            'ssl' => array('verify_peer' => true, 'verify_peer_name' => true)
-        ));
-        $data = @file_get_contents($url, false, $ctx);
-        if ($data !== false && strlen($data) > 100) {
-            return $data;
+    $parsed = parse_url($url);
+    $host = isset($parsed['host']) ? strtolower((string) $parsed['host']) : '';
+    $dnsHatasi = '';
+    if (!isGuvenliUrl($url, $host, $dnsHatasi, true)) {
+        $hataBilgisi = $dnsHatasi;
+        return false;
+    }
+    $adresler = @gethostbynamel($host);
+    if ($adresler === false || count($adresler) === 0) {
+        $hataBilgisi = 'Hedef alan adı bağlantı öncesinde çözümlenemedi.';
+        return false;
+    }
+    foreach ($adresler as $ip) {
+        if (!isPublicIp($ip)) {
+            $hataBilgisi = 'Hedef alan adı bağlantı öncesinde özel veya rezerve bir IP adresine yönlendi.';
+            return false;
         }
-        $hataBilgisi .= ' | file_get_contents da başarısız.';
-    } else {
-        $hataBilgisi .= ' | allow_url_fopen kapalı, file_get_contents kullanılamıyor.';
     }
 
+    $azamiBoyut = 3 * 1024 * 1024;
+    $data = '';
+    $boyutAsildi = false;
+    $ch = curl_init();
+    $curlAyarlar = array(
+        CURLOPT_URL => $url,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_CONNECTTIMEOUT => 7,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_USERAGENT => 'Seyir-Dijital-Pano/1.0',
+        CURLOPT_REFERER => $kaynakBase . '/',
+        CURLOPT_HTTPHEADER => array(
+            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.1',
+            'Accept-Language: tr-TR,tr;q=0.9',
+            'Accept-Encoding: identity',
+            'Connection: close'
+        ),
+        CURLOPT_RESOLVE => array($host . ':443:' . $adresler[0]),
+        CURLOPT_WRITEFUNCTION => function ($curl, $parca) use (&$data, &$boyutAsildi, $azamiBoyut) {
+            if (strlen($data) + strlen($parca) > $azamiBoyut) {
+                $boyutAsildi = true;
+                return 0;
+            }
+            $data .= $parca;
+            return strlen($parca);
+        }
+    );
+    if (defined('CURLOPT_PROTOCOLS') && defined('CURLPROTO_HTTPS')) {
+        $curlAyarlar[CURLOPT_PROTOCOLS] = CURLPROTO_HTTPS;
+    }
+    curl_setopt_array($ch, $curlAyarlar);
+    $basarili = curl_exec($ch);
+    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    $curlErrno = curl_errno($ch);
+    curl_close($ch);
+
+    if ($boyutAsildi) {
+        $hataBilgisi = 'MEB yanıtı 3 MB güvenlik sınırını aşıyor.';
+        return false;
+    }
+    if ($httpCode >= 300 && $httpCode < 400) {
+        $hataBilgisi = 'Güvenlik nedeniyle uzak sunucu yönlendirmeleri takip edilmez.';
+        return false;
+    }
+    if ($basarili && $httpCode >= 200 && $httpCode < 300 && strlen($data) > 100) {
+        return $data;
+    }
+    $hataBilgisi = "cURL başarısız: HTTP $httpCode, errno=$curlErrno, $curlError";
     return false;
 }
 
@@ -277,7 +314,7 @@ if (!$html) {
             'kaynak_url'   => $kaynakUrl,
             'hata_detayi'  => $hataBilgisi,
             'oneriler'     => array(
-                'cPanel PHP ayarlarında allow_url_fopen veya cURL aktif mi kontrol edin.',
+                'cPanel PHP ayarlarında cURL eklentisinin aktif olduğunu kontrol edin.',
                 'Sunucunun dış bağlantı (outbound) izni var mı kontrol edin.',
                 'MEB sitesinin erişilebilir olduğunu tarayıcıdan doğrulayın.'
             )

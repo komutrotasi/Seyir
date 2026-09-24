@@ -19,12 +19,15 @@ const localAuthJs = oku('js/local-auth.js');
 const seyirJs = oku('js/seyir.js');
 const fetchPhp = oku('fetch-haberler.php');
 const fetchGorselPhp = oku('fetch-gorsel.php');
+const rateLimitPhp = oku('lib/rate-limit.php');
+const xlsxYolu = path.join(KOK, 'js/vendor/xlsx.full.min.js');
 const veri = JSON.parse(oku('data/data.json'));
 
 if ((veri.okulWebSiteUrl || '').trim() !== 'https://konyamcosihl.meb.k12.tr/') {
     sorunlar.push('data/data.json: başlangıç MEB okul adresi eksik veya hatalı');
 }
-if (veri.okulAdi !== 'Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi') {
+const tamOkulAdi = (veri.okulTuru ? `${veri.okulAdi} ${veri.okulTuru}` : (veri.okulAdi || '')).trim();
+if (tamOkulAdi !== 'Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi') {
     sorunlar.push('data/data.json: başlangıç okul adı eksik veya hatalı');
 }
 if (!Array.isArray(veri.mebHaberler) || veri.mebHaberler.length < 1) {
@@ -76,11 +79,48 @@ if (!adminPhp.includes("header('Location: admin.html'")) {
 if (!fetchPhp.includes("REQUEST_METHOD") || !fetchPhp.includes("'POST'")) {
     sorunlar.push('fetch-haberler.php: yalnızca POST kabul eden servis kontrolü eksik');
 }
+if (/CURLOPT_FOLLOWLOCATION\s*=>\s*true|file_get_contents\s*\(\s*\$url/.test(fetchPhp)) {
+    sorunlar.push('fetch-haberler.php: doğrulanmamış yönlendirme veya güvensiz URL akışı etkin');
+}
+if (!fetchPhp.includes('CURLOPT_RESOLVE') || !fetchPhp.includes('3 * 1024 * 1024')) {
+    sorunlar.push('fetch-haberler.php: DNS/IP sabitlemesi veya 3 MB yanıt sınırı eksik');
+}
+if (!fetchPhp.includes('HTTP_ORIGIN') || !fetchPhp.includes('HTTP_SEC_FETCH_SITE')) {
+    sorunlar.push('fetch-haberler.php: aynı kaynak/fetch metadata doğrulaması eksik');
+}
+if (!fetchPhp.includes('seyirHaberHizSiniri') || !fetchPhp.includes('429')) {
+    sorunlar.push('fetch-haberler.php: istek hız sınırı eksik');
+}
+if (!rateLimitPhp.includes('flock') || !rateLimitPhp.includes('sys_get_temp_dir') || !rateLimitPhp.includes('2 * 1024 * 1024')) {
+    sorunlar.push('lib/rate-limit.php: APCu dışı kilitli ve boyut sınırlı hız sayacı eksik');
+}
 if (/file_put_contents|CIKTI_DOSYA|GORSEL_DIZIN/.test(fetchPhp)) {
     sorunlar.push('fetch-haberler.php: okula özgü haberleri sunucuya yazan kalıntı bulundu');
 }
 if (!fetchPhp.includes('fetch-gorsel.php?url=') || /file_put_contents/.test(fetchGorselPhp)) {
     sorunlar.push('Haber görselleri için yazmasız, aynı kaynaklı MEB aracısı eksik');
+}
+if (/file_get_contents\s*\(\s*\$url/.test(fetchGorselPhp) || !fetchGorselPhp.includes('CURLOPT_RESOLVE')) {
+    sorunlar.push('fetch-gorsel.php: DNS/IP sabitlemesiz uzak görsel akışı bulundu');
+}
+if (!fetchGorselPhp.includes('seyirGorselHizSiniri') || !fetchGorselPhp.includes('HTTP_REFERER')) {
+    sorunlar.push('fetch-gorsel.php: aynı kaynak veya istek hız sınırı eksik');
+}
+if (/preview\.innerHTML\s*=.*\$\{file\.name\}/.test(adminJs)) {
+    sorunlar.push('js/admin.js: dosya adı innerHTML ile kaçışsız basılıyor');
+}
+if (!adminJs.includes('delete yedekVeri.yedekGecmisi')) {
+    sorunlar.push('js/admin.js: yedek geçmişinin kendi içine katlanmasını önleyen temizlik eksik');
+}
+
+try {
+    delete require.cache[require.resolve(xlsxYolu)];
+    const xlsx = require(xlsxYolu);
+    const parcalar = String(xlsx.version || '0.0.0').split('.').map(Number);
+    const guvenli = parcalar[0] > 0 || parcalar[1] > 20 || (parcalar[1] === 20 && parcalar[2] >= 2);
+    if (!guvenli) sorunlar.push(`js/vendor/xlsx.full.min.js: güvensiz SheetJS sürümü (${xlsx.version || 'bilinmiyor'})`);
+} catch (error) {
+    sorunlar.push('js/vendor/xlsx.full.min.js: sürüm doğrulanamadı');
 }
 if (seyirJs.includes('data/meb_haberler.json')) {
     sorunlar.push('js/seyir.js: okullar arasında ortak haber önbelleği okunuyor');
@@ -95,6 +135,9 @@ for (const [ad, html] of [['index.html', indexHtml], ['admin.html', adminHtml]])
     if (!/<meta\s+http-equiv=["']Content-Security-Policy["']/i.test(html)) {
         sorunlar.push(`${ad}: Content Security Policy meta etiketi eksik`);
     }
+    const kimlikler = [...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(eslesme => eslesme[1]);
+    const tekrarlar = kimlikler.filter((kimlik, i) => kimlikler.indexOf(kimlik) !== i);
+    if (tekrarlar.length > 0) sorunlar.push(`${ad}: yinelenen HTML id bulundu (${[...new Set(tekrarlar)].join(', ')})`);
 }
 
 const zorunluDosyalar = [

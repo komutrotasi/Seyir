@@ -5,7 +5,6 @@
     src: url('fonts/UthmanicHafs.otf') format('opentype');
     font-display: swap;
 }
-
 /* Scroll gizleme ve tam ekran ayarı */
 body,
 html {
@@ -385,8 +384,46 @@ html {
     letter-spacing: 0.3px;
 }
 
+/* Saat Kartı: Saati kart içine tam sığacak ve uzaktan rahat okunacak şekilde büyüt */
+.header-info-card.info-clock {
+    padding: 6px 16px;
+    gap: 14px;
+}
+
+.header-info-card.info-clock .info-main {
+    font-size: 2.35rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+.header-info-card.info-clock .info-sub {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #38bdf8;
+    margin-top: 2px;
+    letter-spacing: 0.3px;
+}
+
+/* Hava Durumu Kartı: İlçe adı ve sıcaklık için optimize edilmiş tipografi */
+.header-info-card.info-weather {
+    padding: 8px 16px;
+    gap: 12px;
+}
+
+.header-info-card.info-weather .info-main {
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0.3px;
+}
+
 .header-info-card.info-weather .info-sub {
+    font-size: 0.82rem;
     color: #fbbf24;
+    margin-top: 2px;
 }
 
 .pano-status {
@@ -537,31 +574,75 @@ html {
     width: fit-content;
 }
 
-.slide-badge.primary {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
+.slide-badge.primary,
+.slide-badge.mavi {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
-.slide-badge.secondary {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+.slide-badge.secondary,
+.slide-badge.success,
+.slide-badge.yesil {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.slide-badge.accent {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
+.slide-badge.accent,
+.slide-badge.warning,
+.slide-badge.turuncu {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-[data-theme="dark"] .slide-badge.primary {
-    background: rgba(59, 130, 246, 0.2);
+.slide-badge.danger,
+.slide-badge.acil,
+.slide-badge.kirmizi {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-[data-theme="dark"] .slide-badge.secondary {
-    background: rgba(16, 185, 129, 0.2);
+.slide-badge.purple,
+.slide-badge.mor {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
-[data-theme="dark"] .slide-badge.accent {
-    background: rgba(139, 92, 246, 0.2);
+[data-theme="dark"] .slide-badge.primary,
+[data-theme="dark"] .slide-badge.mavi {
+    background: rgba(59, 130, 246, 0.25);
+    color: #60a5fa;
+}
+
+[data-theme="dark"] .slide-badge.secondary,
+[data-theme="dark"] .slide-badge.success,
+[data-theme="dark"] .slide-badge.yesil {
+    background: rgba(16, 185, 129, 0.25);
+    color: #34d399;
+}
+
+[data-theme="dark"] .slide-badge.accent,
+[data-theme="dark"] .slide-badge.warning,
+[data-theme="dark"] .slide-badge.turuncu {
+    background: rgba(245, 158, 11, 0.25);
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .slide-badge.danger,
+[data-theme="dark"] .slide-badge.acil,
+[data-theme="dark"] .slide-badge.kirmizi {
+    background: rgba(239, 68, 68, 0.25);
+    color: #f87171;
+}
+
+[data-theme="dark"] .slide-badge.purple,
+[data-theme="dark"] .slide-badge.mor {
+    background: rgba(139, 92, 246, 0.25);
+    color: #c084fc;
 }
 
 .carousel-slide h2 {
@@ -1545,6 +1626,141 @@ html {
     transform: translateY(-1px);
 }
 
+/* Tören ve İstiklal Marşı / Saygı Duruşu Canlı Tam Ekran Görseli */
+.ceremony-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: radial-gradient(circle at center, #881337 0%, #1e111a 60%, #090306 100%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+    padding: 30px;
+    text-align: center;
+}
+.ceremony-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.ceremony-box {
+    max-width: 900px;
+    width: 92%;
+    background: rgba(15, 23, 42, 0.75);
+    border: 3px solid rgba(225, 29, 72, 0.6);
+    border-radius: 28px;
+    padding: 40px 48px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(225, 29, 72, 0.35);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+.ceremony-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(90deg, #e11d48, #ffffff, #e11d48);
+}
+.ceremony-flag-wrap {
+    width: 150px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    margin-bottom: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: flagWave 3s infinite ease-in-out;
+}
+.ceremony-flag-wrap svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+@keyframes flagWave {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.04) rotate(1deg); }
+}
+.ceremony-title {
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    margin: 0 0 8px 0;
+    color: #ffffff;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    font-family: 'Outfit', sans-serif;
+}
+.ceremony-subtitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fecdd3;
+    margin: 0 0 24px 0;
+    letter-spacing: 0.8px;
+}
+.ceremony-instruction {
+    font-size: 1.05rem;
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 10px 24px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin-bottom: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.ceremony-waves {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    margin-bottom: 20px;
+}
+.ceremony-wave-bar {
+    width: 6px;
+    background: #e11d48;
+    border-radius: 4px;
+    animation: waveBounce 1.2s infinite ease-in-out;
+}
+.ceremony-wave-bar:nth-child(1) { height: 16px; }
+.ceremony-wave-bar:nth-child(2) { animation-delay: 0.15s; height: 26px; }
+.ceremony-wave-bar:nth-child(3) { animation-delay: 0.3s; height: 36px; }
+.ceremony-wave-bar:nth-child(4) { animation-delay: 0.45s; height: 24px; }
+.ceremony-wave-bar:nth-child(5) { animation-delay: 0.6s; height: 34px; }
+.ceremony-wave-bar:nth-child(6) { animation-delay: 0.75s; height: 22px; }
+.ceremony-wave-bar:nth-child(7) { animation-delay: 0.9s; height: 14px; }
+@keyframes waveBounce {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+    50% { transform: scaleY(1.1); opacity: 1; }
+}
+.ceremony-close-btn {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.ceremony-close-btn:hover {
+    background: rgba(239, 68, 68, 0.7);
+    transform: scale(1.08);
+}
+
 /* Ticker */
 .pano-footer {
     position: absolute;
@@ -2188,5 +2404,110 @@ html {
 
     .duyuru-accordion-card {
         cursor: default !important;
+    }
+}
+
+/* ==========================================================================
+   TENEFFÜS & OKUL ZİLİ NÖBETÇİ ÖĞRETMEN CANLI VURGU EFEKTLERİ
+   ========================================================================== */
+
+/* Pano ekranı genel zil neon ışık dalgası */
+.bell-screen-glow {
+    animation: screenBellAura 1.2s ease-in-out infinite alternate !important;
+}
+
+@keyframes screenBellAura {
+    0% {
+        box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.25), 0 0 30px rgba(245, 158, 11, 0.2);
+    }
+    100% {
+        box-shadow: inset 0 0 70px rgba(245, 158, 11, 0.65), 0 0 60px rgba(245, 158, 11, 0.5);
+    }
+}
+
+/* Nöbetçi Başlığı Canlı Görev Rozeti */
+.nobet-active-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.18);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+    animation: nobetTagPulse 2s infinite ease-in-out;
+}
+
+[data-theme="dark"] .nobet-active-tag {
+    background: rgba(16, 185, 129, 0.25);
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.5);
+}
+
+@keyframes nobetTagPulse {
+    0%, 100% { transform: scale(1); opacity: 0.95; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+.duty-ping {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    display: inline-block;
+    animation: dutyPingAnim 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes dutyPingAnim {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Nöbetçi Kartında Görev Rozeti */
+.nobet-card-duty-badge {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 2px 7px;
+    border-radius: 6px;
+    letter-spacing: 0.4px;
+}
+
+.nobetci-card.is-teneffus-duty .nobet-card-duty-badge {
+    display: inline-flex !important;
+}
+
+/* Teneffüs anında nöbetçi kartının öne vurgulanması */
+.nobetci-card.is-teneffus-duty {
+    transform: translateY(-2px) scale(1.018);
+    border-color: #10b981 !important;
+    border-left-width: 6px !important;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3), 0 0 16px rgba(16, 185, 129, 0.2) !important;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nobetci-card.bell-duty-shimmer {
+    animation: nobetciCardShimmer 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes nobetciCardShimmer {
+    0% {
+        box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3), 0 0 15px rgba(245, 158, 11, 0.2);
+        border-color: #f59e0b;
+    }
+    100% {
+        box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5), 0 0 25px rgba(16, 185, 129, 0.4);
+        border-color: #10b981;
     }
 }
