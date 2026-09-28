@@ -90,7 +90,7 @@ function toggleAdminFullscreen() {
             document.exitFullscreen().then(() => {
                 if (icon) icon.className = 'fa-solid fa-expand';
                 if (btn) btn.title = 'Tam Ekran';
-            }).catch(() => {});
+            }).catch(() => { });
         }
     }
 }
@@ -879,20 +879,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof updateKayanKPIs === 'function') updateKayanKPIs();
                 if (typeof syncKayanSimulator === 'function') syncKayanSimulator();
             } else if (target === 'tab-zil') {
-                if (typeof renderZilUI === 'function') renderZilUI();
+                if (typeof syncZilFormUI === 'function') syncZilFormUI();
+                if (typeof renderZilTablo === 'function') renderZilTablo();
+                if (typeof renderZilKPIs === 'function') renderZilKPIs();
             } else if (target === 'tab-medya') {
                 if (typeof renderKaruselVideoUI === 'function') renderKaruselVideoUI();
             } else if (target === 'tab-ogretmenler') {
                 if (typeof renderOgretmenTable === 'function') renderOgretmenTable();
+                if (typeof renderBransModalListesi === 'function') renderBransModalListesi();
             } else if (target === 'tab-sinav') {
                 if (typeof renderSinavlar === 'function') renderSinavlar();
+                if (typeof updateSinavLivePreview === 'function') updateSinavLivePreview();
             } else if (target === 'tab-nobetci') {
                 if (typeof renderNobetciDnD === 'function') renderNobetciDnD();
             } else if (target === 'tab-duyurular') {
-                if (typeof renderDuyurular === 'function') renderDuyurular();
+                renderDuyurular();
+                if (typeof updateDuyuruLivePreview === 'function') updateDuyuruLivePreview();
             } else if (target === 'tab-siniflar') {
                 if (typeof renderSiniflarTable === 'function') renderSiniflarTable();
+                if (typeof renderEslestirmeClassButtons === 'function') renderEslestirmeClassButtons();
             } else if (target === 'tab-zaman') {
+                if (typeof renderDersler === 'function') renderDersler();
                 if (typeof updateZamanStats === 'function') updateZamanStats();
             }
 
@@ -908,6 +915,82 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Load Data
+
+    /**
+     * KVKK uyumlu istemci taraflı örnek demo veri motoru.
+     * Boş kurulumda öğretmen/nöbet/sınıf alanlarını demo verisiyle doldurur.
+     * data/data.json'a YAZILMAZ — yalnızca localStorage'a kaydedilir.
+     */
+    function getOrnekOgretmenVeNobetVerisi() {
+        return {
+            tumOgretmenler: [
+                'Ahmet Yılmaz', 'Ayşe Demir', 'Mehmet Kaya', 'Fatma Çelik', 'Ali Öztürk',
+                'Zeynep Şahin', 'Mustafa Koç', 'Hatice Aydın', 'Hüseyin Arslan', 'Elif Yıldız',
+                'Emre Aksoy', 'Burak Doğan', 'Seda Polat', 'Deniz Kılıç', 'Hasan Can'
+            ],
+            ogretmenBranslar: [
+                'Ahmet Yılmaz : Matematik',
+                'Ayşe Demir : Türk Dili ve Edebiyatı',
+                'Mehmet Kaya : Fizik',
+                'Fatma Çelik : Kimya',
+                'Ali Öztürk : Biyoloji',
+                'Zeynep Şahin : Tarih',
+                'Mustafa Koç : Coğrafya',
+                'Hatice Aydın : Din Kültürü ve Ahlak Bilgisi',
+                'Hüseyin Arslan : İngilizce',
+                'Elif Yıldız : Bilişim Teknolojileri',
+                'Emre Aksoy : Beden Eğitimi',
+                'Burak Doğan : Felsefe',
+                'Seda Polat : Müzik',
+                'Deniz Kılıç : Görsel Sanatlar',
+                'Hasan Can : Arapça'
+            ],
+            sinifRehberlik: {
+                '9/A': 'Ahmet Yılmaz',
+                '9/B': 'Ayşe Demir',
+                '10/A': 'Mehmet Kaya',
+                '10/B': 'Fatma Çelik',
+                '11/A': 'Ali Öztürk',
+                '11/B': 'Zeynep Şahin',
+                '12/A': 'Mustafa Koç',
+                '12/B': 'Hüseyin Arslan'
+            },
+            nobetciGunluk: {
+                'Pazartesi': [
+                    'Ahmet Yılmaz (Nöbetçi İdareci)',
+                    'Ayşe Demir (Zemin Kat)',
+                    'Mehmet Kaya (1. Kat)',
+                    'Fatma Çelik (Bahçe)'
+                ],
+                'Salı': [
+                    'Ali Öztürk (Nöbetçi İdareci)',
+                    'Zeynep Şahin (Zemin Kat)',
+                    'Mustafa Koç (1. Kat)',
+                    'Hatice Aydın (Bahçe)'
+                ],
+                'Çarşamba': [
+                    'Hüseyin Arslan (Nöbetçi İdareci)',
+                    'Elif Yıldız (Zemin Kat)',
+                    'Burak Doğan (1. Kat)',
+                    'Emre Aksoy (Bahçe)'
+                ],
+                'Perşembe': [
+                    'Mehmet Kaya (Nöbetçi İdareci)',
+                    'Deniz Kılıç (Zemin Kat)',
+                    'Seda Polat (1. Kat)',
+                    'Ahmet Yılmaz (Bahçe)'
+                ],
+                'Cuma': [
+                    'Ali Öztürk (Nöbetçi İdareci)',
+                    'Ayşe Demir (Zemin Kat)',
+                    'Fatma Çelik (1. Kat)',
+                    'Hasan Can (Bahçe)'
+                ]
+            },
+            dersProgramiDetay: {}
+        };
+    }
+
     function getBosSablon() {
         return {
             okulAdi: "Mahmud Celaleddin Ökten",
@@ -917,21 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mebHaberler: [],
             okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
             konum: { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
-            ayarlar: {
-                karuselSuresi: 5000,
-                temaOtomatik: true,
-                tickerDurum: true,
-                tickerBaslik: "⚡ DUYURULAR",
-                tickerHiz: "normal",
-                tickerAyrac: "⚡",
-                ekranKoruyucu: {
-                    aktif: true,
-                    baslangic: "17:30",
-                    bitis: "07:30",
-                    haftasonu: true,
-                    bostaKalmaDk: 30
-                }
-            },
+            ayarlar: { karuselSuresi: 5000, temaOtomatik: true, tickerDurum: true, tickerBaslik: "⚡ DUYURULAR", tickerHiz: "normal", tickerAyrac: "⚡" },
             gizlilik: varsayilanGizlilikAyarlari(),
             veriYonetimi: { sonGozdenGecirme: new Date().toISOString() },
             duyurular: [],
@@ -980,129 +1049,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function getOrnekOgretmenVeNobetVerisi() {
-        return {
-            tumOgretmenler: [
-                "Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik", "Ali Öztürk",
-                "Zeynep Şahin", "Mustafa Koç", "Hatice Aydın", "Hüseyin Arslan", "Elif Yıldız",
-                "Emre Aksoy", "Burak Doğan", "Seda Polat", "Deniz Kılıç", "Hasan Can"
-            ],
-            ogretmenBranslar: [
-                "Ahmet Yılmaz : Matematik",
-                "Ayşe Demir : Türk Dili ve Edebiyatı",
-                "Mehmet Kaya : Fizik",
-                "Fatma Çelik : Kimya",
-                "Ali Öztürk : Biyoloji",
-                "Zeynep Şahin : Tarih",
-                "Mustafa Koç : Coğrafya",
-                "Hatice Aydın : Din Kültürü ve Ahlak Bilgisi",
-                "Hüseyin Arslan : İngilizce",
-                "Elif Yıldız : Bilişim Teknolojileri",
-                "Emre Aksoy : Beden Eğitimi",
-                "Burak Doğan : Felsefe",
-                "Seda Polat : Müzik",
-                "Deniz Kılıç : Görsel Sanatlar",
-                "Hasan Can : Arapça"
-            ],
-            sinifRehberlik: {
-                "9/A": "Ahmet Yılmaz",
-                "9/B": "Ayşe Demir",
-                "10/A": "Mehmet Kaya",
-                "10/B": "Fatma Çelik",
-                "11/A": "Ali Öztürk",
-                "11/B": "Zeynep Şahin",
-                "12/A": "Mustafa Koç",
-                "12/B": "Hüseyin Arslan"
-            },
-            nobetciGunluk: {
-                "Pazartesi": [
-                    "Ahmet Yılmaz (Nöbetçi İdareci)",
-                    "Ayşe Demir (Zemin Kat)",
-                    "Mehmet Kaya (1. Kat)",
-                    "Fatma Çelik (Bahçe)"
-                ],
-                "Salı": [
-                    "Ali Öztürk (Nöbetçi İdareci)",
-                    "Zeynep Şahin (Zemin Kat)",
-                    "Mustafa Koç (1. Kat)",
-                    "Hatice Aydın (Bahçe)"
-                ],
-                "Çarşamba": [
-                    "Hüseyin Arslan (Nöbetçi İdareci)",
-                    "Elif Yıldız (Zemin Kat)",
-                    "Burak Doğan (1. Kat)",
-                    "Emre Aksoy (Bahçe)"
-                ],
-                "Perşembe": [
-                    "Mehmet Kaya (Nöbetçi İdareci)",
-                    "Deniz Kılıç (Zemin Kat)",
-                    "Seda Polat (1. Kat)",
-                    "Ahmet Yılmaz (Bahçe)"
-                ],
-                "Cuma": [
-                    "Ali Öztürk (Nöbetçi İdareci)",
-                    "Ayşe Demir (Zemin Kat)",
-                    "Fatma Çelik (1. Kat)",
-                    "Hasan Can (Bahçe)"
-                ]
-            },
-            dersProgramiDetay: {
-                "9/A": {
-                    "Pazartesi": [
-                        { ders: "Matematik", ogretmen: "Ahmet Yılmaz", type: "ders" },
-                        { ders: "Matematik", ogretmen: "Ahmet Yılmaz", type: "ders" },
-                        { ders: "Türk Dili ve Edebiyatı", ogretmen: "Ayşe Demir", type: "ders" },
-                        { ders: "Türk Dili ve Edebiyatı", ogretmen: "Ayşe Demir", type: "ders" },
-                        { ders: "Fizik", ogretmen: "Mehmet Kaya", type: "ders" },
-                        { ders: "Fizik", ogretmen: "Mehmet Kaya", type: "ders" },
-                        { ders: "İngilizce", ogretmen: "Hüseyin Arslan", type: "ders" },
-                        { ders: "İngilizce", ogretmen: "Hüseyin Arslan", type: "ders" }
-                    ],
-                    "Salı": [
-                        { ders: "Kimya", ogretmen: "Fatma Çelik", type: "ders" },
-                        { ders: "Kimya", ogretmen: "Fatma Çelik", type: "ders" },
-                        { ders: "Biyoloji", ogretmen: "Ali Öztürk", type: "ders" },
-                        { ders: "Biyoloji", ogretmen: "Ali Öztürk", type: "ders" },
-                        { ders: "Tarih", ogretmen: "Zeynep Şahin", type: "ders" },
-                        { ders: "Tarih", ogretmen: "Zeynep Şahin", type: "ders" },
-                        { ders: "Coğrafya", ogretmen: "Mustafa Koç", type: "ders" },
-                        { ders: "Coğrafya", ogretmen: "Mustafa Koç", type: "ders" }
-                    ],
-                    "Çarşamba": [
-                        { ders: "Din Kültürü", ogretmen: "Hatice Aydın", type: "ders" },
-                        { ders: "Din Kültürü", ogretmen: "Hatice Aydın", type: "ders" },
-                        { ders: "Matematik", ogretmen: "Ahmet Yılmaz", type: "ders" },
-                        { ders: "Matematik", ogretmen: "Ahmet Yılmaz", type: "ders" },
-                        { ders: "Bilişim Teknolojileri", ogretmen: "Elif Yıldız", type: "ders" },
-                        { ders: "Bilişim Teknolojileri", ogretmen: "Elif Yıldız", type: "ders" },
-                        { ders: "Beden Eğitimi", ogretmen: "Emre Aksoy", type: "ders" },
-                        { ders: "Beden Eğitimi", ogretmen: "Emre Aksoy", type: "ders" }
-                    ],
-                    "Perşembe": [
-                        { ders: "Felsefe", ogretmen: "Burak Doğan", type: "ders" },
-                        { ders: "Felsefe", ogretmen: "Burak Doğan", type: "ders" },
-                        { ders: "Müzik", ogretmen: "Seda Polat", type: "ders" },
-                        { ders: "Görsel Sanatlar", ogretmen: "Deniz Kılıç", type: "ders" },
-                        { ders: "Arapça", ogretmen: "Hasan Can", type: "ders" },
-                        { ders: "Arapça", ogretmen: "Hasan Can", type: "ders" },
-                        { ders: "Türk Dili ve Edebiyatı", ogretmen: "Ayşe Demir", type: "ders" },
-                        { ders: "Türk Dili ve Edebiyatı", ogretmen: "Ayşe Demir", type: "ders" }
-                    ],
-                    "Cuma": [
-                        { ders: "Matematik", ogretmen: "Ahmet Yılmaz", type: "ders" },
-                        { ders: "Matematik", ogretmen: "Ahmet Yılmaz", type: "ders" },
-                        { ders: "Fizik", ogretmen: "Mehmet Kaya", type: "ders" },
-                        { ders: "Kimya", ogretmen: "Fatma Çelik", type: "ders" },
-                        { ders: "Biyoloji", ogretmen: "Ali Öztürk", type: "ders" },
-                        { ders: "Tarih", ogretmen: "Zeynep Şahin", type: "ders" },
-                        { ders: "İngilizce", ogretmen: "Hüseyin Arslan", type: "ders" },
-                        { ders: "Rehberlik", ogretmen: "Ahmet Yılmaz", type: "ders" }
-                    ]
-                }
-            }
-        };
-    }
-
     async function baslangicVerisiniOku() {
         try {
             const res = await fetch('data/data.json?t=' + new Date().getTime());
@@ -1139,48 +1085,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         .forEach(alan => delete yerelKopya[alan]);
                     appData = Object.assign(getBosSablon(), dosyaVerisi, yerelKopya);
                     kimlikMigrasyonu = true;
-                } else if (dosyaVerisi) {
-                    if (String(appData.okulWebSiteUrl || '').replace(/\/+$/, '') === 'https://konyamcosihl.meb.k12.tr') {
-                        if (!Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0) {
-                            appData.mebHaberler = dosyaVerisi.mebHaberler || [];
-                            kimlikMigrasyonu = true;
-                        }
-                        if (!String(appData.okulLogo || '').trim()) {
-                            appData.okulLogo = dosyaVerisi.okulLogo || 'img/okul_logo.png';
-                            kimlikMigrasyonu = true;
-                        }
-                    }
-                    // Eğer yerel depolamadaki alanlar boş kalmışsa dosyadaki zengin örnek verilerle tamamla
-                    if ((!appData.tumOgretmenler || appData.tumOgretmenler.length === 0) && Array.isArray(dosyaVerisi.tumOgretmenler) && dosyaVerisi.tumOgretmenler.length > 0) {
-                        appData.tumOgretmenler = [...dosyaVerisi.tumOgretmenler];
+                } else if (dosyaVerisi && String(appData.okulWebSiteUrl || '').replace(/\/+$/, '') === 'https://konyamcosihl.meb.k12.tr') {
+                    if (!Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0) {
+                        appData.mebHaberler = dosyaVerisi.mebHaberler || [];
                         kimlikMigrasyonu = true;
                     }
-                    if ((!appData.ogretmenBranslar || appData.ogretmenBranslar.length === 0) && Array.isArray(dosyaVerisi.ogretmenBranslar) && dosyaVerisi.ogretmenBranslar.length > 0) {
-                        appData.ogretmenBranslar = [...dosyaVerisi.ogretmenBranslar];
-                        kimlikMigrasyonu = true;
-                    }
-                    if ((!appData.sinifRehberlik || Object.keys(appData.sinifRehberlik).length === 0) && dosyaVerisi.sinifRehberlik && Object.keys(dosyaVerisi.sinifRehberlik).length > 0) {
-                        appData.sinifRehberlik = Object.assign({}, dosyaVerisi.sinifRehberlik);
-                        kimlikMigrasyonu = true;
-                    }
-                    if ((!appData.nobetciGunluk || Object.keys(appData.nobetciGunluk).length === 0) && dosyaVerisi.nobetciGunluk && Object.keys(dosyaVerisi.nobetciGunluk).length > 0) {
-                        appData.nobetciGunluk = JSON.parse(JSON.stringify(dosyaVerisi.nobetciGunluk));
-                        kimlikMigrasyonu = true;
-                    }
-                    if ((!appData.sinavlar || appData.sinavlar.length === 0) && Array.isArray(dosyaVerisi.sinavlar) && dosyaVerisi.sinavlar.length > 0) {
-                        appData.sinavlar = JSON.parse(JSON.stringify(dosyaVerisi.sinavlar));
-                        kimlikMigrasyonu = true;
-                    }
-                    if ((!appData.duyurular || appData.duyurular.length === 0) && Array.isArray(dosyaVerisi.duyurular) && dosyaVerisi.duyurular.length > 0) {
-                        appData.duyurular = JSON.parse(JSON.stringify(dosyaVerisi.duyurular));
-                        kimlikMigrasyonu = true;
-                    }
-                    if ((!appData.kayanYazi || appData.kayanYazi.length === 0) && Array.isArray(dosyaVerisi.kayanYazi) && dosyaVerisi.kayanYazi.length > 0) {
-                        appData.kayanYazi = [...dosyaVerisi.kayanYazi];
-                        kimlikMigrasyonu = true;
-                    }
-                    if ((!appData.dersProgramiDetay || Object.keys(appData.dersProgramiDetay).length === 0) && dosyaVerisi.dersProgramiDetay && Object.keys(dosyaVerisi.dersProgramiDetay).length > 0) {
-                        appData.dersProgramiDetay = JSON.parse(JSON.stringify(dosyaVerisi.dersProgramiDetay));
+                    if (!String(appData.okulLogo || '').trim()) {
+                        appData.okulLogo = dosyaVerisi.okulLogo || 'img/okul_logo.png';
                         kimlikMigrasyonu = true;
                     }
                 }
@@ -1188,16 +1099,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 appData = Object.assign(getBosSablon(), dosyaVerisi || {});
             }
 
-            // Eğer cihazda henüz öğretmen ve nöbetçi tanımlanmamışsa örnek kadroyu yükle
-            if (!appData.tumOgretmenler || appData.tumOgretmenler.length === 0) {
+            // Cihazda öğretmen/nöbet verisi yoksa örnek demo kadroyu otomatik yükle
+            if (!Array.isArray(appData.tumOgretmenler) || appData.tumOgretmenler.length === 0) {
                 const ornek = getOrnekOgretmenVeNobetVerisi();
                 appData.tumOgretmenler = [...ornek.tumOgretmenler];
                 appData.ogretmenBranslar = [...ornek.ogretmenBranslar];
-                if (!appData.sinifRehberlik || Object.keys(appData.sinifRehberlik).length === 0) appData.sinifRehberlik = Object.assign({}, ornek.sinifRehberlik);
-                if (!appData.nobetciGunluk || Object.keys(appData.nobetciGunluk).length === 0) appData.nobetciGunluk = JSON.parse(JSON.stringify(ornek.nobetciGunluk));
-                if (!appData.dersProgramiDetay || Object.keys(appData.dersProgramiDetay).length === 0) appData.dersProgramiDetay = JSON.parse(JSON.stringify(ornek.dersProgramiDetay));
+                if (!appData.sinifRehberlik || Object.keys(appData.sinifRehberlik).length === 0) {
+                    appData.sinifRehberlik = Object.assign({}, ornek.sinifRehberlik);
+                }
+                if (!appData.nobetciGunluk || Object.keys(appData.nobetciGunluk).length === 0) {
+                    appData.nobetciGunluk = JSON.parse(JSON.stringify(ornek.nobetciGunluk));
+                }
                 kimlikMigrasyonu = true;
             }
+
             if (yedekGecmisiniKucult(appData)) kimlikMigrasyonu = true;
             if (baslangicHaberGorselleriniDuzelt(appData.mebHaberler)) kimlikMigrasyonu = true;
 
@@ -1229,6 +1144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Veri yüklenemedi", e);
         }
     }
+
 
     function populateForms() {
         // Genel Ayarlar & Okul Kimliği
@@ -1300,18 +1216,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (appData.ayarlar) {
             document.getElementById('inp-karuselSuresi').value = appData.ayarlar.karuselSuresi || 5000;
             document.getElementById('inp-temaOtomatik').value = appData.ayarlar.temaOtomatik ? "true" : "false";
-
-            const ek = appData.ayarlar.ekranKoruyucu || {};
-            const scAktif = document.getElementById('inp-screensaver-aktif');
-            if (scAktif) scAktif.checked = ek.aktif !== false;
-            const scBaslangic = document.getElementById('inp-screensaver-baslangic');
-            if (scBaslangic) scBaslangic.value = ek.baslangic || "17:30";
-            const scBitis = document.getElementById('inp-screensaver-bitis');
-            if (scBitis) scBitis.value = ek.bitis || "07:30";
-            const scHaftasonu = document.getElementById('chk-screensaver-haftasonu');
-            if (scHaftasonu) scHaftasonu.checked = ek.haftasonu !== false;
-            const scBosta = document.getElementById('sel-screensaver-bostakalma');
-            if (scBosta) scBosta.value = (ek.bostaKalmaDk !== undefined) ? String(ek.bostaKalmaDk) : "30";
         }
         const gizlilik = gizlilikAyarlari(appData);
         const personelModu = document.getElementById('inp-personel-gosterim');
@@ -1942,36 +1846,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icerikSayac && icerikInput) {
             icerikSayac.textContent = `${icerikInput.value.length} / 250`;
         }
-
-        // Canlı QR Kod Önizleme
-        const linkInput = document.getElementById('inline-d-link');
-        const linkVal = (linkInput && linkInput.value.trim()) || '';
-        const prevQrBox = document.getElementById('prev-card-qr-box');
-        const prevQrCode = document.getElementById('prev-card-qr-code');
-        const prevQrUrl = document.getElementById('prev-card-qr-url');
-
-        if (prevQrBox && prevQrCode) {
-            if (linkVal) {
-                prevQrBox.style.display = 'flex';
-                if (prevQrUrl) prevQrUrl.textContent = linkVal;
-                prevQrCode.innerHTML = '';
-                if (typeof QRCode !== 'undefined') {
-                    try {
-                        new QRCode(prevQrCode, {
-                            text: linkVal,
-                            width: 44,
-                            height: 44,
-                            colorDark: "#0f172a",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
-                    } catch (e) {}
-                }
-            } else {
-                prevQrBox.style.display = 'none';
-                prevQrCode.innerHTML = '';
-            }
-        }
     }
 
     // Hızlı Şablon Uygulayıcı
@@ -1979,38 +1853,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const baslikEl = document.getElementById('inline-d-baslik');
         const icerikEl = document.getElementById('inline-d-icerik');
         const renkEl = document.getElementById('inline-d-renk');
-        const linkEl = document.getElementById('inline-d-link');
 
         const sablonlar = {
             kurs: {
                 baslik: 'Hafta Sonu DYK Kursları',
                 renk: 'secondary', // Yeşil
-                icerik: 'Hafta sonu Destekleme ve Yetiştirme Kurslarımız cumartesi ve pazar günleri saat 09:00\'da başlayacaktır. Tüm öğrencilerimizin dersliklerinde hazır bulunmaları rica olunur.',
-                link: 'https://e-kurs.meb.gov.tr/'
+                icerik: 'Hafta sonu Destekleme ve Yetiştirme Kurslarımız cumartesi ve pazar günleri saat 09:00\'da başlayacaktır. Tüm öğrencilerimizin dersliklerinde hazır bulunmaları rica olunur.'
             },
             veli: {
                 baslik: '1. Dönem Genel Veli Toplantısı',
                 renk: 'primary', // Mavi
-                icerik: 'Öğrencilerimizin akademik ve sosyal gelişimlerini değerlendirmek üzere pazar günü saat 13:00\'te okulumuz konferans salonunda genel veli toplantısı yapılacaktır.',
-                link: 'https://konyamcosihl.meb.k12.tr/'
+                icerik: 'Öğrencilerimizin akademik ve sosyal gelişimlerini değerlendirmek üzere pazar günü saat 13:00\'te okulumuz konferans salonunda genel veli toplantısı yapılacaktır.'
             },
             etkinlik: {
                 baslik: 'TÜBİTAK ve TEKNOFEST Başarımız',
                 renk: 'purple', // Mor
-                icerik: 'Okulumuz teknoloji takımı, TEKNOFEST bölge finallerinde dereceye girerek Türkiye finallerine katılmaya hak kazanmıştır. Öğrenci ve danışman öğretmenlerimizi tebrik ederiz.',
-                link: 'https://www.teknofest.org/'
+                icerik: 'Okulumuz teknoloji takımı, TEKNOFEST bölge finallerinde dereceye girerek Türkiye finallerine katılmaya hak kazanmıştır. Öğrenci ve danışman öğretmenlerimizi tebrik ederiz.'
             },
             acil: {
                 baslik: 'Önemli İdari Duyuru',
                 renk: 'danger', // Kırmızı
-                icerik: 'Hava muhalefeti sebebiyle yarın okulumuzda eğitim-öğretime bir (1) gün ara verilmiştir. Tüm veli ve öğrencilerimize önemle duyurulur.',
-                link: ''
+                icerik: 'Hava muhalefeti sebebiyle yarın okulumuzda eğitim-öğretime bir (1) gün ara verilmiştir. Tüm veli ve öğrencilerimize önemle duyurulur.'
             },
             tatil: {
                 baslik: 'Ara Tatil Başlangıcı',
                 renk: 'accent', // Turuncu
-                icerik: '1. Dönem ara tatili Cuma günü ders bitimiyle başlayacaktır. Tüm öğrencilerimize ve öğretmenlerimize verimli ve dinlendirici bir tatil dileriz.',
-                link: 'https://www.meb.gov.tr/'
+                icerik: '1. Dönem ara tatili Cuma günü ders bitimiyle başlayacaktır. Tüm öğrencilerimize ve öğretmenlerimize verimli ve dinlendirici bir tatil dileriz.'
             }
         };
 
@@ -2020,7 +1888,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (baslikEl) baslikEl.value = sablon.baslik;
         if (icerikEl) icerikEl.value = sablon.icerik;
         if (renkEl) renkEl.value = sablon.renk;
-        if (linkEl) linkEl.value = sablon.link || '';
 
         updateDuyuruLivePreview();
         if (icerikEl) icerikEl.focus();
@@ -2082,14 +1949,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                         </div>
                         <p style="margin: 0 0 10px 0; color: #334155; font-size: 0.9rem; line-height: 1.5;">${escapeHtml(d.icerik || '')}</p>
-                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: #64748b;">
+                        <div style="display: flex; align-items: center; gap: 12px; font-size: 0.8rem; color: #64748b;">
                             <span><i class="fa-regular fa-calendar"></i> ${escapeHtml(d.tarih || '')}</span>
-                            ${(d.link || d.url) ? `
-                            <span style="display: inline-flex; align-items: center; gap: 5px; color: #6366f1; font-weight: 700; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.25);">
-                                <i class="fa-solid fa-qrcode"></i> QR Kod:
-                                <a href="${escapeHtml(d.link || d.url)}" target="_blank" rel="noopener noreferrer" style="color: #6366f1; text-decoration: underline; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(d.link || d.url)}</a>
-                            </span>
-                            ` : ''}
                         </div>
                     </div>
                     <div class="list-item-actions" style="margin-left: 15px; display: flex; gap: 6px;">
@@ -2117,12 +1978,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const baslikEl = document.getElementById('inline-d-baslik');
         const icerikEl = document.getElementById('inline-d-icerik');
         const renkEl = document.getElementById('inline-d-renk');
-        const linkEl = document.getElementById('inline-d-link');
 
         if (baslikEl) baslikEl.value = d.baslik || '';
         if (icerikEl) icerikEl.value = d.icerik || '';
         if (renkEl) renkEl.value = d.renk || 'secondary';
-        if (linkEl) linkEl.value = d.link || d.url || '';
 
         const textAdd = document.getElementById('text-add-inline-duyuru');
         if (textAdd) textAdd.textContent = "Güncelle";
@@ -2158,7 +2017,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const baslik = (document.getElementById('inline-d-baslik').value || '').trim();
             const icerik = (document.getElementById('inline-d-icerik').value || '').trim();
             const renk = document.getElementById('inline-d-renk').value || 'secondary';
-            const link = (document.getElementById('inline-d-link').value || '').trim();
 
             if (!baslik) return alert("Başlık boş olamaz.");
 
@@ -2170,7 +2028,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const duyuruObj = {
                 baslik: baslik,
                 icerik: icerik,
-                link: link,
                 tarih: dateStr,
                 gorsel: "",
                 renk: renk,
@@ -2200,7 +2057,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Temizle
             document.getElementById('inline-d-baslik').value = "";
             document.getElementById('inline-d-icerik').value = "";
-            document.getElementById('inline-d-link').value = "";
             document.getElementById('inline-d-renk').value = "secondary";
 
             renderDuyurular();
@@ -2213,7 +2069,6 @@ document.addEventListener('DOMContentLoaded', () => {
             editingDuyuruIndex = -1;
             document.getElementById('inline-d-baslik').value = "";
             document.getElementById('inline-d-icerik').value = "";
-            document.getElementById('inline-d-link').value = "";
             document.getElementById('inline-d-renk').value = "secondary";
             const textAdd = document.getElementById('text-add-inline-duyuru');
             if (textAdd) textAdd.textContent = "Duyuru Ekle";
@@ -2233,8 +2088,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inpIcerikEl) inpIcerikEl.addEventListener('input', updateDuyuruLivePreview);
     const inpRenkEl = document.getElementById('inline-d-renk');
     if (inpRenkEl) inpRenkEl.addEventListener('change', updateDuyuruLivePreview);
-    const inpLinkEl = document.getElementById('inline-d-link');
-    if (inpLinkEl) inpLinkEl.addEventListener('input', updateDuyuruLivePreview);
 
     const aramaInputEl = document.getElementById('duyuru-arama-input');
     if (aramaInputEl) aramaInputEl.addEventListener('input', renderDuyurular);
@@ -4429,22 +4282,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const inpTickerAyrac = document.getElementById('inp-ticker-ayrac-val');
         if (inpTickerAyrac) appData.ayarlar.tickerAyrac = inpTickerAyrac.value || '⚡';
 
-        const scAktif = document.getElementById('inp-screensaver-aktif');
-        const scBaslangic = document.getElementById('inp-screensaver-baslangic');
-        const scBitis = document.getElementById('inp-screensaver-bitis');
-        const scHaftasonu = document.getElementById('chk-screensaver-haftasonu');
-        const scBosta = document.getElementById('sel-screensaver-bostakalma');
-
-        if (scAktif && scBaslangic && scBitis) {
-            appData.ayarlar.ekranKoruyucu = {
-                aktif: scAktif.checked,
-                baslangic: scBaslangic.value || "17:30",
-                bitis: scBitis.value || "07:30",
-                haftasonu: scHaftasonu ? scHaftasonu.checked : true,
-                bostaKalmaDk: scBosta ? parseInt(scBosta.value, 10) : 30
-            };
-        }
-
         saveCurrentDayDnD();
         appData.kayanYazi = document.getElementById('inp-kayan').value
             .split('\n').map(x => x.trim()).filter(Boolean);
@@ -4476,15 +4313,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // MEB adresi değiştiğinde haber yenileme ayrıca tek istek olarak otomatik çalışır.
         // Bu buton diğer pano ayarlarını yerel tarayıcıya kaydeder.
     });
-
-    // 📺 Canlı Ekran Koruyucu Önizleme / Test Butonu
-    const btnTestScreensaver = document.getElementById('btn-test-screensaver');
-    if (btnTestScreensaver) {
-        btnTestScreensaver.addEventListener('click', () => {
-            localStorage.setItem('seyir_test_screensaver', String(Date.now()));
-            BhUI.toast("📺 Canlı Ekran Koruyucu sinyali panoya gönderildi!", "info");
-        });
-    }
 
     // Açık pano JSON'u tam personel adı ve özel yönetim tabloları içermez.
     document.querySelectorAll('.btn-download-public-json').forEach(btn => btn.addEventListener('click', () => {
@@ -4561,21 +4389,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 inpJsonFile.value = '';
             };
             reader.readAsText(file, 'UTF-8');
-        });
-    }
-
-    const btnLoadDemoData = document.getElementById('btn-load-demo-data');
-    if (btnLoadDemoData) {
-        btnLoadDemoData.addEventListener('click', () => {
-            const ornek = getOrnekOgretmenVeNobetVerisi();
-            appData.tumOgretmenler = [...ornek.tumOgretmenler];
-            appData.ogretmenBranslar = [...ornek.ogretmenBranslar];
-            appData.sinifRehberlik = Object.assign({}, ornek.sinifRehberlik);
-            appData.nobetciGunluk = JSON.parse(JSON.stringify(ornek.nobetciGunluk));
-            appData.dersProgramiDetay = JSON.parse(JSON.stringify(ornek.dersProgramiDetay));
-            saveData();
-            if (typeof populateForms === 'function') populateForms();
-            BhUI.toast('Örnek öğretmen, nöbet ve program verileri başarıyla yüklendi.', 'success');
         });
     }
 
@@ -9476,10 +9289,10 @@ class SeyirAudioZilEngine {
             this.currentTimeout = null;
         }
         this.activeOscillators.forEach(osc => {
-            try { osc.stop(); osc.disconnect(); } catch (e) {}
+            try { osc.stop(); osc.disconnect(); } catch (e) { }
         });
         this.activeGains.forEach(gain => {
-            try { gain.disconnect(); } catch (e) {}
+            try { gain.disconnect(); } catch (e) { }
         });
         this.activeOscillators = [];
         this.activeGains = [];
@@ -10546,7 +10359,7 @@ window.renderTorenMuzikleriTablo = function () {
     let html = '';
     data.torenMuzikleri.forEach((item, index) => {
         const isAktif = item.aktif !== false;
-        const dosyaMetni = item.dosyaAdi 
+        const dosyaMetni = item.dosyaAdi
             ? `<div style="font-size: 0.82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px;" title="${escapeHtml(item.dosyaAdi)}"><i class="fa-solid fa-file-audio" style="color: #e11d48;"></i> ${escapeHtml(item.dosyaAdi)}</div>`
             : '<span style="font-size: 0.8rem; color: #ef4444;"><i class="fa-solid fa-circle-exclamation"></i> Dosya Yok</span>';
 
@@ -10661,7 +10474,7 @@ window.onCalToren = function (index, tetiklemeTuru = "Manuel Buton") {
                 sesSeviyesi: item.sesSeviyesi || 95,
                 time: Date.now()
             }));
-        } catch (e) {}
+        } catch (e) { }
 
         if (typeof BhUI !== 'undefined') {
             BhUI.toast(`🇹🇷 "${item.baslik}" çalınıyor...`, 'info');
@@ -10694,7 +10507,7 @@ window.onDurdurToren = function () {
     document.querySelectorAll('.toren-playing-row').forEach(el => el.classList.remove('toren-playing-row'));
     try {
         localStorage.setItem('seyir_toren_stop', Date.now().toString());
-    } catch (e) {}
+    } catch (e) { }
     if (typeof BhUI !== 'undefined') {
         BhUI.toast('Müzik çalması durduruldu.', 'info');
     }
@@ -11348,7 +11161,7 @@ window.renderKaruselVideoTablo = function () {
         const isAktif = item.aktif !== false;
         const isYouTube = item.tur === 'youtube';
         const ytId = item.youtubeId || (isYouTube ? parseYouTubeId(item.url) : null);
-        const thumbUrl = ytId 
+        const thumbUrl = ytId
             ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
             : 'img/okul_logo.png';
 
@@ -11422,7 +11235,7 @@ window.silVideo = async function (index) {
     const v = videolar[index];
     if (confirm(`"${v.baslik}" videosu silinsin mi?`)) {
         if (v.mediaId && window.SeyirAudioStore) {
-            try { await window.SeyirAudioStore.deleteAudio(v.mediaId); } catch (e) {}
+            try { await window.SeyirAudioStore.deleteAudio(v.mediaId); } catch (e) { }
         }
         videolar.splice(index, 1);
         saveData();
@@ -11582,54 +11395,5 @@ window.closeVideoPreview = function () {
     if (wrap) wrap.innerHTML = '';
     if (modal) modal.style.display = 'none';
 };
-
-// 🌐 3.6 — Admin Service Worker & Çevrimdışı Durum Göstergesi
-if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-            // console.log('Admin ServiceWorker kayıtlı:', reg.scope);
-        }).catch((err) => {
-            console.warn('Admin ServiceWorker kayıt hatası:', err);
-        });
-    });
-}
-
-function updateAdminOnlineStatus() {
-    const pill = document.getElementById('admin-offline-pill');
-    if (!pill) return;
-    if (!navigator.onLine) {
-        pill.style.display = 'inline-flex';
-        pill.classList.remove('online-back');
-        pill.innerHTML = '<i class="fa-solid fa-plane-slash"></i> <span>Çevrimdışı</span>';
-    } else {
-        if (pill.style.display !== 'none' && !pill.classList.contains('online-back')) {
-            pill.classList.add('online-back');
-            pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Bağlantı Kuruldu</span>';
-            setTimeout(() => {
-                pill.style.display = 'none';
-                pill.classList.remove('online-back');
-            }, 3000);
-        }
-    }
-}
-window.addEventListener('online', updateAdminOnlineStatus);
-window.addEventListener('offline', updateAdminOnlineStatus);
-updateAdminOnlineStatus();
-
-// Tüm modül ve fonksiyonlar yüklendikten sonra açık dashboard ekranını tam doldur
-if (typeof SEYIR_LOCAL_AUTH !== 'undefined' && SEYIR_LOCAL_AUTH.isAuthenticated()) {
-    setTimeout(() => {
-        if (typeof renderOgretmenTable === 'function') renderOgretmenTable();
-        if (typeof renderSinavlar === 'function') renderSinavlar();
-        if (typeof renderNobetciDnD === 'function') renderNobetciDnD();
-        if (typeof renderDuyurular === 'function') renderDuyurular();
-        if (typeof renderSiniflarTable === 'function') renderSiniflarTable();
-        if (typeof renderKayanYazilar === 'function') renderKayanYazilar();
-        if (typeof renderProgramClassButtons === 'function') renderProgramClassButtons();
-        if (typeof renderHavuzTags === 'function') renderHavuzTags();
-        if (typeof updateProgramStats === 'function') updateProgramStats();
-    }, 100);
-}
-
 
 

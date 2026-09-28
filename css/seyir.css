@@ -5,6 +5,7 @@
     src: url('fonts/UthmanicHafs.otf') format('opentype');
     font-display: swap;
 }
+
 /* Scroll gizleme ve tam ekran ayarı */
 body,
 html {
@@ -183,12 +184,15 @@ html {
 
 /* Aktif Ders Neon Pulse Animasyonu (Madde 2.1) */
 @keyframes ders-neon-pulse {
-    0%, 100% {
-        box-shadow: 0 0 12px rgba(52, 211, 153, 0.4), 0 6px 20px rgba(0,0,0,0.35);
+
+    0%,
+    100% {
+        box-shadow: 0 0 12px rgba(52, 211, 153, 0.4), 0 6px 20px rgba(0, 0, 0, 0.35);
         border-left-width: 5px;
     }
+
     50% {
-        box-shadow: 0 0 28px rgba(52, 211, 153, 0.85), 0 0 50px rgba(52, 211, 153, 0.4), 0 6px 20px rgba(0,0,0,0.4);
+        box-shadow: 0 0 28px rgba(52, 211, 153, 0.85), 0 0 50px rgba(52, 211, 153, 0.4), 0 6px 20px rgba(0, 0, 0, 0.4);
         border-left-width: 7px;
     }
 }
@@ -1671,10 +1675,12 @@ html {
     padding: 30px;
     text-align: center;
 }
+
 .ceremony-overlay.active {
     opacity: 1;
     pointer-events: auto;
 }
+
 .ceremony-box {
     max-width: 900px;
     width: 92%;
@@ -1690,12 +1696,17 @@ html {
     position: relative;
     overflow: hidden;
 }
+
 .ceremony-box::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; height: 6px;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
     background: linear-gradient(90deg, #e11d48, #ffffff, #e11d48);
 }
+
 .ceremony-flag-wrap {
     width: 150px;
     height: 100px;
@@ -1706,15 +1717,25 @@ html {
     border: 2px solid rgba(255, 255, 255, 0.3);
     animation: flagWave 3s infinite ease-in-out;
 }
+
 .ceremony-flag-wrap svg {
     width: 100%;
     height: 100%;
     display: block;
 }
+
 @keyframes flagWave {
-    0%, 100% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.04) rotate(1deg); }
+
+    0%,
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    50% {
+        transform: scale(1.04) rotate(1deg);
+    }
 }
+
 .ceremony-title {
     font-size: 2.4rem;
     font-weight: 900;
@@ -1724,6 +1745,7 @@ html {
     text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
     font-family: 'Outfit', sans-serif;
 }
+
 .ceremony-subtitle {
     font-size: 1.25rem;
     font-weight: 600;
@@ -1731,6 +1753,7 @@ html {
     margin: 0 0 24px 0;
     letter-spacing: 0.8px;
 }
+
 .ceremony-instruction {
     font-size: 1.05rem;
     color: #e2e8f0;
@@ -1743,6 +1766,7 @@ html {
     align-items: center;
     gap: 10px;
 }
+
 .ceremony-waves {
     display: flex;
     align-items: center;
@@ -1750,23 +1774,62 @@ html {
     height: 36px;
     margin-bottom: 20px;
 }
+
 .ceremony-wave-bar {
     width: 6px;
     background: #e11d48;
     border-radius: 4px;
     animation: waveBounce 1.2s infinite ease-in-out;
 }
-.ceremony-wave-bar:nth-child(1) { height: 16px; }
-.ceremony-wave-bar:nth-child(2) { animation-delay: 0.15s; height: 26px; }
-.ceremony-wave-bar:nth-child(3) { animation-delay: 0.3s; height: 36px; }
-.ceremony-wave-bar:nth-child(4) { animation-delay: 0.45s; height: 24px; }
-.ceremony-wave-bar:nth-child(5) { animation-delay: 0.6s; height: 34px; }
-.ceremony-wave-bar:nth-child(6) { animation-delay: 0.75s; height: 22px; }
-.ceremony-wave-bar:nth-child(7) { animation-delay: 0.9s; height: 14px; }
-@keyframes waveBounce {
-    0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
-    50% { transform: scaleY(1.1); opacity: 1; }
+
+.ceremony-wave-bar:nth-child(1) {
+    height: 16px;
 }
+
+.ceremony-wave-bar:nth-child(2) {
+    animation-delay: 0.15s;
+    height: 26px;
+}
+
+.ceremony-wave-bar:nth-child(3) {
+    animation-delay: 0.3s;
+    height: 36px;
+}
+
+.ceremony-wave-bar:nth-child(4) {
+    animation-delay: 0.45s;
+    height: 24px;
+}
+
+.ceremony-wave-bar:nth-child(5) {
+    animation-delay: 0.6s;
+    height: 34px;
+}
+
+.ceremony-wave-bar:nth-child(6) {
+    animation-delay: 0.75s;
+    height: 22px;
+}
+
+.ceremony-wave-bar:nth-child(7) {
+    animation-delay: 0.9s;
+    height: 14px;
+}
+
+@keyframes waveBounce {
+
+    0%,
+    100% {
+        transform: scaleY(0.4);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scaleY(1.1);
+        opacity: 1;
+    }
+}
+
 .ceremony-close-btn {
     position: absolute;
     top: 18px;
@@ -1784,6 +1847,7 @@ html {
     justify-content: center;
     transition: all 0.2s;
 }
+
 .ceremony-close-btn:hover {
     background: rgba(239, 68, 68, 0.7);
     transform: scale(1.08);
@@ -2412,7 +2476,7 @@ html {
     }
 }
 
-/* PC Masaüstü Görünümünde Duyuruları Yan Yana Açık Kartlar Olarak Gösterme Kuralı */
+/* PC Masaüstü Görünümünde Duyuruları Yan Yana 3 Açık Kart Olarak Gösterme Kuralı */
 .duyuru-accordion-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2458,6 +2522,7 @@ html {
     0% {
         box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.25), 0 0 30px rgba(245, 158, 11, 0.2);
     }
+
     100% {
         box-shadow: inset 0 0 70px rgba(245, 158, 11, 0.65), 0 0 60px rgba(245, 158, 11, 0.5);
     }
@@ -2487,8 +2552,17 @@ html {
 }
 
 @keyframes nobetTagPulse {
-    0%, 100% { transform: scale(1); opacity: 0.95; }
-    50% { transform: scale(1.05); opacity: 1; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.95;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
 }
 
 .duty-ping {
@@ -2502,9 +2576,20 @@ html {
 }
 
 @keyframes dutyPingAnim {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+
+    70% {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
 }
 
 /* Nöbetçi Kartında Görev Rozeti */
@@ -2544,6 +2629,7 @@ html {
         box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3), 0 0 15px rgba(245, 158, 11, 0.2);
         border-color: #f59e0b;
     }
+
     100% {
         box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5), 0 0 25px rgba(16, 185, 129, 0.4);
         border-color: #10b981;
@@ -2785,5 +2871,3 @@ html {
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
     animation: none;
 }
-
-
