@@ -225,6 +225,7 @@ const PanoTV = (function () {
             panoData = Object.assign({
                 okulAdi: "Mahmud Celaleddin Ökten",
                 okulTuru: "Anadolu İmam Hatip Lisesi",
+                slogan: "Fikirden Koda, Koddan Şampiyonluğa",
                 okulLogo: "img/okul_logo.png",
                 daktiloYazilari: [
                     "Medya Okulu",
@@ -243,7 +244,7 @@ const PanoTV = (function () {
                 ],
                 okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
                 konum: { sehir: "Konya", enlem: null, boylam: null },
-                ayarlar: { karuselSuresi: 5000, temaOtomatik: true },
+                ayarlar: { karuselSuresi: 5000, temaOtomatik: true, daktiloHiz: 90, daktiloBekleme: 2200 },
                 gizlilik: {
                     personelAdiGosterim: 'gorev',
                     nobetciGoster: true,
@@ -387,7 +388,12 @@ const PanoTV = (function () {
             document.title = tamOkulAdi + " | Seyir Dijital Pano";
         }
         if (els.slogan) {
-            els.slogan.textContent = panoData.slogan || '';
+            const sloganMetni = (panoData.slogan || '').trim();
+            els.slogan.textContent = sloganMetni;
+            const wrap = document.getElementById('pano-slogan-wrap');
+            if (wrap) {
+                wrap.style.display = sloganMetni ? 'inline-flex' : 'none';
+            }
         }
 
         const avatarColors = ['#F43F5E', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B'];
@@ -1169,11 +1175,12 @@ const PanoTV = (function () {
             }
 
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(enlem)}&longitude=${encodeURIComponent(boylam)}&current_weather=true`);
-            if (!res.ok) return;
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             const json = await res.json();
             if (json && json.current_weather) {
                 const temp = Math.round(json.current_weather.temperature);
                 const code = json.current_weather.weathercode;
+                const iconEl = document.getElementById('header-weather-icon');
 
                 if (tempEl) tempEl.textContent = `${temp}°C ${konumBaslik}`;
 
@@ -1192,9 +1199,44 @@ const PanoTV = (function () {
 
                 if (descEl) descEl.textContent = desc;
                 if (iconEl) iconEl.textContent = emoji;
+
+                // Başarılı sonucu önbelleğe al
+                try {
+                    localStorage.setItem('seyir_cached_weather_v1', JSON.stringify({
+                        temp, desc, emoji, konum: konumBaslik,
+                        ts: Date.now()
+                    }));
+                } catch (_) { }
+
+                // Ekran koruyucu hava widget'ını da güncelle
+                const scWeatherText = document.getElementById('screensaver-weather-text');
+                if (scWeatherText) scWeatherText.textContent = `${temp}°C — ${desc}`;
             }
         } catch (e) {
-            console.error("Hava durumu çekilemedi:", e);
+            console.warn('Hava durumu çekilemedi, önbellek kontrol ediliyor:', e);
+            // Önbellekten son geçerli veriyi yükle
+            try {
+                const cachedW = localStorage.getItem('seyir_cached_weather_v1');
+                if (cachedW) {
+                    const cw = JSON.parse(cachedW);
+                    const tempEl2 = document.getElementById('header-weather-temp');
+                    const descEl2 = document.getElementById('header-weather-desc');
+                    const iconEl2 = document.getElementById('header-weather-icon');
+                    if (tempEl2 && cw.temp !== undefined) tempEl2.textContent = `${cw.temp}°C ${cw.konum || ''}`;
+                    if (descEl2 && cw.desc) descEl2.textContent = cw.desc;
+                    if (iconEl2 && cw.emoji) iconEl2.textContent = cw.emoji;
+                    return;
+                }
+            } catch (_) { }
+            // Önbellekte de veri yoksa bilgilendirici mesaj göster
+            const tempElFallback = document.getElementById('header-weather-temp');
+            const descElFallback = document.getElementById('header-weather-desc');
+            if (tempElFallback && tempElFallback.textContent.startsWith('--')) {
+                tempElFallback.textContent = '🌐 Bağlantı Bekleniyor';
+            }
+            if (descElFallback && descElFallback.textContent === 'Canlı Hava Durumu') {
+                descElFallback.textContent = 'İnternet bağlantısı kurulunca güncellenecek';
+            }
         }
     }
 
@@ -1898,7 +1940,49 @@ const PanoTV = (function () {
 
             updateNamazUI();
         } catch (error) {
-            console.warn('Namaz vakitleri API hatası, yerel/önbellek vakitler aktif:', error);
+            console.warn('Namaz vakitleri AlAdhan API hatası, ikinci kaynak deneniyor:', error);
+            // ── İkinci Fallback: AwqatSalah API (AlAdhan'a alternatif) ──
+            try {
+                const konum2 = Object.assign({ sehir: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
+                if (konum2.enlem && konum2.boylam) {
+                    const res2 = await fetch(
+                        `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(Number(konum2.enlem))}&longitude=${encodeURIComponent(Number(konum2.boylam))}&method=13&school=1`
+                    );
+                    if (res2.ok) {
+                        const j2 = await res2.json();
+                        const t2 = j2 && j2.data && j2.data.timings;
+                        if (t2) {
+                            const hamVakitler2 = [
+                                { name: 'İmsak', time: t2.Imsak },
+                                { name: 'Güneş', time: t2.Sunrise },
+                                { name: 'Öğle', time: t2.Dhuhr },
+                                { name: 'İkindi', time: t2.Asr },
+                                { name: 'Akşam', time: t2.Maghrib },
+                                { name: 'Yatsı', time: t2.Isha }
+                            ];
+                            const temiz2 = hamVakitler2
+                                .map(v => ({ name: v.name, time: normalizeVakitSaati(v.time) }))
+                                .filter(v => v.time !== null);
+                            if (temiz2.length === 6) {
+                                globalNamazTimes = temiz2;
+                                namazVeriGunu = new Date().toDateString();
+                                try {
+                                    localStorage.setItem('seyir_cached_namaz_v1', JSON.stringify({
+                                        gun: namazVeriGunu,
+                                        konum: `${konum2.sehir || ''}`,
+                                        vakitler: temiz2
+                                    }));
+                                } catch (_) { }
+                                updateNamazUI();
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (e2) {
+                console.warn('Namaz vakitleri ikinci kaynak da başarısız, localStorage önbelleği kullanılıyor:', e2);
+            }
+            // ── Son Çare: localStorage önbelleği ──
             try {
                 const rawCachedNamaz = localStorage.getItem('seyir_cached_namaz_v1');
                 if (rawCachedNamaz) {
@@ -1928,8 +2012,13 @@ const PanoTV = (function () {
             ? panoData.daktiloYazilari
             : ["Okulun Dijital Nabzı"];
 
-        // Aynı yazı listesiyle tekrar başlatma (periyodik veri yenilemesinde animasyon sıfırlanmasın)
-        const yeniKey = phrases.join('|');
+        const typeSpeed = (panoData && panoData.ayarlar && Number(panoData.ayarlar.daktiloHiz)) || 90;
+        const waitDelay = (panoData && panoData.ayarlar && Number(panoData.ayarlar.daktiloBekleme)) || 2200;
+        const delSpeed = Math.max(20, Math.round(typeSpeed * 0.45));
+        const pauseDelay = Math.min(600, Math.max(150, Math.round(typeSpeed * 4)));
+
+        // Aynı yazı listesi ve hız parametreleriyle tekrar başlatma (periyodik veri yenilemesinde animasyon sıfırlanmasın)
+        const yeniKey = phrases.join('|') + `|${typeSpeed}|${waitDelay}`;
         if (typewriterKey === yeniKey && typewriterTimer !== null) return;
         typewriterKey = yeniKey;
         if (typewriterTimer) clearTimeout(typewriterTimer);
@@ -1947,10 +2036,10 @@ const PanoTV = (function () {
 
                 if (charIdx >= current.length) {
                     isDeleting = true;
-                    typewriterTimer = setTimeout(step, 2200);
+                    typewriterTimer = setTimeout(step, waitDelay);
                     return;
                 }
-                typewriterTimer = setTimeout(step, 90);
+                typewriterTimer = setTimeout(step, typeSpeed);
             } else {
                 target.textContent = current.substring(0, charIdx - 1);
                 charIdx--;
@@ -1959,10 +2048,10 @@ const PanoTV = (function () {
                     isDeleting = false;
                     charIdx = 0;
                     pIdx = (pIdx + 1) % phrases.length;
-                    typewriterTimer = setTimeout(step, 400);
+                    typewriterTimer = setTimeout(step, pauseDelay);
                     return;
                 }
-                typewriterTimer = setTimeout(step, 40);
+                typewriterTimer = setTimeout(step, delSpeed);
             }
         }
 
@@ -2014,12 +2103,200 @@ const PanoTV = (function () {
             } else {
                 pill.style.display = 'inline-flex';
                 pill.classList.remove('online-back');
-                pill.innerHTML = '<i class="fa-solid fa-wifi-slash"></i> Çevrimdışı';
+                pill.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Çevrimdışı';
             }
         };
         window.addEventListener('offline', () => _updateOfflinePill(false));
         window.addEventListener('online', () => _updateOfflinePill(true));
         if (!navigator.onLine) _updateOfflinePill(false);
+
+        // ─── Ekran Koruyucu Motoru ───
+        initSeyirScreensaver();
+    }
+
+    /**
+     * Ekran Koruyucu (Screensaver / Kiosk Sleep Mode)
+     * Ayarlanmış mesai bitiş saatinden sonra veya belirli bir süre hareketsizlik
+     * kalınca ekranı koyu OLED zemin + neon saat moduna geçirir.
+     */
+    function initSeyirScreensaver() {
+        const overlay = document.getElementById('screensaver-overlay');
+        if (!overlay) return;
+
+        let screensaverActive = false;
+        let idleTimer = null;
+        let gracePeriodTimer = null;
+        let gracePeriodActive = false;
+        let screensaverClockInterval = null;
+
+        /** Varsayılan ayarlar — admin'den gelen panoData.ayarlar.screensaver ile ezilebilir */
+        function getConfig() {
+            const cfg = (panoData && panoData.ayarlar && panoData.ayarlar.screensaver) || {};
+            return {
+                mesaiBitis: cfg.mesaiBitis || '17:30',
+                mesaiBaslangic: cfg.mesaiBaslangic || '07:30',
+                haftasonuUyku: cfg.haftasonuUyku !== false,
+                bosKalmadk: cfg.boslukDakika !== undefined ? Number(cfg.boslukDakika) : 30,
+                aktif: cfg.aktif !== false
+            };
+        }
+
+        function isMesaiDisi() {
+            const config = getConfig();
+            if (!config.aktif) return false;
+
+            const now = new Date();
+            const gun = now.getDay(); // 0=Pazar, 6=Cumartesi
+            if (config.haftasonuUyku && (gun === 0 || gun === 6)) return true;
+
+            const hh = now.getHours();
+            const mm = now.getMinutes();
+            const simdi = hh * 60 + mm;
+
+            const [bh, bm] = config.mesaiBitis.split(':').map(Number);
+            const [sh, sm] = config.mesaiBaslangic.split(':').map(Number);
+            const bitis = bh * 60 + bm;
+            const baslangic = sh * 60 + sm;
+
+            // 17:30 - 23:59 veya 00:00 - 07:30
+            return simdi >= bitis || simdi < baslangic;
+        }
+
+        function updateScreensaverClock() {
+            const timeEl = document.getElementById('screensaver-time');
+            const dateEl = document.getElementById('screensaver-date');
+            const namazEl = document.getElementById('screensaver-namaz-text');
+
+            if (timeEl) {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            if (dateEl) {
+                const now = new Date();
+                dateEl.textContent = now.toLocaleDateString('tr-TR', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+            }
+            if (namazEl && globalNamazTimes && globalNamazTimes.length > 0) {
+                const now = new Date();
+                const simdi = now.getHours() * 60 + now.getMinutes();
+                let sonraki = null;
+                for (const v of globalNamazTimes) {
+                    const [vh, vm] = v.time.split(':').map(Number);
+                    const vMins = vh * 60 + vm;
+                    if (vMins > simdi) { sonraki = v; break; }
+                }
+                if (!sonraki) sonraki = globalNamazTimes[0]; // gece yarısı ötesi
+                if (sonraki) {
+                    namazEl.textContent = `${sonraki.name}: ${sonraki.time}`;
+                }
+            }
+        }
+
+        function activateScreensaver() {
+            if (screensaverActive) return;
+            screensaverActive = true;
+            gracePeriodActive = false;
+
+            // Okul adını, sloganını ve logosunu doldur
+            const nameEl = document.getElementById('screensaver-school-name');
+            if (nameEl && panoData && panoData.okulAdi) {
+                nameEl.textContent = panoData.okulAdi;
+            }
+            const sloganEl = document.getElementById('screensaver-slogan');
+            if (sloganEl) {
+                const sloganMetni = (panoData && panoData.slogan) ? panoData.slogan.trim() : '';
+                sloganEl.textContent = sloganMetni;
+                sloganEl.style.display = sloganMetni ? 'block' : 'none';
+            }
+            const logoEl = document.getElementById('screensaver-logo-img');
+            if (logoEl && panoData && panoData.okulLogo) {
+                logoEl.src = panoData.okulLogo;
+            }
+
+            // Canlı hava durumu bilgisini aktar
+            const scWeatherText = document.getElementById('screensaver-weather-text');
+            const headerWeatherTemp = document.getElementById('header-weather-temp');
+            const headerWeatherDesc = document.getElementById('header-weather-desc');
+            if (scWeatherText && headerWeatherTemp && headerWeatherTemp.textContent && !headerWeatherTemp.textContent.startsWith('--')) {
+                const descStr = headerWeatherDesc ? ` — ${headerWeatherDesc.textContent}` : '';
+                scWeatherText.textContent = `${headerWeatherTemp.textContent}${descStr}`;
+            }
+
+            overlay.setAttribute('aria-hidden', 'false');
+            overlay.classList.add('active');
+
+            updateScreensaverClock();
+            screensaverClockInterval = setInterval(updateScreensaverClock, 1000);
+        }
+
+        function deactivateScreensaver(graceMode) {
+            if (!screensaverActive) return;
+
+            if (graceMode && isMesaiDisi()) {
+                // Mesai dışı saatte geçici uyanıklık (3 dk)
+                if (gracePeriodActive) return;
+                gracePeriodActive = true;
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+                clearInterval(screensaverClockInterval);
+                if (gracePeriodTimer) clearTimeout(gracePeriodTimer);
+                gracePeriodTimer = setTimeout(() => {
+                    gracePeriodActive = false;
+                    if (isMesaiDisi()) activateScreensaver();
+                }, 3 * 60 * 1000);
+                return;
+            }
+
+            screensaverActive = false;
+            gracePeriodActive = false;
+            overlay.classList.remove('active');
+            overlay.setAttribute('aria-hidden', 'true');
+            clearInterval(screensaverClockInterval);
+            if (gracePeriodTimer) { clearTimeout(gracePeriodTimer); gracePeriodTimer = null; }
+        }
+
+        function resetIdleTimer() {
+            const config = getConfig();
+            if (!config.aktif) return;
+            clearTimeout(idleTimer);
+            const bosMs = config.bosKalmadk * 60 * 1000;
+            idleTimer = setTimeout(() => {
+                if (!isMesaiDisi()) activateScreensaver();
+            }, bosMs);
+        }
+
+        // Kullanıcı etkileşimi ekranı uyandırır
+        ['mousemove', 'mousedown', 'touchstart', 'keydown', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (screensaverActive) {
+                    deactivateScreensaver(true);
+                } else {
+                    resetIdleTimer();
+                }
+            }, { passive: true });
+        });
+
+        // Overlay'e tıklayarak da kapat
+        overlay.addEventListener('click', () => deactivateScreensaver(true));
+
+        // Her dakika mesai saati kontrolü
+        setInterval(() => {
+            const config = getConfig();
+            if (!config.aktif) {
+                if (screensaverActive) deactivateScreensaver(false);
+                return;
+            }
+            if (isMesaiDisi() && !screensaverActive && !gracePeriodActive) {
+                activateScreensaver();
+            } else if (!isMesaiDisi() && screensaverActive) {
+                deactivateScreensaver(false);
+            }
+        }, 60 * 1000);
+
+        // İlk yüklemede kontrol et
+        resetIdleTimer();
+        if (isMesaiDisi()) activateScreensaver();
     }
 
     // Public API

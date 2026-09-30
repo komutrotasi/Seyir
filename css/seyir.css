@@ -138,13 +138,64 @@ html {
     color: #cbd5e1;
 }
 
+.pano-sub-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.pano-slogan-wrap {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+}
+
+.pano-slogan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.90rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    padding: 2px 10px;
+    border-radius: 9999px;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.pano-slogan-badge::before {
+    content: '✦';
+    font-size: 0.8rem;
+    color: #2563eb;
+}
+
+[data-theme='dark'] .pano-slogan-badge {
+    color: #93c5fd;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.16) 0%, rgba(16, 185, 129, 0.14) 100%);
+    border-color: rgba(96, 165, 250, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='dark'] .pano-slogan-badge::before {
+    color: #60a5fa;
+}
+
 .code-subline {
     font-family: 'Consolas', 'Courier New', monospace;
     font-size: 1.15rem;
     font-weight: 800;
     color: #10B981;
-    margin-top: 4px;
-    display: flex;
+    margin-top: 0;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     letter-spacing: 0.6px;
@@ -2034,6 +2085,21 @@ html {
         margin-top: 2px !important;
     }
 
+    .pano-sub-identity {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 3px !important;
+        margin-top: 2px !important;
+    }
+
+    .pano-slogan-badge {
+        font-size: 0.76rem !important;
+        padding: 1px 8px !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+    }
+
     .code-subline {
         display: block !important;
         height: 24px !important;
@@ -2748,6 +2814,16 @@ html {
     margin-bottom: 30px;
 }
 
+.screensaver-slogan {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgba(226, 232, 240, 0.85);
+    letter-spacing: 0.8px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
 .screensaver-widget {
     display: inline-flex;
     align-items: center;
@@ -2782,59 +2858,6 @@ html {
 
 .screensaver-hint .sc-dot {
     color: #475569;
-}
-
-/* ============================================================
-   3.5 — DUYURU KARTLARI DİNAMİK QR KOD BİLEŞENİ
-   ============================================================ */
-.duyuru-qr-wrapper {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #ffffff;
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    border-radius: 10px;
-    padding: 5px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    user-select: none;
-}
-
-.duyuru-qr-wrapper:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.45);
-    border-color: #818cf8;
-}
-
-.duyuru-qr-box {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.duyuru-qr-box canvas,
-.duyuru-qr-box img {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-}
-
-.duyuru-qr-sub {
-    font-size: 0.64rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin-top: 3px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
 }
 
 /* ============================================================

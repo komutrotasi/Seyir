@@ -17,7 +17,6 @@ const PRECACHE_ASSETS = [
     './css/admin.css',
     './css/fontawesome.min.css',
     './webfonts/fa-solid-900.woff2',
-    './js/vendor/qrcode.min.js',
     './js/vendor/xlsx.full.min.js',
     './js/sehir-koordinat.js',
     './js/audio-store.js',

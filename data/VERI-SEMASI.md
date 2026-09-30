@@ -27,8 +27,8 @@ Admin panelinin (`admin.html`) tam yönetim verisi bundan ayrıdır:
 |---|---|---|---|---|
 | `okulAdi` | `string` | admin | pano | Header'daki okul adı. Pano bunu iki satıra böler (ana isim / alt isim). |
 | `okulLogo` | `string` | admin | pano | Okulun özel logosu/amblemi (Base64 Data URI). Boşsa genel Seyir simgesi kullanılır. |
-| `slogan` | `string` | admin | — | Admin'de düzenlenir. *Panoda şu an karşılığı yoktur* (header'da yerini `daktiloYazilari` almıştır). |
-| `daktiloYazilari` | `string[]` | — | pano | Header'daki daktilo (typewriter) efektinde sırayla yazılan ifadeler. |
+| `slogan` | `string` | admin | pano | Admin'de düzenlenir. Pano üst kimlik alanında okul adının hemen altında kurumsal motto/slogan kutusu olarak gösterilir. |
+| `daktiloYazilari` | `string[]` | admin | pano | Header'daki daktilo (typewriter) efektinde sırayla yazılan ifadeler. Admin panelinden düzenlenebilir. |
 | `okulWebSiteUrl` | `string` | admin | PHP | Okulun `*.meb.k12.tr` veya `*.meb.gov.tr` adresi (**Madde 3.1**). Adres değişince tek otomatik istek, sonrasında yenileme butonu bu kaynaktan haber çeker; pano PHP'yi çağırmaz. |
 | `konum` | `object` | admin | pano | `{ sehir, enlem, boylam }`. Hava durumu koordinatları ve namaz vakti şehri için kullanılır; varsayılan Konya'dır. |
 | `ayarlar` | `object` | admin | pano | Pano davranış ayarları → aşağıya bakın. |
@@ -47,6 +47,9 @@ Admin panelinin (`admin.html`) tam yönetim verisi bundan ayrıdır:
 |---|---|---|
 | `karuselSuresi` | `number` | Karusel slayt geçiş süresi (**milisaniye**). Varsayılan `5000`. |
 | `temaOtomatik` | `boolean` | `true` ise pano saate göre açık/koyu temaya kendi geçer. |
+| `daktiloHiz` | `number` | Daktilo karakter yazım hızı (**milisaniye**). Varsayılan `90`. |
+| `daktiloBekleme` | `number` | Daktilo mesaj ekranda bekleme süresi (**milisaniye**). Varsayılan `2200`. |
+| `screensaver` | `object` | Ekran koruyucu ve kiosk güç tasarrufu modu ayarları (`aktif`, `mesaiBitis`, `mesaiBaslangic`, `boslukDakika`, `haftasonuUyku`). |
 
 ## 🛡️ `gizlilik`
 

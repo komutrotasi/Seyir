@@ -18,13 +18,47 @@
     <!-- Favicon -->
     <link rel="shortcut icon" href="img/favicon.png" type="image/png">
     <!-- Yerel Font Awesome: pano açılışında üçüncü taraf CDN bağlantısı kurulmaz. -->
-    <link rel="stylesheet" href="css/fontawesome.min.css?v=20260917_ded1c367">
+    <link rel="stylesheet" href="css/fontawesome.min.css?v=20260930_ded1c367">
 
     <!-- PanoTV Styles -->
-    <link rel="stylesheet" href="css/seyir.css?v=20260928_ce6aea34">
+    <link rel="stylesheet" href="css/seyir.css?v=20260930_13b86776">
 </head>
 
 <body>
+
+    <!-- EKRAN KORUYUCU OVERLAY (Güç Tasarrufu / Kiosk Sleep Mode) -->
+    <div class="screensaver-overlay" id="screensaver-overlay" role="complementary" aria-label="Ekran Koruyucu" aria-hidden="true">
+        <div class="screensaver-drift-container" id="screensaver-drift">
+            <!-- Logo -->
+            <div class="screensaver-logo-wrap">
+                <img src="img/okul_logo.png" alt="Okul Logosu" class="screensaver-logo" id="screensaver-logo-img">
+            </div>
+            <!-- Okul Adı & Sloganı -->
+            <div class="screensaver-school-name" id="screensaver-school-name">Yükleniyor...</div>
+            <div class="screensaver-slogan" id="screensaver-slogan" style="display: none;"></div>
+            <!-- Büyük Neon Saat -->
+            <div class="screensaver-time-wrap">
+                <div class="screensaver-time" id="screensaver-time">00:00:00</div>
+                <div class="screensaver-date" id="screensaver-date"></div>
+            </div>
+            <!-- Hava & Namaz Widget Satırı -->
+            <div class="screensaver-widgets-row">
+                <div class="screensaver-widget" id="screensaver-weather-widget">
+                    <span class="sc-icon">☀️</span>
+                    <span id="screensaver-weather-text">Hava Durumu</span>
+                </div>
+                <div class="screensaver-widget" id="screensaver-namaz-widget">
+                    <span class="sc-icon">🕌</span>
+                    <span id="screensaver-namaz-text">Namaz Vakti</span>
+                </div>
+            </div>
+            <!-- İpucu -->
+            <div class="screensaver-hint">
+                <span class="sc-dot">●</span>
+                <span>Devam etmek için ekrana dokunun veya herhangi bir tuşa basın</span>
+            </div>
+        </div>
+    </div>
 
     <!-- CANLI DERS ZİLİ VE GÖRSEL ANONS POPUP BANNER -->
     <div class="bell-anons-overlay" id="bell-anons-overlay">
@@ -49,9 +83,14 @@
                             <span class="okul-ana-isim">Mahmud Celaleddin Ökten</span>
                             <span class="okul-alt-isim">Anadolu İmam Hatip Lisesi</span>
                         </h1>
-                        <div class="code-subline">
-                            <span class="code-prompt">&gt;</span> <span id="pano-typewriter">Medya Okulu</span><span
-                                class="typewriter-cursor">_</span>
+                        <div class="pano-sub-identity">
+                            <div class="pano-slogan-wrap" id="pano-slogan-wrap">
+                                <span class="pano-slogan-badge" id="pano-slogan">Fikirden Koda, Koddan Şampiyonluğa</span>
+                            </div>
+                            <div class="code-subline">
+                                <span class="code-prompt">&gt;</span> <span id="pano-typewriter">Medya Okulu</span><span
+                                    class="typewriter-cursor">_</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -60,7 +99,7 @@
                 <div class="pano-header-right">
                     <!-- Çevrimdışı Durum Rozeti (JS tarafından kontrol edilir) -->
                     <span class="header-offline-pill" id="header-offline-pill" style="display:none;" aria-live="polite">
-                        <i class="fa-solid fa-wifi-slash"></i> Çevrimdışı
+                        <i class="fa-solid fa-triangle-exclamation"></i> Çevrimdışı
                     </span>
                     <div class="header-info-flipper" id="header-info-flipper">
                         <!-- 1. YÜZ: Tarih ve Canlı Saat -->
@@ -328,11 +367,11 @@
     </div>
 
     <!-- Türkiye 81 İl Koordinat ve API Eşleme Modülü -->
-    <script src="js/sehir-koordinat.js?v=20260922_5f6f637b"></script>
+    <script src="js/sehir-koordinat.js?v=20260930_5f6f637b"></script>
     <!-- Yerel Ses ve Müzik Depolama Modülü -->
-    <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
+    <script src="js/audio-store.js?v=20260930_5ef087ed"></script>
     <!-- PanoTV Core Logic -->
-    <script src="js/seyir.js?v=20260930_909d1175"></script>
+    <script src="js/seyir.js?v=20260930_d5f887a6"></script>
 </body>
 
 </html>

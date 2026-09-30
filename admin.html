@@ -8,10 +8,10 @@
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr https://*.ytimg.com https://*.youtube.com; font-src 'self' data:; connect-src 'self'; media-src 'self' blob: data: https:; object-src 'none'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'">
     <title>Pano Yönetim Paneli</title>
     <!-- Yerel Font Awesome: yönetim ekranı üçüncü taraf CDN'e font isteği göndermez. -->
-    <link rel="stylesheet" href="css/fontawesome.min.css?v=20260917_ded1c367">
-    <link rel="stylesheet" href="css/admin.css?v=20260924_618c0129">
+    <link rel="stylesheet" href="css/fontawesome.min.css?v=20260930_ded1c367">
+    <link rel="stylesheet" href="css/admin.css?v=20260930_618c0129">
     <!-- SheetJS 0.20.3 yerel kopya: özel yönetim verisi üçüncü taraf betiğe açılmaz. -->
-    <script src="js/vendor/xlsx.full.min.js?v=20260924_6b3130af"></script>
+    <script src="js/vendor/xlsx.full.min.js?v=20260930_6b3130af"></script>
 
     <!-- Yönetici parolası ve okul verileri yalnızca bu tarayıcıda saklanır. -->
 </head>
@@ -310,6 +310,17 @@
                                 </small>
                             </div>
 
+                            <!-- Kurumsal Slogan / Motto Alanı -->
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label><i class="fa-solid fa-quote-left"></i> Okul Sloganı / Kurumsal Motto</label>
+                                <input type="text" id="inp-slogan" class="form-control"
+                                    placeholder="Örn: Fikirden Koda, Koddan Şampiyonluğa">
+                                <small
+                                    style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.78rem;">
+                                    Pano üst kimlik alanında okul adının hemen altında kurumsal motto/slogan kutusu olarak görüntülenir.
+                                </small>
+                            </div>
+
                             <!-- Dinamik MEB Okul Sitesi ve Haber Yenileme (Madde 3.1) -->
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label><i class="fa-solid fa-globe"></i> MEB Okul Web Sitesi Adresi</label>
@@ -387,6 +398,124 @@
                                     <option value="true">☀️/🌙 Açık (Saat Bazlı Otomatik)</option>
                                     <option value="false">🔒 Kapalı (Sabit Tema)</option>
                                 </select>
+                            </div>
+
+                            <!-- DAKTİLO (TYPEWRITER) VE AKAN METİN AYARLARI -->
+                            <div class="form-group"
+                                style="grid-column: 1 / -1; padding: 20px; border: 2px solid rgba(16, 185, 129, 0.35); border-radius: 16px; background: linear-gradient(145deg, rgba(6, 78, 59, 0.08) 0%, rgba(15, 23, 42, 0.04) 100%);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(16, 185, 129, 0.4);">
+                                            <i class="fa-solid fa-terminal" style="color: #10b981; font-size: 1.1rem;"></i>
+                                        </div>
+                                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-main, #0f172a); letter-spacing: -0.2px;">
+                                            ⌨️ Kod Satırı Daktilo (Typewriter) Efekti Ayarları
+                                        </h3>
+                                    </div>
+                                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; font-size: 0.74rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                        <i class="fa-solid fa-code"></i> Pano Header Ticker
+                                    </span>
+                                </div>
+                                <p style="margin: 0 0 14px 0; color: var(--text-muted, #64748b); font-size: 0.84rem; line-height: 1.5;">
+                                    Pano üst alanındaki terminal konsolunda (&gt; ...) sırayla yazılan kurum vizyonu ve okul sloganlarının harf yazım hızını, ekranda bekleme süresini ve gösterilecek ifadeleri özelleştirin.
+                                </p>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                                    <div>
+                                        <label for="inp-daktilo-hiz" style="font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-solid fa-gauge-high" style="color: #10b981; margin-right: 5px;"></i> Karakter Yazım Hızı (ms)
+                                        </label>
+                                        <input type="number" id="inp-daktilo-hiz" class="form-control" min="30" max="400" step="5" value="90" placeholder="90">
+                                        <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.76rem;">
+                                            Varsayılan: 90 ms. Değer küçüldükçe harfler daha seri yazılır.
+                                        </small>
+                                    </div>
+
+                                    <div>
+                                        <label for="inp-daktilo-bekleme" style="font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-regular fa-clock" style="color: #3b82f6; margin-right: 5px;"></i> Mesaj Bekleme Süresi (ms)
+                                        </label>
+                                        <input type="number" id="inp-daktilo-bekleme" class="form-control" min="800" max="10000" step="100" value="2200" placeholder="2200">
+                                        <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.76rem;">
+                                            Varsayılan: 2200 ms. İfade tamamlandıktan sonra silinmeden önceki bekleme süresi.
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="inp-daktilo-yazilari" style="font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                        <i class="fa-solid fa-list-ul" style="color: #8b5cf6; margin-right: 5px;"></i> Daktilo İfadeleri (Her satıra bir ifade)
+                                    </label>
+                                    <textarea id="inp-daktilo-yazilari" class="form-control" rows="4" style="font-family: monospace; font-size: 0.86rem; line-height: 1.5;" placeholder="Medya Okulu&#10;Teknoloji Okulu&#10;Aile Okulu"></textarea>
+                                    <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.76rem;">
+                                        Terminal konsolunda sırasıyla daktilo efektiyle yazılıp silinecek ifadeler.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- EKRAN KORUYUCU & KİOSK GÜÇ TASARRUFU AYARLARI -->
+                            <div class="form-group"
+                                style="grid-column: 1 / -1; padding: 22px; border: 2px solid rgba(99, 102, 241, 0.4); border-radius: 16px; background: linear-gradient(145deg, #090d16 0%, #171d33 50%, #1e1b4b 100%); color: #f8fafc; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.15);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99, 102, 241, 0.25); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(99, 102, 241, 0.4);">
+                                            <i class="fa-solid fa-moon" style="color: #818cf8; font-size: 1.25rem;"></i>
+                                        </div>
+                                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #ffffff; letter-spacing: -0.2px;">
+                                            📺 Ekran Koruyucu & Kiosk Güç Tasarrufu Modu
+                                        </h3>
+                                    </div>
+                                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 8px; font-size: 0.76rem; font-weight: 700; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                                        <i class="fa-solid fa-bolt" style="font-size: 0.72rem;"></i> Akıllı Tahta Koruma
+                                    </span>
+                                </div>
+
+                                <p style="margin: 0 0 16px 0; color: #94a3b8; font-size: 0.86rem; line-height: 1.6;">
+                                    Mesai bitiminde veya ekran başında uzun süre etkileşim olmadığında panoyu otomatik OLED siyah zeminli ve neon saatli koruyucu moduna geçirir. Akıllı tahta panellerinde ekran yanmasını (burn-in) önler ve enerji tasarrufu sağlar. Ekrana dokunulduğunda veya fare hareket ettirildiğinde anında uyanır.
+                                </p>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; background: rgba(15, 23, 42, 0.65); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                    <div>
+                                        <label for="inp-screensaver-aktif" style="color: #e2e8f0; font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-solid fa-power-off" style="color: #818cf8; margin-right: 5px;"></i> Ekran Koruyucu Durumu
+                                        </label>
+                                        <select id="inp-screensaver-aktif" class="form-control" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; font-weight: 600;">
+                                            <option value="true" selected>✅ Açık (Otomatik Devreye Girsin)</option>
+                                            <option value="false">❌ Kapalı (Sürekli Pano Açık Kalsın)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label for="inp-screensaver-mesai-bitis" style="color: #e2e8f0; font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-regular fa-clock" style="color: #f59e0b; margin-right: 5px;"></i> Akşam Uyku Saati (Mesai Bitişi)
+                                        </label>
+                                        <input type="time" id="inp-screensaver-mesai-bitis" value="17:30" class="form-control" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; font-weight: 600;">
+                                    </div>
+
+                                    <div>
+                                        <label for="inp-screensaver-mesai-baslangic" style="color: #e2e8f0; font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-solid fa-sun" style="color: #fbbf24; margin-right: 5px;"></i> Sabah Uyanma Saati
+                                        </label>
+                                        <input type="time" id="inp-screensaver-mesai-baslangic" value="07:30" class="form-control" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; font-weight: 600;">
+                                    </div>
+
+                                    <div>
+                                        <label for="inp-screensaver-bosluk" style="color: #e2e8f0; font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-solid fa-hourglass-half" style="color: #38bdf8; margin-right: 5px;"></i> Boşta Kalma Süresi (Dakika)
+                                        </label>
+                                        <input type="number" id="inp-screensaver-bosluk" value="30" min="5" max="180" class="form-control" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; font-weight: 600;">
+                                    </div>
+
+                                    <div>
+                                        <label for="inp-screensaver-haftasonu" style="color: #e2e8f0; font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
+                                            <i class="fa-solid fa-calendar-xmark" style="color: #ec4899; margin-right: 5px;"></i> Hafta Sonu Uyku Modu
+                                        </label>
+                                        <select id="inp-screensaver-haftasonu" class="form-control" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; font-weight: 600;">
+                                            <option value="true" selected>🌙 Açık (Cumartesi / Pazar Koru)</option>
+                                            <option value="false">☀️ Kapalı (Hafta Sonu da Yayında)</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- KVKK & MEB GÜVENLİ PANO GÖRÜNÜMÜ (BELİRGİNLEŞTİRİLMİŞ VE KOYULAŞTIRILMIŞ GÜVENLİK KARTI) -->
@@ -5394,10 +5523,10 @@
         </div>
     </div>
 
-    <script src="js/sehir-koordinat.js?v=20260922_5f6f637b"></script>
-    <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
-    <script src="js/local-auth.js?v=20260917_a8e68658"></script>
-    <script src="js/admin.js?v=20260928_a917eef2"></script>
+    <script src="js/sehir-koordinat.js?v=20260930_5f6f637b"></script>
+    <script src="js/audio-store.js?v=20260930_5ef087ed"></script>
+    <script src="js/local-auth.js?v=20260930_a8e68658"></script>
+    <script src="js/admin.js?v=20260930_54592460"></script>
 </body>
 
 </html>

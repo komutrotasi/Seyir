@@ -1,6 +1,7 @@
 {
     "okulAdi": "Mahmud Celaleddin Ökten",
     "okulTuru": "Anadolu İmam Hatip Lisesi",
+    "slogan": "Fikirden Koda, Koddan Şampiyonluğa",
     "okulLogo": "img/okul_logo.png",
     "daktiloYazilari": [
         "Medya Okulu",
@@ -62,7 +63,9 @@
     "karuselVideolar": [],
     "ayarlar": {
         "karuselSuresi": 5000,
-        "temaOtomatik": true
+        "temaOtomatik": true,
+        "daktiloHiz": 90,
+        "daktiloBekleme": 2200
     },
     "gizlilik": {
         "personelAdiGosterim": "gorev",

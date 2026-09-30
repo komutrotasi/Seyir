@@ -995,12 +995,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             okulAdi: "Mahmud Celaleddin Ökten",
             okulTuru: "Anadolu İmam Hatip Lisesi",
+            slogan: "Fikirden Koda, Koddan Şampiyonluğa",
             okulLogo: "img/okul_logo.png",
             daktiloYazilari: ["Medya Okulu"],
             mebHaberler: [],
             okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
             konum: { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
-            ayarlar: { karuselSuresi: 5000, temaOtomatik: true, tickerDurum: true, tickerBaslik: "⚡ DUYURULAR", tickerHiz: "normal", tickerAyrac: "⚡" },
+            ayarlar: { karuselSuresi: 5000, temaOtomatik: true, daktiloHiz: 90, daktiloBekleme: 2200, tickerDurum: true, tickerBaslik: "⚡ DUYURULAR", tickerHiz: "normal", tickerAyrac: "⚡" },
             gizlilik: varsayilanGizlilikAyarlari(),
             veriYonetimi: { sonGozdenGecirme: new Date().toISOString() },
             duyurular: [],
@@ -1181,6 +1182,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inp-okulAdi').value = appData.okulAdi || "";
         const elOkulTuru = document.getElementById('inp-okulTuru');
         if (elOkulTuru) elOkulTuru.value = appData.okulTuru || "İmam Hatip Ortaokulu";
+        const elSlogan = document.getElementById('inp-slogan');
+        if (elSlogan) elSlogan.value = appData.slogan || "";
         document.getElementById('inp-webUrl').value = appData.okulWebSiteUrl || "";
         const konum = Object.assign({ sehir: "", ilce: "", enlem: null, boylam: null }, appData.konum || {});
         // Eğer enlem/boylam boşsa ancak şehir veya ilçe varsa SeyirKonum ile koordinatları otomatik çöz
@@ -1216,6 +1219,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (appData.ayarlar) {
             document.getElementById('inp-karuselSuresi').value = appData.ayarlar.karuselSuresi || 5000;
             document.getElementById('inp-temaOtomatik').value = appData.ayarlar.temaOtomatik ? "true" : "false";
+
+            // Daktilo Ayarları
+            const elDakHiz = document.getElementById('inp-daktilo-hiz');
+            if (elDakHiz) elDakHiz.value = appData.ayarlar.daktiloHiz || 90;
+            const elDakBekleme = document.getElementById('inp-daktilo-bekleme');
+            if (elDakBekleme) elDakBekleme.value = appData.ayarlar.daktiloBekleme || 2200;
+            const elDakYazilari = document.getElementById('inp-daktilo-yazilari');
+            if (elDakYazilari) {
+                elDakYazilari.value = Array.isArray(appData.daktiloYazilari) ? appData.daktiloYazilari.join('\n') : '';
+            }
+
+            // Ekran Koruyucu Ayarları (Öncelik 2)
+            const ss = appData.ayarlar.screensaver || {};
+            const elSsAktif = document.getElementById('inp-screensaver-aktif');
+            if (elSsAktif) elSsAktif.value = (ss.aktif !== false) ? "true" : "false";
+            const elSsBitis = document.getElementById('inp-screensaver-mesai-bitis');
+            if (elSsBitis) elSsBitis.value = ss.mesaiBitis || '17:30';
+            const elSsBaslangic = document.getElementById('inp-screensaver-mesai-baslangic');
+            if (elSsBaslangic) elSsBaslangic.value = ss.mesaiBaslangic || '07:30';
+            const elSsBosluk = document.getElementById('inp-screensaver-bosluk');
+            if (elSsBosluk) elSsBosluk.value = ss.boslukDakika !== undefined ? ss.boslukDakika : 30;
+            const elSsHaftasonu = document.getElementById('inp-screensaver-haftasonu');
+            if (elSsHaftasonu) elSsHaftasonu.value = (ss.haftasonuUyku !== false) ? "true" : "false";
         }
         const gizlilik = gizlilikAyarlari(appData);
         const personelModu = document.getElementById('inp-personel-gosterim');
@@ -4264,7 +4290,8 @@ document.addEventListener('DOMContentLoaded', () => {
         appData.okulAdi = document.getElementById('inp-okulAdi').value.trim();
         const elOkulTuru = document.getElementById('inp-okulTuru');
         if (elOkulTuru) appData.okulTuru = elOkulTuru.value;
-        delete appData.slogan;
+        const elSlogan = document.getElementById('inp-slogan');
+        if (elSlogan) appData.slogan = elSlogan.value.trim();
         appData.okulWebSiteUrl = document.getElementById('inp-webUrl').value;
         formKonumunuOku();
         formGizlilikAyarlariniOku();
@@ -4272,6 +4299,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!appData.ayarlar) appData.ayarlar = {};
         appData.ayarlar.karuselSuresi = parseInt(document.getElementById('inp-karuselSuresi').value, 10) || 5000;
         appData.ayarlar.temaOtomatik = document.getElementById('inp-temaOtomatik').value === 'true';
+
+        // Daktilo Ayarları
+        const inpDakHiz = document.getElementById('inp-daktilo-hiz');
+        if (inpDakHiz) {
+            const h = parseInt(inpDakHiz.value, 10);
+            appData.ayarlar.daktiloHiz = Number.isFinite(h) && h >= 20 ? h : 90;
+        }
+        const inpDakBekleme = document.getElementById('inp-daktilo-bekleme');
+        if (inpDakBekleme) {
+            const b = parseInt(inpDakBekleme.value, 10);
+            appData.ayarlar.daktiloBekleme = Number.isFinite(b) && b >= 500 ? b : 2200;
+        }
+        const inpDakYazilari = document.getElementById('inp-daktilo-yazilari');
+        if (inpDakYazilari) {
+            const lines = inpDakYazilari.value.split('\n').map(x => x.trim()).filter(Boolean);
+            if (lines.length > 0) {
+                appData.daktiloYazilari = lines;
+            }
+        }
+
+        // Ekran Koruyucu Ayarları (Öncelik 2)
+        const elSsAktif = document.getElementById('inp-screensaver-aktif');
+        if (elSsAktif) {
+            if (!appData.ayarlar.screensaver) appData.ayarlar.screensaver = {};
+            appData.ayarlar.screensaver.aktif = elSsAktif.value === 'true';
+            appData.ayarlar.screensaver.mesaiBitis = (document.getElementById('inp-screensaver-mesai-bitis')?.value || '17:30').trim();
+            appData.ayarlar.screensaver.mesaiBaslangic = (document.getElementById('inp-screensaver-mesai-baslangic')?.value || '07:30').trim();
+            appData.ayarlar.screensaver.boslukDakika = parseInt(document.getElementById('inp-screensaver-bosluk')?.value, 10) || 30;
+            appData.ayarlar.screensaver.haftasonuUyku = document.getElementById('inp-screensaver-haftasonu')?.value === 'true';
+        }
 
         const chkTicker = document.getElementById('chk-ticker-active');
         if (chkTicker) appData.ayarlar.tickerDurum = chkTicker.checked;
