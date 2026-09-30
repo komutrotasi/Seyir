@@ -8,6 +8,13 @@
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr https://*.ytimg.com https://*.youtube.com; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://api.aladhan.com; media-src 'self' blob: data: https:; object-src 'none'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'">
     <title>Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi | Seyir</title>
     <meta name="description" content="Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi dijital bilgi panosu.">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Seyir Dijital Okul Panosu">
+    <meta property="og:description" content="Akıllı tahta ve TV ekranları için çevrimdışı destekli dijital okul bilgi panosu.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0f172a">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
     <!-- Favicon -->
     <link rel="shortcut icon" href="img/favicon.png" type="image/png">
     <!-- Yerel Font Awesome: pano açılışında üçüncü taraf CDN bağlantısı kurulmaz. -->
@@ -49,8 +56,12 @@
                     </div>
                 </div>
 
-                <!-- Sağ Taraf: Canlı Tarih/Saat & Hava Durumu Dönüşümlü Rozet -->
+                <!-- Sağ Taraf: Çevrimdışı Rozeti + Canlı Tarih/Saat & Hava Durumu Dönüşümlü Rozet -->
                 <div class="pano-header-right">
+                    <!-- Çevrimdışı Durum Rozeti (JS tarafından kontrol edilir) -->
+                    <span class="header-offline-pill" id="header-offline-pill" style="display:none;" aria-live="polite">
+                        <i class="fa-solid fa-wifi-slash"></i> Çevrimdışı
+                    </span>
                     <div class="header-info-flipper" id="header-info-flipper">
                         <!-- 1. YÜZ: Tarih ve Canlı Saat -->
                         <div class="header-info-card info-clock active" id="header-card-clock">
@@ -321,7 +332,7 @@
     <!-- Yerel Ses ve Müzik Depolama Modülü -->
     <script src="js/audio-store.js?v=20260924_5ef087ed"></script>
     <!-- PanoTV Core Logic -->
-    <script src="js/seyir.js?v=20260924_7005bc94"></script>
+    <script src="js/seyir.js?v=20260930_909d1175"></script>
 </body>
 
 </html>

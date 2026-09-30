@@ -31,7 +31,7 @@ const PanoTV = (function () {
                 globalNamazTimes = parsedCached.vakitler;
             }
         }
-    } catch (e) {}
+    } catch (e) { }
     let dersScrollPos = 0;
     let dersScrollDir = 1;
     let animFrame = null;
@@ -271,14 +271,6 @@ const PanoTV = (function () {
                     cizelge: []
                 }
             }, fileData, localData || {});
-            if (!panoData.ayarlar) panoData.ayarlar = {};
-            panoData.ayarlar.ekranKoruyucu = Object.assign({
-                aktif: true,
-                baslangic: "17:30",
-                bitis: "07:30",
-                haftasonu: true,
-                bostaKalmaDk: 30
-            }, (fileData && fileData.ayarlar && fileData.ayarlar.ekranKoruyucu) || {}, (localData && localData.ayarlar && localData.ayarlar.ekranKoruyucu) || {});
             panoData.konum = Object.assign(
                 { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
                 fileData.konum || {},
@@ -410,20 +402,13 @@ const PanoTV = (function () {
             // Gün hesaplama
             const gunler = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
             const bugunAd = gunler[new Date().getDay()];
-            let nobetHedefGun = bugunAd;
-            // Hafta sonu panoyu boş bırakmak yerine Pazartesi nöbetçilerini göster
-            if (nobetHedefGun === "Cumartesi" || nobetHedefGun === "Pazar") {
-                nobetHedefGun = "Pazartesi";
-            }
 
             let gunlukNobetciler = [];
             if (!gizlilik.nobetciGoster) {
                 nobetcilerContainer.innerHTML = '<li class="nobetci-card"><div class="nobetci-info"><span class="isim" style="color:var(--text-muted);">Nöbetçi bilgisi gizlilik ayarıyla kapalı</span></div></li>';
-            } else if (panoData.nobetciGunluk && panoData.nobetciGunluk[nobetHedefGun] && panoData.nobetciGunluk[nobetHedefGun].length > 0) {
-                gunlukNobetciler = panoData.nobetciGunluk[nobetHedefGun].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
-            } else if (panoData.nobet_programi && panoData.nobet_programi[nobetHedefGun] && panoData.nobet_programi[nobetHedefGun].length > 0) {
-                gunlukNobetciler = panoData.nobet_programi[nobetHedefGun].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
-            } else if (panoData.nobetciOgretmenler && Array.isArray(panoData.nobetciOgretmenler) && panoData.nobetciOgretmenler.length > 0) {
+            } else if (panoData.nobetciGunluk && panoData.nobetciGunluk[bugunAd] && panoData.nobetciGunluk[bugunAd].length > 0) {
+                gunlukNobetciler = panoData.nobetciGunluk[bugunAd].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
+            } else if (panoData.nobetciOgretmenler && Array.isArray(panoData.nobetciOgretmenler)) {
                 gunlukNobetciler = panoData.nobetciOgretmenler.filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
             }
 
@@ -742,17 +727,15 @@ const PanoTV = (function () {
                 const allItems = [...highPriority, ...normalItems];
 
                 if (allItems.length > 0) {
-                    // Masaüstü ekranlarda yan yana açık duyuru/sınav göster (3'ten fazlaysa döngüsel geçiş)
+                    let gridHtml = '<div class="duyuru-accordion-list">';
+
+                    // Masaüstü ekranlarda yan yana 3 tane açık duyuru/sınav göster (3'ten fazlaysa döngüsel geçiş)
                     const total = allItems.length;
                     const startIdx = (window.duyuruGridIndex || 0) % total;
                     let displayItems = [];
                     for (let i = 0; i < Math.min(3, total); i++) {
                         displayItems.push(allItems[(startIdx + i) % total]);
                     }
-
-                    const dispCount = displayItems.length;
-                    const colStyle = dispCount === 1 ? 'grid-template-columns: 1fr;' : (dispCount === 2 ? 'grid-template-columns: 1fr 1fr;' : 'grid-template-columns: repeat(3, 1fr);');
-                    let gridHtml = `<div class="duyuru-accordion-list" style="${colStyle} width: 100%; height: 100%;">`;
 
                     displayItems.forEach((item, idx) => {
                         const renk = String(item.renk || '').toLowerCase();
@@ -810,21 +793,8 @@ const PanoTV = (function () {
                             ? hamIcerik
                             : escapeHtml(hamIcerik).replace(/\n/g, '<br>');
 
-                        const itemLink = (item.link || item.url || '').trim();
-                        let qrHtml = '';
-                        let qrUniqueId = '';
-                        if (itemLink) {
-                            qrUniqueId = `duyuru-qr-${idx}-${Math.random().toString(36).substring(2, 7)}`;
-                            qrHtml = `
-                                <div class="duyuru-qr-wrapper" data-qr-url="${escapeHtml(itemLink)}" data-qr-id="${qrUniqueId}" title="Karekod ile bağlantıyı açın">
-                                    <div class="duyuru-qr-box" id="${qrUniqueId}"></div>
-                                    <div class="duyuru-qr-sub"><i class="fa-solid fa-qrcode"></i> <span>TARA</span></div>
-                                </div>
-                            `;
-                        }
-
                         gridHtml += `
-                            <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; height: 100%;">
+                            <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
                                 <div class="duyuru-acc-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                         <div style="background: ${themeColor}22; color: ${themeColor}; border: 1px solid ${themeColor}50; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 2px 8px ${themeColor}30;">
@@ -843,13 +813,8 @@ const PanoTV = (function () {
                                         <i class="fa-solid fa-chevron-down acc-arrow" style="font-size: 0.82rem; color: #94a3b8; transition: transform 0.3s ease; transform: rotate(180deg);"></i>
                                     </div>
                                 </div>
-                                <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 0.88rem; color: #e2e8f0; line-height: 1.45; flex: 1; font-weight: 500; min-height: 0;">
-                                    <div style="display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;">
-                                        <div style="flex: 1; min-width: 0; max-height: 110px; overflow-y: auto; scrollbar-width: none;">
-                                            ${itemIcerik}
-                                        </div>
-                                        ${qrHtml}
-                                    </div>
+                                <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 0.88rem; color: #e2e8f0; line-height: 1.45; flex: 1; font-weight: 500;">
+                                    ${itemIcerik}
                                 </div>
                             </div>
                         `;
@@ -857,33 +822,6 @@ const PanoTV = (function () {
 
                     gridHtml += '</div>';
                     duyuruGrid.innerHTML = gridHtml;
-
-                    // QR Kodları dinamik olarak üret ve etkileşim dinleyicilerini bağla
-                    const qrWrappers = duyuruGrid.querySelectorAll('.duyuru-qr-wrapper');
-                    qrWrappers.forEach(wrap => {
-                        const url = wrap.getAttribute('data-qr-url');
-                        const targetId = wrap.getAttribute('data-qr-id');
-                        const targetEl = document.getElementById(targetId);
-                        if (targetEl && url && typeof QRCode !== 'undefined') {
-                            targetEl.innerHTML = '';
-                            try {
-                                new QRCode(targetEl, {
-                                    text: url,
-                                    width: 60,
-                                    height: 60,
-                                    colorDark: "#0f172a",
-                                    colorLight: "#ffffff",
-                                    correctLevel: QRCode.CorrectLevel.M
-                                });
-                            } catch (e) {
-                                console.warn("QR oluşturulamadı:", e);
-                            }
-                        }
-                        wrap.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            if (url) window.open(url, '_blank', 'noopener,noreferrer');
-                        });
-                    });
                 } else {
                     duyuruGrid.innerHTML = `
                         <div class="duyuru-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; text-align: center;">
@@ -1010,7 +948,7 @@ const PanoTV = (function () {
                         if (rec && rec.blob) {
                             videoSrc = URL.createObjectURL(rec.blob);
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                 }
 
                 slide.innerHTML = `
@@ -1105,181 +1043,6 @@ const PanoTV = (function () {
         if (globalNamazTimes) {
             updateNamazUI();
         }
-
-        checkScreensaverState(d);
-    }
-
-    // -------------------------------------------------------------
-    // 📺 3.3 — EKRAN KORUYUCU & GÜÇ TASARRUFU (KIOSK SLEEP MODE)
-    // -------------------------------------------------------------
-    let screensaverActive = false;
-    let screensaverTestForced = false;
-    let screensaverWakeGraceUntil = 0; // ms zaman damgası
-    let lastUserInteractionTime = Date.now();
-
-    function registerScreensaverUserActivity() {
-        lastUserInteractionTime = Date.now();
-        if (screensaverActive) {
-            // Ekrana dokunulduğunda veya fare hareketinde 3 dakika geçici uyanıklık tanı
-            screensaverWakeGraceUntil = Date.now() + (3 * 60 * 1000);
-            hideScreensaver();
-        }
-    }
-
-    function parseClockToMinutes(str) {
-        if (!str || typeof str !== 'string') return null;
-        const p = str.split(':');
-        if (p.length < 2) return null;
-        const h = parseInt(p[0], 10);
-        const m = parseInt(p[1], 10);
-        if (isNaN(h) || isNaN(m)) return null;
-        return h * 60 + m;
-    }
-
-    function checkScreensaverState(d) {
-        const scEl = document.getElementById('pano-screensaver');
-        if (!scEl) return;
-
-        const cfg = (panoData && panoData.ayarlar && panoData.ayarlar.ekranKoruyucu) || {
-            aktif: true,
-            baslangic: "17:30",
-            bitis: "07:30",
-            haftasonu: true,
-            bostaKalmaDk: 30
-        };
-
-        const nowMs = Date.now();
-
-        // 1. Canlı test tetiklenmişse doğrudan göster
-        if (screensaverTestForced) {
-            showScreensaver(d);
-            return;
-        }
-
-        // 2. Özellik kapatılmışsa panoyu uyutma
-        if (cfg.aktif === false) {
-            if (screensaverActive) hideScreensaver();
-            return;
-        }
-
-        // 3. Kullanıcı dokunup uyandırdıysa geçici uyanma süresi dolana dek uykuya dönme
-        if (nowMs < screensaverWakeGraceUntil) {
-            if (screensaverActive) hideScreensaver();
-            return;
-        }
-
-        let shouldSleep = false;
-        const day = d.getDay(); // 0: Pazar, 6: Cumartesi
-        const isWeekend = (day === 0 || day === 6);
-
-        // A) Hafta sonu tam gün uyku kontrolü
-        if (cfg.haftasonu && isWeekend) {
-            shouldSleep = true;
-        }
-
-        // B) Mesai saatleri dışı uyku kontrolü (Gece yarısı geçişini tam destekler)
-        if (!shouldSleep) {
-            const startMins = parseClockToMinutes(cfg.baslangic || "17:30");
-            const endMins = parseClockToMinutes(cfg.bitis || "07:30");
-            if (startMins !== null && endMins !== null) {
-                const curMins = d.getHours() * 60 + d.getMinutes();
-                const inRange = (startMins <= endMins)
-                    ? (curMins >= startMins && curMins < endMins)
-                    : (curMins >= startMins || curMins < endMins);
-                if (inRange) {
-                    shouldSleep = true;
-                }
-            }
-        }
-
-        // C) Boşta kalma (hareketsizlik) süresi kontrolü
-        if (!shouldSleep) {
-            const idleMin = parseInt(cfg.bostaKalmaDk, 10);
-            if (idleMin > 0) {
-                const idleElapsedMs = nowMs - lastUserInteractionTime;
-                if (idleElapsedMs >= idleMin * 60 * 1000) {
-                    shouldSleep = true;
-                }
-            }
-        }
-
-        if (shouldSleep) {
-            showScreensaver(d);
-        } else if (screensaverActive) {
-            hideScreensaver();
-        }
-    }
-
-    function showScreensaver(d) {
-        const scEl = document.getElementById('pano-screensaver');
-        if (!scEl) return;
-
-        if (!screensaverActive) {
-            scEl.classList.add('active');
-            scEl.setAttribute('aria-hidden', 'false');
-            screensaverActive = true;
-        }
-
-        // Canlı Saat ve Tarih
-        const timeEl = document.getElementById('screensaver-time');
-        const dateEl = document.getElementById('screensaver-date');
-        if (timeEl) timeEl.textContent = d.toLocaleTimeString('tr-TR');
-        if (dateEl) {
-            dateEl.textContent = d.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        }
-
-        // Okul Adı & Logo
-        const nameEl = document.getElementById('screensaver-school-name');
-        const logoEl = document.getElementById('screensaver-logo');
-        if (nameEl && panoData && panoData.okulAdi) {
-            const tamAd = panoData.okulAdi + (panoData.okulTuru ? (' ' + panoData.okulTuru) : '');
-            if (nameEl.textContent !== tamAd) nameEl.textContent = tamAd;
-        }
-        if (logoEl && panoData && panoData.okulLogo) {
-            if (logoEl.getAttribute('src') !== panoData.okulLogo) {
-                logoEl.src = panoData.okulLogo;
-            }
-        }
-
-        // Canlı Hava Durumu
-        const wIconEl = document.getElementById('screensaver-weather-icon');
-        const wTextEl = document.getElementById('screensaver-weather-text');
-        const headerWIcon = document.getElementById('header-weather-icon');
-        const headerWTemp = document.getElementById('header-weather-temp');
-        const headerWDesc = document.getElementById('header-weather-desc');
-        if (wTextEl && headerWTemp) {
-            const tempVal = headerWTemp.textContent.trim();
-            const descVal = headerWDesc ? headerWDesc.textContent.trim() : '';
-            wTextEl.textContent = `${tempVal} · ${descVal}`;
-        }
-        if (wIconEl && headerWIcon) {
-            wIconEl.textContent = headerWIcon.textContent.trim() || '🌤️';
-        }
-
-        // Canlı Namaz Vakti & Geri Sayım
-        const nTextEl = document.getElementById('screensaver-namaz-text');
-        const elAdi = document.getElementById('namaz-vakit-adi');
-        const elSaat = document.getElementById('namaz-vakit-saat');
-        const elKalan = document.getElementById('namaz-kalan-sure');
-        if (nTextEl) {
-            if (elAdi && elKalan && elKalan.textContent.trim()) {
-                nTextEl.textContent = `${elAdi.textContent.trim()} Vaktine: ${elKalan.textContent.trim()}`;
-            } else if (elAdi && elSaat) {
-                nTextEl.textContent = `${elAdi.textContent.trim()}: ${elSaat.textContent.trim()}`;
-            } else {
-                nTextEl.textContent = 'Vakit Bilgisi Aktif';
-            }
-        }
-    }
-
-    function hideScreensaver() {
-        const scEl = document.getElementById('pano-screensaver');
-        if (scEl) {
-            scEl.classList.remove('active');
-            scEl.setAttribute('aria-hidden', 'true');
-        }
-        screensaverActive = false;
-        screensaverTestForced = false;
     }
 
     /**
@@ -1429,30 +1192,9 @@ const PanoTV = (function () {
 
                 if (descEl) descEl.textContent = desc;
                 if (iconEl) iconEl.textContent = emoji;
-
-                // 3.6 — Çevrimdışı Mod için son geçerli hava durumunu yerel önbelleğe kaydet
-                try {
-                    localStorage.setItem('seyir_cached_weather', JSON.stringify({
-                        temp: `${temp}°C ${konumBaslik}`,
-                        desc: desc,
-                        emoji: emoji
-                    }));
-                } catch (err) {}
             }
         } catch (e) {
-            console.error("Hava durumu çekilemedi, çevrimdışı önbellek kontrol ediliyor:", e);
-            try {
-                const cwRaw = localStorage.getItem('seyir_cached_weather');
-                if (cwRaw) {
-                    const cw = JSON.parse(cwRaw);
-                    const tempEl = document.getElementById('header-weather-temp');
-                    const descEl = document.getElementById('header-weather-desc');
-                    const iconEl = document.getElementById('header-weather-icon');
-                    if (tempEl && cw.temp) tempEl.textContent = cw.temp;
-                    if (descEl && cw.desc) descEl.textContent = cw.desc;
-                    if (iconEl && cw.emoji) iconEl.textContent = cw.emoji;
-                }
-            } catch (err) {}
+            console.error("Hava durumu çekilemedi:", e);
         }
     }
 
@@ -1980,14 +1722,14 @@ const PanoTV = (function () {
                     prevVideo.pause();
                     prevVideo.currentTime = 0;
                     prevVideo.onended = null;
-                } catch (e) {}
+                } catch (e) { }
             }
             // Önceki slayttaki YouTube videosunu durdur
             const prevYt = prevSlide.querySelector('iframe.carousel-youtube');
             if (prevYt && prevYt.contentWindow) {
                 try {
                     prevYt.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                } catch (e) {}
+                } catch (e) { }
             }
             prevSlide.classList.remove('active');
         }
@@ -2024,7 +1766,7 @@ const PanoTV = (function () {
                 if (p && typeof p.catch === 'function') {
                     p.catch(err => console.warn('Pano MP4 video autoplay:', err));
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             if (autoEnd) {
                 videoEl.onended = () => {
@@ -2049,7 +1791,7 @@ const PanoTV = (function () {
             if (ytIframe.contentWindow) {
                 try {
                     ytIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                } catch (e) {}
+                } catch (e) { }
             }
             carouselSlideTimer = setTimeout(() => {
                 advanceCarouselSlide();
@@ -2149,7 +1891,7 @@ const PanoTV = (function () {
                         konum: `${konum.sehir}/${konum.ilce}`,
                         vakitler: temizVakitler
                     }));
-                } catch (e) {}
+                } catch (e) { }
             } else {
                 console.warn('Namaz vakitleri eksik/bozuk geldi, mevcut vakitler korunuyor.', timings);
             }
@@ -2165,7 +1907,7 @@ const PanoTV = (function () {
                         globalNamazTimes = parsedCached.vakitler;
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
             updateNamazUI();
         }
     }
@@ -2243,65 +1985,41 @@ const PanoTV = (function () {
         }, 5000);
         setInterval(fetchSchoolWeather, 1800000);
 
-        // Etkileşim dinleyicileri (Ekran koruyucu uyandırma)
-        ['mousemove', 'mousedown', 'touchstart', 'keydown', 'wheel'].forEach(evt => {
-            window.addEventListener(evt, registerScreensaverUserActivity, { passive: true });
-        });
-
-        const scOverlay = document.getElementById('pano-screensaver');
-        if (scOverlay) {
-            scOverlay.addEventListener('click', registerScreensaverUserActivity);
-        }
-
         // Admin paneli başka sekmede kaydettiğinde yalnızca açık pano kopyasını yenile.
         window.addEventListener('storage', (event) => {
             if (event.key === 'seyir_public_data') fetchData();
-            if (event.key === 'seyir_test_screensaver') {
-                screensaverTestForced = true;
-                showScreensaver(new Date());
-            }
         });
-
-        // 🌐 3.6 — Service Worker (PWA & Çevrimdışı Çalışma)
-        if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then((reg) => {
-                    // console.log('ServiceWorker kayıtlı:', reg.scope);
-                }).catch((err) => {
-                    console.warn('ServiceWorker kayıt hatası:', err);
-                });
-            });
-        }
-
-        // Çevrimdışı / Çevrimiçi Bağlantı Durumu Takibi
-        function updateOnlineStatusUI() {
-            const badge = document.getElementById('header-offline-pill');
-            if (!badge) return;
-            if (!navigator.onLine) {
-                badge.style.display = 'inline-flex';
-                badge.classList.remove('online-back');
-                badge.innerHTML = '<i class="fa-solid fa-plane-slash"></i> <span>Çevrimdışı Mod</span>';
-            } else {
-                if (badge.style.display !== 'none' && !badge.classList.contains('online-back')) {
-                    badge.classList.add('online-back');
-                    badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Bağlantı Kuruldu</span>';
-                    setTimeout(() => {
-                        badge.style.display = 'none';
-                        badge.classList.remove('online-back');
-                    }, 3500);
-                    fetchData();
-                    fetchNamazVakitleri();
-                    fetchSchoolWeather();
-                }
-            }
-        }
-        window.addEventListener('online', updateOnlineStatusUI);
-        window.addEventListener('offline', updateOnlineStatusUI);
-        updateOnlineStatusUI();
 
         // Veriyi periyodik yenileme (varsayılan 10 dakika)
         const yenilemeSuresi = 600000;
         dataInterval = setInterval(fetchData, yenilemeSuresi);
+
+        // ─── PWA Service Worker Kaydı ───
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then((reg) => {
+                console.info('[Seyir] Service Worker kayıt OK, kapsam:', reg.scope);
+            }).catch((err) => {
+                console.warn('[Seyir] Service Worker kayıt başarısız:', err);
+            });
+        }
+
+        // ─── Çevrimdışı Durum Rozeti ───
+        const _updateOfflinePill = (isOnline) => {
+            const pill = document.getElementById('header-offline-pill');
+            if (!pill) return;
+            if (isOnline) {
+                pill.classList.add('online-back');
+                pill.innerHTML = '<i class="fa-solid fa-wifi"></i> Bağlantı Sağlandı';
+                setTimeout(() => { pill.style.display = 'none'; }, 3000);
+            } else {
+                pill.style.display = 'inline-flex';
+                pill.classList.remove('online-back');
+                pill.innerHTML = '<i class="fa-solid fa-wifi-slash"></i> Çevrimdışı';
+            }
+        };
+        window.addEventListener('offline', () => _updateOfflinePill(false));
+        window.addEventListener('online', () => _updateOfflinePill(true));
+        if (!navigator.onLine) _updateOfflinePill(false);
     }
 
     // Public API
@@ -2387,14 +2105,14 @@ function initSeyirPanoZilEngine() {
                 if (AudioCtx) this.ctx = new AudioCtx();
             }
             if (this.ctx && this.ctx.state === 'suspended') {
-                this.ctx.resume().catch(() => {});
+                this.ctx.resume().catch(() => { });
             }
             return this.ctx;
         }
 
         stop() {
             this.activeOscs.forEach(o => {
-                try { o.stop(); o.disconnect(); } catch (e) {}
+                try { o.stop(); o.disconnect(); } catch (e) { }
             });
             this.activeOscs = [];
             if (window.speechSynthesis && window.speechSynthesis.speaking) {
@@ -2615,7 +2333,7 @@ function initSeyirPanoZilEngine() {
         if (!toren || !toren.audioId || !window.SeyirAudioStore) return;
 
         if (seyirPanoAktifTorenAudio) {
-            try { seyirPanoAktifTorenAudio.pause(); } catch (e) {}
+            try { seyirPanoAktifTorenAudio.pause(); } catch (e) { }
             seyirPanoAktifTorenAudio = null;
         }
 
@@ -2667,7 +2385,7 @@ function initSeyirPanoZilEngine() {
                 if (payload && payload.audioId) {
                     calPanoToren(payload);
                 }
-            } catch (err) {}
+            } catch (err) { }
         } else if (e.key === 'seyir_toren_stop') {
             if (window.SeyirAudioStore) window.SeyirAudioStore.stopAll();
             const overlay = document.getElementById('pano-ceremony-overlay');
@@ -2736,7 +2454,7 @@ function initSeyirPanoZilEngine() {
                             const u = new SpeechSynthesisUtterance(eslesen.anons.trim());
                             u.lang = 'tr-TR';
                             window.speechSynthesis.speak(u);
-                        } catch (e) {}
+                        } catch (e) { }
                     }, Math.min(2500, sure * 600));
                 }
             }
