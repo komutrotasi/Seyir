@@ -225,7 +225,7 @@ const PanoTV = (function () {
             panoData = Object.assign({
                 okulAdi: "Mahmud Celaleddin Ökten",
                 okulTuru: "Anadolu İmam Hatip Lisesi",
-                slogan: "Fikirden Koda, Koddan Şampiyonluğa",
+                slogan: "Birlikte Zirveye Koşuyoruz !...",
                 okulLogo: "img/okul_logo.png",
                 daktiloYazilari: [
                     "Medya Okulu",
@@ -803,13 +803,13 @@ const PanoTV = (function () {
                             <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
                                 <div class="duyuru-acc-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
-                                        <div style="background: ${themeColor}22; color: ${themeColor}; border: 1px solid ${themeColor}50; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 2px 8px ${themeColor}30;">
+                                        <div style="background: ${themeColor}22; color: ${themeColor}; border: 1px solid ${themeColor}50; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; box-shadow: 0 2px 8px ${themeColor}30;">
                                             ${itemEmoji}
                                         </div>
                                         <div style="display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 3px;">
-                                            <span style="font-weight: 900; font-size: 1.05rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Outfit', sans-serif; letter-spacing: 0.3px;">${itemBaslik}</span>
+                                            <span style="font-weight: 900; font-size: 1.22rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Outfit', sans-serif; letter-spacing: 0.3px;">${itemBaslik}</span>
                                             <div>
-                                                <span style="font-size: 0.76rem; font-weight: 800; color: ${themeColor}; background: ${themeColor}22; border: 1px solid ${themeColor}45; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                                <span style="font-size: 0.82rem; font-weight: 800; color: ${themeColor}; background: ${themeColor}22; border: 1px solid ${themeColor}45; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
                                                     ${itemEmoji} ${badgeText}
                                                 </span>
                                             </div>
@@ -819,7 +819,7 @@ const PanoTV = (function () {
                                         <i class="fa-solid fa-chevron-down acc-arrow" style="font-size: 0.82rem; color: #94a3b8; transition: transform 0.3s ease; transform: rotate(180deg);"></i>
                                     </div>
                                 </div>
-                                <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 0.88rem; color: #e2e8f0; line-height: 1.45; flex: 1; font-weight: 500;">
+                                <div class="duyuru-acc-body" style="margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed ${themeColor}40; font-size: 1.16rem; color: #f8fafc; line-height: 1.45; flex: 1; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; max-height: calc(1.16rem * 1.45 * 4 + 4px);">
                                     ${itemIcerik}
                                 </div>
                             </div>
@@ -984,28 +984,35 @@ const PanoTV = (function () {
 
                     const baslikMetni = duyuru.baslik || '';
                     slide.innerHTML = baslikMetni ? `
-                        <div style="
+                        <div class="carousel-caption" style="
                             box-sizing: border-box;
                             position: absolute;
-                            bottom: 0; left: 0;
+                            bottom: 0; left: 0; right: 0;
                             width: 100%;
-                            padding: 80px 60px 30px 60px;
-                            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+                            padding: 35px 30px 18px 30px;
+                            background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 60%, transparent 100%);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
                             text-align: center;
                             color: white;
                             z-index: 3;
                         ">
                             <h3 style="
-                                white-space: normal;
-                                word-break: break-word;
-                                margin: 0;
-                                font-size: clamp(1.5rem, 2.5vw, 2.8rem);
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                width: 100%;
+                                max-width: 96%;
+                                margin: 0 auto;
+                                text-align: center;
+                                font-size: clamp(1.2rem, 1.7vw, 2.1rem);
                                 font-family: 'Outfit', sans-serif;
-                                text-shadow: 2px 2px 12px rgba(0,0,0,1);
-                                line-height: 1.4;
+                                text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 20px rgba(0,0,0,0.8);
+                                line-height: 1.3;
                                 font-weight: 700;
                                 letter-spacing: 0.01em;
-                            ">${escapeHtml(baslikMetni)}</h3>
+                            " title="${escapeHtml(baslikMetni)}">${escapeHtml(baslikMetni)}</h3>
                         </div>
                     ` : '';
                 } else {

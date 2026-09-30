@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             okulAdi: "Mahmud Celaleddin Ökten",
             okulTuru: "Anadolu İmam Hatip Lisesi",
-            slogan: "Fikirden Koda, Koddan Şampiyonluğa",
+            slogan: "Birlikte Zirveye Koşuyoruz !...",
             okulLogo: "img/okul_logo.png",
             daktiloYazilari: ["Medya Okulu"],
             mebHaberler: [],

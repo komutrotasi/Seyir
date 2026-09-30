@@ -165,4 +165,4 @@ Bu alanlar `data.json`'a **yazılmaz**; pano tarafından bellekte üretilir:
 |---|---|
 | `data/dini_icerik.json` | `{ ayetler: [{ar, t, s}], hadisler: [{t, s}], dualar: [{t, s}] }` — `ar` Arapça metin, `t` Türkçe meal, `s` kaynak. Arapça yalnızca **Vaktin Ayeti** kartında gösterilir (AGENTS.md Kural 3.1). |
 | `data/meb_haberler.json` | Paketlenmiş başlangıç haberlerinin okunabilir örneği; pano bu ortak dosyayı çalışma zamanında okumaz. Güncel haberler cihazın `seyir_public_data` kaydından gelir. |
-| `data/meb_images/` | Yalnızca geriye dönük klasör yer tutucusu; yeni haber akışı sunucuya görsel yazmaz. |
+
