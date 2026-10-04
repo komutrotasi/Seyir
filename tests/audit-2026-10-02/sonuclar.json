@@ -1,0 +1,352 @@
+{
+  "date": "2026-10-02",
+  "commit": "eeb21f9f3b2b10dced5f1554d2f83b7006be870e",
+  "environment": {
+    "node": "20.19.2",
+    "php": "8.4.26",
+    "chrome": "154.0.8037.57"
+  },
+  "scope": "Yerel, izole geçici Chrome profilleri; dış API istekleri tarayıcı testlerinde engellendi. Canlı site için yalnızca üç olağan GET isteği yapıldı.",
+  "browser": {
+    "tabs": [
+      {
+        "tab": "tab-genel",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-duyurular",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-medya",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-sinav",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-nobetci",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-siniflar",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-ogretmenler",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-zaman",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-program",
+        "visible": true,
+        "errors": [
+          "ReferenceError: defaultDerslerOrtaokul is not defined\n    at window.renderHavuzTags (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:7196:71)\n    at HTMLAnchorElement.<anonymous> (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:872:60)"
+        ]
+      },
+      {
+        "tab": "tab-veri",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-kayan",
+        "visible": true,
+        "errors": []
+      },
+      {
+        "tab": "tab-zil",
+        "visible": true,
+        "errors": []
+      }
+    ],
+    "privacy_projection": {
+      "topLevelRemoved": true,
+      "privateMarkerPresent": true,
+      "meta": {
+        "tur": "seyir-public",
+        "surum": 1,
+        "anonimlestirilmis": true,
+        "olusturmaZamani": "2026-10-02T18:42:06.263Z"
+      }
+    },
+    "import_xss": {
+      "executed": false,
+      "persisted": true
+    },
+    "class_chips": 2,
+    "class_xss": true,
+    "clear_all": {
+      "localKeys": [],
+      "audioSurvives": true,
+      "cacheSurvives": true
+    },
+    "non_atomic_save": {
+      "error": "QuotaExceededError",
+      "privateValue": "SYNTHETIC_NEW",
+      "publicValue": "SYNTHETIC_OLD"
+    },
+    "bad_import": {
+      "savedSchool": "SYNTHETIC_INVALID_IMPORT",
+      "savedAnnouncements": 42,
+      "toasts": true
+    },
+    "errors": [
+      "ReferenceError: defaultDerslerOrtaokul is not defined\n    at window.renderHavuzTags (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:7196:71)\n    at HTMLAnchorElement.<anonymous> (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:872:60)"
+    ],
+    "error_logs": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "error",
+        "text": "Veri yüklenemedi ReferenceError: defaultDerslerOrtaokul is not defined\n    at window.renderHavuzTags (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:7196:71)\n    at populateForms (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:1283:52)\n    at loadData (http://127.0.0.1:18765/js/admin"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      },
+      {
+        "type": "error",
+        "text": "Veri yüklenemedi ReferenceError: defaultDerslerOrtaokul is not defined\n    at window.renderHavuzTags (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:7196:71)\n    at populateForms (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:1283:52)\n    at loadData (http://127.0.0.1:18765/js/admin"
+      },
+      {
+        "type": "error",
+        "text": "Veri yüklenemedi ReferenceError: defaultDerslerOrtaokul is not defined\n    at window.renderEslestirmeMatrix (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:8148:75)\n    at window.renderEslestirmeClassButtons (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:7951:5)\n    at populateForms"
+      },
+      {
+        "type": "error",
+        "text": "Veri yüklenemedi TypeError: appData.duyurular is not iterable\n    at renderDuyurular (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:1948:38)\n    at populateForms (http://127.0.0.1:18765/js/admin.js?v=20260930_d3bdf951:1276:9)\n    at loadData (http://127.0.0.1:18765/js/admin.js?v=20260930_d3"
+      }
+    ],
+    "pano_runtime_errors": [
+      "ReferenceError: panoData is not defined\n    at http://127.0.0.1:18765/js/seyir.js?v=20260930_4bcaba98:2683:9"
+    ],
+    "scale_checks": [
+      {
+        "viewport": [
+          1920,
+          1080
+        ],
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1920,
+          "height": 1080,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "left": 0
+        }
+      },
+      {
+        "viewport": [
+          1366,
+          768
+        ],
+        "rect": {
+          "x": 0.33331298828125,
+          "y": 0,
+          "width": 1365.33349609375,
+          "height": 768,
+          "top": 0,
+          "right": 1365.6668090820312,
+          "bottom": 768,
+          "left": 0.33331298828125
+        }
+      },
+      {
+        "viewport": [
+          3840,
+          2160
+        ],
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 3840,
+          "height": 2160,
+          "top": 0,
+          "right": 3840,
+          "bottom": 2160,
+          "left": 0
+        }
+      },
+      {
+        "viewport": [
+          1024,
+          768
+        ],
+        "rect": {
+          "x": 0,
+          "y": 96,
+          "width": 1024,
+          "height": 576,
+          "top": 96,
+          "right": 1024,
+          "bottom": 672,
+          "left": 0
+        }
+      }
+    ],
+    "sw_precache": {
+      "versionedMain": false,
+      "plainMain": true
+    },
+    "offline_clean": {
+      "mainLoaded": "undefined",
+      "cssLoaded": true
+    }
+  },
+  "lifecycle": {
+    "automatic_import_xss": true,
+    "expired_session": {
+      "authenticated": false,
+      "dashboardVisible": true,
+      "savedAfterExpiry": true
+    },
+    "backup_media": {
+      "containsReference": true,
+      "containsMediaContent": false
+    },
+    "retention_history": {
+      "topLevelEmpty": true,
+      "historyStillContainsMarker": true
+    },
+    "retention_reset_on_unrelated_save": true
+  },
+  "http": [
+    {
+      "method": "GET",
+      "path": "/fetch-haberler.php",
+      "status": 405,
+      "body": "{\"durum\":\"hata\",\"kod\":405,\"mesaj\":\"Bu servis yalnızca paneldeki yenileme butonuyla kullanılabilir.\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/fetch-haberler.php",
+      "status": 403,
+      "body": "{\"durum\":\"hata\",\"kod\":403,\"mesaj\":\"İstek kaynağına izin verilmedi.\"}"
+    },
+    {
+      "method": "POST",
+      "path": "/fetch-haberler.php",
+      "status": 400,
+      "body": "{\n    \"durum\": \"hata\",\n    \"mesaj\": \"Güvenlik ihlali: Yalnızca meb.k12.tr ve meb.gov.tr alan adlarına izin verilir.\",\n    \"kod\": 400,\n    \"zaman\": \"2026-10-02 18:42:38\",\n    \"detay\": {\n        \"url\": "
+    },
+    {
+      "method": "POST",
+      "path": "/fetch-haberler.php",
+      "status": 400,
+      "body": "{\n    \"durum\": \"hata\",\n    \"mesaj\": \"Güvenlik ihlali: Yalnızca meb.k12.tr ve meb.gov.tr alan adlarına izin verilir.\",\n    \"kod\": 400,\n    \"zaman\": \"2026-10-02 18:42:38\",\n    \"detay\": {\n        \"url\": "
+    },
+    {
+      "method": "POST",
+      "path": "/fetch-haberler.php",
+      "status": 400,
+      "body": "{\n    \"durum\": \"hata\",\n    \"mesaj\": \"Güvenlik ihlali: Standart HTTPS portu dışındaki bağlantılar engellendi.\",\n    \"kod\": 400,\n    \"zaman\": \"2026-10-02 18:42:38\",\n    \"detay\": {\n        \"url\": \"https:"
+    },
+    {
+      "method": "GET",
+      "path": "/fetch-gorsel.php?url=https://127.0.0.1",
+      "status": 400,
+      "body": "Yalnızca resmî HTTPS MEB görsellerine izin verilir."
+    },
+    {
+      "method": "POST",
+      "path": "/fetch-gorsel.php",
+      "status": 405,
+      "body": "Yalnızca GET isteğine izin verilir."
+    },
+    {
+      "method": "GET",
+      "path": "/.git/HEAD",
+      "status": 200,
+      "body": "ref: refs/heads/main\n"
+    },
+    {
+      "method": "GET",
+      "path": "/webfonts/fa-regular-400.woff2",
+      "status": 404,
+      "body": "<!doctype html><html><head><title>404 Not Found</title><style>\nbody { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; }\nh1 { font-size: 1.5em; font-weight: normal; background-color: #"
+    }
+  ],
+  "rate_limit": {
+    "local_limiter_statuses": [
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      429
+    ]
+  },
+  "live_read_only": [
+    {
+      "url": "https://seyir.komutrotasi.com/",
+      "status": 403,
+      "type": "text/html",
+      "bytes": 1249,
+      "headers": {
+        "Server": "gws"
+      }
+    },
+    {
+      "url": "https://seyir.komutrotasi.com/admin.html",
+      "status": 403,
+      "type": "text/html",
+      "bytes": 1249,
+      "headers": {
+        "Server": "gws"
+      }
+    },
+    {
+      "url": "https://seyir.komutrotasi.com/fetch-haberler.php",
+      "status": 403,
+      "type": "text/html",
+      "bytes": 1249,
+      "headers": {
+        "Server": "gws"
+      }
+    }
+  ],
+  "existing_checks": {
+    "encoding": "PASS",
+    "security_string_checks": "PASS",
+    "version_tags": "PASS",
+    "local_auth": "PASS",
+    "meb_parser": "6/6 PASS",
+    "javascript_syntax": "11/11 PASS",
+    "php_syntax": "6/6 PASS",
+    "vendor_hashes": "3/3 MATCH",
+    "credential_pattern_scan": "47 text files, 0 matches; not a full secret-history scan"
+  },
+  "reproduction_scripts_rechecked": true
+}

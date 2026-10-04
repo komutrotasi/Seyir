@@ -1,0 +1,80 @@
+Kontrol: node tools/encoding-kontrol.js
+Taranan dosya      : 46
+Türkçe karakterli  : 41
+
+✅ Kodlama kontrolü temiz — tümü BOM'suz UTF-8, Türkçe karakterler sağlam.
+Kontrol: node tools/guvenlik-kontrol.js
+✅ Güvenlik kontrolü temiz: cihaz-yerel parola/veri ayrımı ve yazmasız haber servisi doğrulandı.
+Kontrol: node tools/surum-guncelle.js --kontrol
+  ✓  index.html: css/fontawesome.min.css  (güncel: 20260930_ded1c367)
+  ✓  index.html: css/seyir.css  (güncel: 20260930_bf6e54d4)
+  ✓  index.html: js/sehir-koordinat.js  (güncel: 20260930_5f6f637b)
+  ✓  index.html: js/data-policy.js  (güncel: 20261003_de0b0137)
+  ✓  index.html: js/audio-store.js  (güncel: 20261003_8542b80b)
+  ✓  index.html: js/seyir.js  (güncel: 20261003_9b3a0721)
+  ✓  admin.html: css/fontawesome.min.css  (güncel: 20260930_ded1c367)
+  ✓  admin.html: css/admin.css  (güncel: 20260930_618c0129)
+  ✓  admin.html: js/vendor/xlsx.full.min.js  (güncel: 20260930_6b3130af)
+  ✓  admin.html: js/sehir-koordinat.js  (güncel: 20260930_5f6f637b)
+  ✓  admin.html: js/data-policy.js  (güncel: 20261003_de0b0137)
+  ✓  admin.html: js/audio-store.js  (güncel: 20261003_8542b80b)
+  ✓  admin.html: js/backup.js  (güncel: 20261003_a8d10938)
+  ✓  admin.html: js/local-auth.js  (güncel: 20261003_a685c3c2)
+  ✓  admin.html: js/admin.js  (güncel: 20261003_79f5d7e4)
+
+✅ Tüm sürüm etiketleri güncel.
+Kontrol: node tests/data-policy-test.js
+Açık veri izin listesi: iç içe özel alanlar ve geçmiş temiz.
+JSON tipi, iç içe alanlar, saat aralıkları, sürüm ve boş şablon testleri geçti.
+Kontrol: node tests/local-auth-test.js
+Cihaz-yerel parola oluşturma, giriş, değiştirme ve silme testleri başarılı.
+Kontrol: node --check js/audio-store.js
+Kontrol: node --check js/admin.js
+Kontrol: node --check js/data-policy.js
+Kontrol: node --check js/backup.js
+Kontrol: node --check js/seyir.js
+Kontrol: node --check js/local-auth.js
+Kontrol: node --check js/sehir-koordinat.js
+Kontrol: node --check tools/dagitim-hazirla.js
+Kontrol: node --check tools/encoding-kontrol.js
+Kontrol: node --check tools/guvenlik-kontrol.js
+Kontrol: node --check tools/surum-guncelle.js
+Kontrol: node --check sw.js
+Kontrol: php -l fetch-gorsel.php
+No syntax errors detected in fetch-gorsel.php
+Kontrol: php -l admin.php
+No syntax errors detected in admin.php
+Kontrol: php -l fetch-haberler.php
+No syntax errors detected in fetch-haberler.php
+Kontrol: php -l tools/dev-router.php
+No syntax errors detected in tools/dev-router.php
+Kontrol: php -l tests/meb-parser-test.php
+No syntax errors detected in tests/meb-parser-test.php
+Kontrol: php -l lib/meb-parser.php
+No syntax errors detected in lib/meb-parser.php
+Kontrol: php -l lib/rate-limit.php
+No syntax errors detected in lib/rate-limit.php
+Kontrol: php tests/meb-parser-test.php
+BAŞARILI: tema4-haberbant.html
+BAŞARILI: tema5-pgwslider.html
+BAŞARILI: tema-main-carousel.html
+BAŞARILI: tema6-kutlugun.html
+BAŞARILI: tema-main-slider.html
+BAŞARILI: tema-okul-haberler.html
+Tüm MEB ayrıştırıcı senaryoları başarılı.
+Tarayıcı: browser-regression.py
+Aşama 1–2: XSS, özel veri çıkışı, hatalı import, boş kadro ve tekrar açılış geçti.
+Aşama 3: bütün panel sekmeleri ve pano zamanlayıcısı hatasız.
+Tarayıcı: pano-runtime-test.py
+Kademeler, zil/tören tetikleme, tekrar önleme, ertesi gün, hafta sonu ve dört çözünürlük geçti.
+Tarayıcı: offline-freshness-test.py
+HTTP önbelleği kapalı ilk çevrimdışı açılış, sınırlı önbellek, yabancı önbellek ve eski konum/gün testleri geçti. {'seyir-%2F-shell-64c2117470ae0d5c': 23, 'seyir-%2F-runtime-v2': 64, 'unrelated-app-test': 1}
+Tarayıcı: storage-backup-test.py
+Ses/video yeni profile taşındı; hash, kota geri alma, sabit saklama tarihi, geçmiş temizliği ve tam silme geçti.
+Tarayıcı: session-test.py
+Süresi dolan açık oturumda kayıt engeli, otomatik kilit ve tekrar giriş geçti.
+Tarayıcı: resource-lifecycle-test.py
+10 ses durdurma + 10 video kapatma: 20/20 blob URL serbest. Video önizlemesi HTML kaçışı geçti.
+Tarayıcı: api-freshness-test.py
+Geçerli API, aynı gün/konum önbelleği, ertesi gün vakit iptali ve 2 saatlik hava TTL testi geçti.
+Bütün otomatik kontroller geçti. Gerçek cihaz/ses ve uzun süreli saha kabulü ayrıca gereklidir.

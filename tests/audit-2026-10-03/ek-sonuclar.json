@@ -1,0 +1,32 @@
+{
+  "exam_preview_xss": {
+    "executed": true
+  },
+  "outside_modals": [
+    "modal-teachers",
+    "modal-reset",
+    "modal-zil-ekle",
+    "modal-zil-title",
+    "modal-toren-muzik",
+    "modal-toren-title",
+    "modal-karusel-video",
+    "modal-video-title",
+    "modal-video-preview"
+  ],
+  "expired_open_modal": {
+    "loginVisible": true,
+    "modalVisible": true,
+    "nameVisible": true
+  },
+  "fontLoadError": "Page.evaluate: NetworkError: A network error occurred.",
+  "fontRequests": [
+    {
+      "url": "http://127.0.0.1:18766/webfonts/fa-brands-400.woff2",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:18766/webfonts/fa-brands-400.ttf",
+      "status": 404
+    }
+  ]
+}

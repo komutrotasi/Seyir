@@ -13,5 +13,5 @@ if errorlevel 1 (
 
 echo Seyir PHP sunucusu başlatılıyor: http://127.0.0.1:8000
 start "" "http://127.0.0.1:8000/"
-php -S 127.0.0.1:8000
+php -S 127.0.0.1:8000 -t . tools/dev-router.php
 

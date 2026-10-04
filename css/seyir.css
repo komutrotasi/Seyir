@@ -41,7 +41,7 @@ html {
 /* Ana Grid Yapısı */
 .pano-container {
     display: grid;
-    grid-template-columns: 1fr 350px;
+    grid-template-columns: minmax(0, 1fr) 350px;
     /* Sol taraf ana içerik, sağ taraf yan panel */
     grid-template-rows: 125px 1fr;
     /* Header, İçerik */
@@ -537,6 +537,7 @@ html {
     gap: 10px;
     flex: 1;
     min-height: 0;
+    min-width: 0;
 }
 
 .pano-left-sidebar {
@@ -558,6 +559,7 @@ html {
     flex-direction: column;
     gap: 20px;
     min-height: 0;
+    min-width: 0;
 }
 
 [data-theme="dark"] .pano-main {
@@ -839,6 +841,10 @@ html {
 .flip-card-front .widget-header,
 .flip-card-back .widget-header {
     color: #0f172a !important;
+    font-size: 1.18rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    padding-bottom: 10px !important;
 }
 
 /* Sidebar Signature / İmza */
@@ -2571,11 +2577,15 @@ html {
 /* PC Masaüstü Görünümünde Duyuruları Yan Yana 3 Açık Kart Olarak Gösterme Kuralı */
 .duyuru-accordion-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     width: 100%;
     box-sizing: border-box;
     align-items: stretch;
+}
+
+.duyuru-accordion-card {
+    min-width: 0;
 }
 
 @media (min-width: 601px) {
@@ -2695,13 +2705,13 @@ html {
 .nobet-card-duty-badge {
     display: none;
     align-items: center;
-    gap: 4px;
-    font-size: 0.74rem;
+    gap: 5px;
+    font-size: 0.88rem;
     font-weight: 800;
     color: #10b981;
     background: rgba(16, 185, 129, 0.15);
     border: 1px solid rgba(16, 185, 129, 0.35);
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: 6px;
     letter-spacing: 0.4px;
 }

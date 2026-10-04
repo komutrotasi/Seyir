@@ -84,3 +84,29 @@ if (SADECE_KONTROL) {
         ? `✅ ${degisenToplam} sürüm etiketi güncellendi.`
         : '✅ Tüm sürüm etiketleri zaten güncel.');
 }
+
+// HTML ve SW aynı sürümlü yolları kullanır; dosya değişimi yeni kabuk sürümü üretir.
+const precache = new Set(['./', './index.html', './admin.html', './manifest.json', './img/seyir-icon.svg',
+    './img/seyir-icon-192.png', './img/seyir-icon-192.png', './img/seyir-icon-512.png', './css/fonts/UthmanicHafs.otf', './webfonts/fa-solid-900.woff2',
+    './data/data.json', './data/dini_icerik.json', './data/meb_haberler.json']);
+for (const file of HEDEF_HTML) {
+    const html = fs.readFileSync(path.join(KOK, file), 'utf8');
+    for (const match of html.matchAll(/(?:href|src)="((?:css|js)\/[^" ]+)"/g)) precache.add('./' + match[1]);
+}
+const assets = [...precache];
+const hash = crypto.createHash('sha256');
+for (const url of assets) {
+    const filename = url === './' ? 'index.html' : url.slice(2).split('?')[0];
+    hash.update(url).update(fs.readFileSync(path.join(KOK, filename)));
+}
+const swPath = path.join(KOK, 'sw.js');
+const sw = fs.readFileSync(swPath, 'utf8');
+const marker = /\/\/ GENERATED-PRECACHE-START[\s\S]*?\/\/ GENERATED-PRECACHE-END/;
+hash.update(sw.replace(marker, ''));
+const generated = '// GENERATED-PRECACHE-START\nconst RELEASE = ' + JSON.stringify(hash.digest('hex').slice(0, 16)) + ';\nconst PRECACHE_ASSETS = ' + JSON.stringify(assets, null, 4) + ';\n// GENERATED-PRECACHE-END';
+if (!marker.test(sw)) throw new Error('SW üretim alanı bulunamadı.');
+if (sw.match(marker)[0] !== generated) {
+    if (SADECE_KONTROL) { console.error('Service Worker varlık listesi/sürümü güncel değil.'); process.exit(1); }
+    fs.writeFileSync(swPath, sw.replace(marker, generated), 'utf8');
+    console.log('Service Worker varlık listesi ve sürümü güncellendi.');
+}

@@ -15,39 +15,13 @@ const PanoTV = (function () {
     let dataInterval = null;
     let targetDate = null;
     let namazViewToggle = 0;
-    let globalNamazTimes = [
-        { name: 'İmsak', time: '05:00' },
-        { name: 'Güneş', time: '06:30' },
-        { name: 'Öğle', time: '12:48' },
-        { name: 'İkindi', time: '16:14' },
-        { name: 'Akşam', time: '18:54' },
-        { name: 'Yatsı', time: '20:10' }
-    ];
-    try {
-        const rawCachedNamaz = localStorage.getItem('seyir_cached_namaz_v1');
-        if (rawCachedNamaz) {
-            const parsedCached = JSON.parse(rawCachedNamaz);
-            if (parsedCached && Array.isArray(parsedCached.vakitler) && parsedCached.vakitler.length === 6) {
-                globalNamazTimes = parsedCached.vakitler;
-            }
-        }
-    } catch (e) { }
+    let globalNamazTimes = [];
     let dersScrollPos = 0;
     let dersScrollDir = 1;
     let animFrame = null;
 
-    const BASLANGIC_HABER_GORSELLERI = [
-        { anahtar: '17671892', yol: 'img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg' },
-        { anahtar: '17651353', yol: 'img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg' },
-        { anahtar: '17641455', yol: 'img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg' },
-        { anahtar: '17630148', yol: 'img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg' },
-        { anahtar: '17627027', yol: 'img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg' }
-    ];
-
     function haberGorselAdresi(haber) {
-        const aramaMetni = String((haber && haber.link) || '') + ' ' + String((haber && haber.gorsel) || '');
-        const yerel = BASLANGIC_HABER_GORSELLERI.find(kayit => aramaMetni.includes(kayit.anahtar));
-        return yerel ? yerel.yol : String((haber && haber.gorsel) || '');
+        return String((haber && haber.gorsel) || '');
     }
 
     function startVerticalScroll() {
@@ -182,11 +156,24 @@ const PanoTV = (function () {
     /**
      * Verileri JSON'dan çek
      */
+    let personnelExpiry = 0;
+    function enforceLiveRetention() {
+        if (!panoData || !personnelExpiry || Date.now() < personnelExpiry) return;
+        personnelExpiry = 0;
+        SeyirDataPolicy.clearPersonnel(panoData);
+        try {
+            const raw = JSON.parse(localStorage.getItem('seyir_public_data') || '{}');
+            SeyirDataPolicy.enforcePublicRetention(raw);
+            localStorage.setItem('seyir_public_data', JSON.stringify(raw));
+        } catch (_) {}
+        renderData();
+    }
+
     async function fetchData() {
         try {
             let fileData = {};
             try {
-                const res = await fetch('data/data.json?t=' + new Date().getTime());
+                const res = await fetch('data/data.json');
                 if (res.ok) {
                     fileData = await res.json();
                 }
@@ -197,86 +184,46 @@ const PanoTV = (function () {
             let localData = null;
             // Yönetim verisinin tamamını okumaz; admin panelinin gizlilik kurallarıyla
             // hazırladığı açık pano kopyasını kullanır.
+            function isLegacyDemoData(raw) {
+                if (!raw) return false;
+                const s = typeof raw === 'string' ? raw : JSON.stringify(raw);
+                const markers = [
+                    "Mahmud Celaleddin Ökten", "konyamcosihl", "Fikirden Koda",
+                    "Hafta Sonu DYK", "1. Dönem Genel Veli", "TEKNOFEST 2026",
+                    "Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik",
+                    "Ali Öztürk", "Zeynep Şahin", "Mustafa Koç", "Hatice Aydın",
+                    "Hüseyin Arslan", "Elif Yıldız", "Emre Aksoy", "Burak Doğan",
+                    "Seda Polat", "Deniz Kılıç", "Hasan Can", "Tuğba Dağlı",
+                    "1. Dönem 1. Ortak Yazılı Sınavı", "TÜBİTAK 4006"
+                ];
+                return markers.some(m => s.includes(m));
+            }
+
             const localDataStr = localStorage.getItem('seyir_public_data');
             if (localDataStr) {
-                try {
-                    localData = JSON.parse(localDataStr);
-                    // Önceki boş kurulum sürümünün kimlik alanları, yeni başlangıç
-                    // okulunun paketlenmiş verilerini ezmesin. Diğer yerel ayarlar korunur.
-                    const bosEskiKimlik = localData &&
-                        (!localData.okulAdi || localData.okulAdi === 'Seyir Dijital Pano') &&
-                        !String(localData.okulWebSiteUrl || '').trim() &&
-                        !String(localData.okulLogo || '').trim() &&
-                        (!Array.isArray(localData.mebHaberler) || localData.mebHaberler.length === 0);
-                    if (bosEskiKimlik) {
-                        localData = Object.assign({}, localData);
-                        ['okulAdi', 'okulLogo', 'slogan', 'daktiloYazilari', 'okulWebSiteUrl', 'mebHaberler']
-                            .forEach(alan => delete localData[alan]);
-                    } else if (String(localData.okulWebSiteUrl || '').replace(/\/+$/, '') === 'https://konyamcosihl.meb.k12.tr') {
-                        localData = Object.assign({}, localData);
-                        if (!Array.isArray(localData.mebHaberler) || localData.mebHaberler.length === 0) delete localData.mebHaberler;
-                        if (!String(localData.okulLogo || '').trim()) delete localData.okulLogo;
+                if (isLegacyDemoData(localDataStr)) {
+                    try {
+                        localStorage.removeItem('seyir_public_data');
+                        localStorage.setItem('seyir_clean_init_20261004', '1');
+                    } catch (_) {}
+                    localData = null;
+                } else {
+                    try {
+                        localData = JSON.parse(localDataStr);
+                    } catch (e) {
+                        console.error("Local data parse error", e);
                     }
-                } catch (e) {
-                    console.error("Local data parse error", e);
                 }
             }
 
-            panoData = Object.assign({
-                okulAdi: "Mahmud Celaleddin Ökten",
-                okulTuru: "Anadolu İmam Hatip Lisesi",
-                slogan: "Birlikte Zirveye Koşuyoruz !...",
-                okulLogo: "img/okul_logo.png",
-                daktiloYazilari: [
-                    "Medya Okulu",
-                    "Teknoloji Okulu",
-                    "Aile Okulu",
-                    "Kur'an Okulu",
-                    "Bilim Okulu",
-                    "Vefa Okulu",
-                    "Hareket Okulu",
-                    "İlim Okulu",
-                    "Kariyer Okulu",
-                    "Spor Okulu",
-                    "Okuma Okulu",
-                    "Türkiye Yüzyılı Maarif Okulu",
-                    "Zanaat Okulu"
-                ],
-                okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
-                konum: { sehir: "Konya", enlem: null, boylam: null },
-                ayarlar: { karuselSuresi: 5000, temaOtomatik: true, daktiloHiz: 90, daktiloBekleme: 2200 },
-                gizlilik: {
-                    personelAdiGosterim: 'gorev',
-                    nobetciGoster: true,
-                    rehberOgretmenGoster: false,
-                    dersOgretmeniGoster: false,
-                    saklamaSuresiGun: 365
-                },
-                duyurular: [],
-                sinavlar: [],
-                kayanYazi: [],
-                tumOgretmenler: [],
-                ogretmenBranslar: [],
-                dersProgrami: {},
-                nobetciOgretmenler: {},
-                nobetciGunluk: {},
-                zilYonetimi: {
-                    aktif: true,
-                    melodiOgrenci: "modern",
-                    melodiOgretmen: "chime",
-                    melodiCikis: "westminster",
-                    sesSeviyesi: 80,
-                    calmaSuresi: 8,
-                    haftasonuSessiz: true,
-                    sesliAnons: false,
-                    cizelge: []
-                }
-            }, fileData, localData || {});
-            panoData.konum = Object.assign(
-                { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
-                fileData.konum || {},
-                (localData && localData.konum) || {}
-            );
+            const source = Object.assign(window.SeyirDataPolicy.emptyTemplate(), fileData, localData || {});
+            const original = JSON.stringify(source);
+            SeyirDataPolicy.enforcePublicRetention(source);
+            if (localData && JSON.stringify(source) !== original) {
+                try { localStorage.setItem('seyir_public_data', JSON.stringify(source)); } catch (_) {}
+            }
+            panoData = SeyirDataPolicy.validate(source);
+            personnelExpiry = source._meta?.personelSonKullanim || 0;
 
             // Eğer enlem/boylam eksikse SeyirKonum üzerinden il ve ilçe adına göre koordinatları tamamla
             if ((panoData.konum.enlem === null || panoData.konum.boylam === null || panoData.konum.enlem === '' || panoData.konum.boylam === '') && panoData.konum.sehir && typeof SeyirKonum !== 'undefined') {
@@ -364,7 +311,7 @@ const PanoTV = (function () {
             if (panoData.okulLogo && typeof panoData.okulLogo === 'string' && panoData.okulLogo.trim() !== '') {
                 logoImg.src = panoData.okulLogo;
             } else {
-                logoImg.src = 'img/okul_logo.png';
+                logoImg.src = 'img/seyir-icon.svg';
             }
             if (tamOkulAdi) {
                 logoImg.alt = escapeHtml(tamOkulAdi) + ' Logosu';
@@ -435,27 +382,33 @@ const PanoTV = (function () {
 
                     const li = document.createElement('li');
                     li.className = 'nobetci-card';
-                    li.style.cssText = `display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1.5px solid ${nColor}45; border-left: 5px solid ${nColor}; border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.3); margin-bottom: 10px; width: 100%; box-sizing: border-box;`;
+                    li.style.cssText = `display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid ${nColor}55; border-left: 6px solid ${nColor}; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.32); margin-bottom: 12px; width: 100%; box-sizing: border-box;`;
                     li.innerHTML = `
-                        <div class="nobetci-avatar" style="background: ${nColor}22; color: ${nColor}; border: 1px solid ${nColor}45; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 2px 8px ${nColor}30;">
+                        <div class="nobetci-avatar" style="background: ${nColor}25; color: ${nColor}; border: 1.5px solid ${nColor}65; width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.65rem; flex-shrink: 0; box-shadow: 0 4px 12px ${nColor}35;">
                             🛡️
                         </div>
-                        <div class="card-info-content" style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                        <div class="card-info-content" style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
                             <!-- ÜST SATIR: Nöbet Yeri (Soldan Hizalı Rozet) & Canlı Görev Rozeti -->
                             <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                                ${yer ? `<span class="yer" style="font-size: 0.82rem; font-weight: 800; color: ${nColor}; display: inline-flex; align-items: center; gap: 4px; background: ${nColor}25; border: 1.5px solid ${nColor}; padding: 3px 9px; border-radius: 7px; text-align: left; white-space: nowrap; box-shadow: 0 1px 4px ${nColor}30;">📍 ${escapeHtml(yer)}</span>` : '<span style="font-size: 0.8rem; color: #94a3b8;">Nöbet Alanı</span>'}
+                                ${yer ? `<span class="yer" style="font-size: 1.05rem; font-weight: 800; color: ${nColor}; display: inline-flex; align-items: center; gap: 5px; background: ${nColor}25; border: 1.5px solid ${nColor}; padding: 4px 12px; border-radius: 8px; text-align: left; white-space: nowrap; box-shadow: 0 2px 6px ${nColor}25;">📍 ${escapeHtml(yer)}</span>` : '<span style="font-size: 0.95rem; color: #94a3b8;">Nöbet Alanı</span>'}
                                 <span class="nobet-card-duty-badge"><span class="duty-ping"></span> Görevde</span>
                             </div>
-                            <!-- ALT SATIR: Öğretmen İsmi (Sağdan Hizalı ve Satıra Sığsın) -->
+                            <!-- ALT SATIR: Öğretmen İsmi (Sağdan Hizalı, BÜYÜK ve NET) -->
                             <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
-                                <span class="isim" style="font-size: 1.18rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; letter-spacing: 0.3px;">${escapeHtml(isim)}</span>
+                                <span class="isim" style="font-size: 1.38rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; letter-spacing: 0.4px;">${escapeHtml(isim)}</span>
                             </div>
                         </div>
                     `;
                     nobetcilerContainer.appendChild(li);
                 });
             } else if (gizlilik.nobetciGoster) {
-                nobetcilerContainer.innerHTML = '<li class="nobetci-card"><div class="nobetci-info"><span class="isim" style="color:var(--text-muted);">Bugün nöbetçi bulunmuyor</span></div></li>';
+                nobetcilerContainer.innerHTML = `
+                    <li class="nobetci-bos-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.7) 100%); border: 2px dashed rgba(148, 163, 184, 0.35); border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
+                        <div style="font-size: 2.5rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));">🛡️</div>
+                        <div style="font-size: 1.35rem; font-weight: 800; color: #ffffff; font-family: 'Outfit', sans-serif; letter-spacing: 0.3px;">Bugün Nöbetçi Bulunmuyor</div>
+                        <div style="font-size: 1.05rem; font-weight: 500; color: #94a3b8; line-height: 1.5;">Tanımlı nöbetçi öğretmen bulunmamaktadır.</div>
+                    </li>
+                `;
             }
         }
 
@@ -537,22 +490,22 @@ const PanoTV = (function () {
 
                 const li = document.createElement('li');
                 li.className = 'ders-card' + (isCurrentlyActive ? ' ders-aktif-pulse' : '');
-                li.style.cssText = `display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1.5px solid ${rColor}45; border-left: 5px solid ${rColor}; border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.3); margin-bottom: 10px; width: 100%; box-sizing: border-box;${isCurrentlyActive ? ` animation: neon-pulse-${globalIdx} 2s ease-in-out infinite; box-shadow: 0 0 18px ${rColor}60, 0 6px 20px rgba(0,0,0,0.4);` : ''}`;
+                li.style.cssText = `display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid ${rColor}55; border-left: 6px solid ${rColor}; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.32); margin-bottom: 12px; width: 100%; box-sizing: border-box;${isCurrentlyActive ? ` animation: neon-pulse-${globalIdx} 2s ease-in-out infinite; box-shadow: 0 0 20px ${rColor}60, 0 8px 24px rgba(0,0,0,0.4);` : ''}`;
 
                 const kisaSinif = formatSinifPanoTV(aktif.sinif);
 
                 li.innerHTML = `
-                    <div class="ders-avatar" style="background: #ffffff; border: 1.5px solid rgba(255, 255, 255, 0.9); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+                    <div class="ders-avatar" style="background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); border: 2px solid rgba(255, 255, 255, 0.95); width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.65rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
                         🎓
                     </div>
-                    <div class="card-info-content" style="flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-                        <!-- ÜST SATIR: Sınıf İsmi (Soldan Hizalı) -->
+                    <div class="card-info-content" style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+                        <!-- ÜST SATIR: Sınıf İsmi (Soldan Hizalı, BÜYÜK ve NET) -->
                         <div style="display: flex; align-items: center; justify-content: flex-start; width: 100%;">
-                            <span class="sinif-adi" style="font-size: 1.05rem; font-weight: 800; color: #ffffff; font-family: 'Outfit', sans-serif; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(kisaSinif)}</span>
+                            <span class="sinif-adi" style="font-size: 1.35rem; font-weight: 900; color: #ffffff; font-family: 'Outfit', sans-serif; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.5px;">${escapeHtml(kisaSinif)}</span>
                         </div>
-                        <!-- ALT SATIR: Ders İsmi (Sağdan Hizalı) -->
+                        <!-- ALT SATIR: Ders İsmi (Sağdan Hizalı, BÜYÜK ve NET) -->
                         <div style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
-                            <span class="ders-adi" style="font-size: 0.95rem; font-weight: 900; color: ${rColor}; display: inline-flex; align-items: center; gap: 5px; background: ${rColor}28; border: 1.5px solid ${rColor}55; padding: 4px 10px; border-radius: 8px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; letter-spacing: 0.3px;">
+                            <span class="ders-adi" style="font-size: 1.18rem; font-weight: 900; color: ${rColor}; display: inline-flex; align-items: center; gap: 6px; background: ${rColor}25; border: 1.5px solid ${rColor}65; padding: 5px 12px; border-radius: 9px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; letter-spacing: 0.3px;">
                                 📖 ${escapeHtml(aktif.ders)}
                             </span>
                         </div>
@@ -564,7 +517,13 @@ const PanoTV = (function () {
             // Dikey Scroll Başlat (Sadece sığmıyorsa)
             setTimeout(startVerticalScroll, 500);
         } else if (derslerContainer) {
-            derslerContainer.innerHTML = '<li class="ders-card"><div class="ders-info"><span class="sinif-adi" style="color:var(--text-muted); font-style:italic;">Şu an aktif ders yok.</span></div></li>';
+            derslerContainer.innerHTML = `
+                <li class="ders-bos-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 20px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.7) 100%); border: 2px dashed rgba(148, 163, 184, 0.35); border-radius: 18px; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
+                    <div style="font-size: 2.5rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));">☕</div>
+                    <div style="font-size: 1.35rem; font-weight: 800; color: #ffffff; font-family: 'Outfit', sans-serif; letter-spacing: 0.3px;">Şu An Aktif Ders Yok</div>
+                    <div style="font-size: 1.05rem; font-weight: 500; color: #94a3b8; line-height: 1.5;">Ders saatleri başladığında güncel sınıf dersleri burada görüntülenecektir.</div>
+                </li>
+            `;
         }
     }
 
@@ -800,7 +759,7 @@ const PanoTV = (function () {
                             : escapeHtml(hamIcerik).replace(/\n/g, '<br>');
 
                         gridHtml += `
-                            <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+                            <div class="duyuru-accordion-card active" onclick="toggleDuyuruAccordion(this)" style="background: ${bgGrad}; border: 1.5px solid ${borderColor}; border-left: 5px solid ${themeColor}; border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; min-width: 0;">
                                 <div class="duyuru-acc-header" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                         <div style="background: ${themeColor}22; color: ${themeColor}; border: 1px solid ${themeColor}50; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0; box-shadow: 0 2px 8px ${themeColor}30;">
@@ -873,8 +832,17 @@ const PanoTV = (function () {
     /**
      * Karuseli DOM'a basar. (MEB haberleri ve videolarla birlikte çağrılır)
      */
+    const carouselUrls = new Set();
+    let carouselGeneration = 0;
+    function releaseCarouselUrls() {
+        if (els.carousel) els.carousel.querySelectorAll('video').forEach(v => { v.pause(); v.removeAttribute('src'); v.load(); });
+        carouselUrls.forEach(url => URL.revokeObjectURL(url)); carouselUrls.clear();
+    }
+    window.addEventListener('pagehide', releaseCarouselUrls);
     async function renderCarousel() {
         if (!panoData) return;
+        const generation = ++carouselGeneration;
+        releaseCarouselUrls();
         els.carousel.innerHTML = '';
         currentSlide = 0;
 
@@ -912,9 +880,10 @@ const PanoTV = (function () {
 
         if (allSlides.length === 0) {
             els.carousel.innerHTML = `
-                <div class="carousel-slide active" style="text-align: center;">
-                    <h2>📢</h2>
-                    <p>Yayınlanacak haber veya duyuru bulunmuyor.</p>
+                <div class="carousel-slide active" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 100%; padding: 40px; box-sizing: border-box; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);">
+                    <div style="font-size: 4.5rem; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));">📢</div>
+                    <h2 style="font-size: 2.2rem; font-weight: 800; color: #ffffff; font-family: 'Outfit', sans-serif; margin: 0;">Seyir Dijital Pano Yayında</h2>
+                    <p style="font-size: 1.35rem; color: #94a3b8; max-width: 650px; line-height: 1.6; margin: 0;">Yönetim panelinden haber ve duyuru eklendiğinde veya MEB haberleri çekildiğinde içerikler burada otomatik olarak akacaktır.</p>
                 </div>
             `;
             return;
@@ -951,8 +920,10 @@ const PanoTV = (function () {
                 if (duyuru.mediaId && window.SeyirAudioStore) {
                     try {
                         const rec = await window.SeyirAudioStore.getAudio(duyuru.mediaId);
+                        if (generation !== carouselGeneration) return;
                         if (rec && rec.blob) {
                             videoSrc = URL.createObjectURL(rec.blob);
+                            carouselUrls.add(videoSrc);
                         }
                     } catch (e) { }
                 }
@@ -967,18 +938,34 @@ const PanoTV = (function () {
                 `;
             } else {
                 const haberGorseli = haberGorselAdresi(duyuru);
-                if ((duyuru.tip === 'foto' || duyuru.tip === 'foto-haber' || duyuru.tip === 'slider') && haberGorseli) {
-                    slide.classList.add('photo-slide');
-                    const guvenliGorsel = haberGorseli.replace(/['"\\)]/g, '');
+                const gorselVar = Boolean(haberGorseli && haberGorseli.trim() !== "");
+                if (gorselVar && (duyuru.tip === "foto" || duyuru.tip === "foto-haber" || duyuru.tip === "slider" || duyuru.tip === "haber" || !duyuru.tip || duyuru.gorsel)) {
+                    slide.classList.add("photo-slide");
+                    const guvenliGorsel = haberGorseli.replace(/['"\\)]/g, "");
                     slide.style.backgroundImage = `url('${guvenliGorsel}')`;
-                    slide.style.backgroundSize = 'contain';
-                    slide.style.backgroundPosition = 'center center';
-                    slide.style.backgroundRepeat = 'no-repeat';
-                    slide.style.backgroundColor = '#0f172a';
+                    slide.style.backgroundSize = "contain";
+                    slide.style.backgroundPosition = "center center";
+                    slide.style.backgroundRepeat = "no-repeat";
+                    slide.style.backgroundColor = "#0f172a";
 
                     const gorselKontrol = new Image();
                     gorselKontrol.onerror = () => {
-                        slide.style.backgroundImage = 'linear-gradient(135deg, #0f172a, #1e293b)';
+                        const proxyEslesme = guvenliGorsel.match(/[?&]url=([^&]+)/);
+                        if (proxyEslesme) {
+                            try {
+                                const dogrudanUrl = decodeURIComponent(proxyEslesme[1]).replace(/['"\\)]/g, "");
+                                const yedekImg = new Image();
+                                yedekImg.onload = () => {
+                                    slide.style.backgroundImage = `url('${dogrudanUrl}')`;
+                                };
+                                yedekImg.onerror = () => {
+                                    slide.style.backgroundImage = "linear-gradient(135deg, #0f172a, #1e293b)";
+                                };
+                                yedekImg.src = dogrudanUrl;
+                                return;
+                            } catch (_) { }
+                        }
+                        slide.style.backgroundImage = "linear-gradient(135deg, #0f172a, #1e293b)";
                     };
                     gorselKontrol.src = guvenliGorsel;
 
@@ -1040,7 +1027,7 @@ const PanoTV = (function () {
     function updateClock() {
         const d = new Date();
         updateStatus(d);
-        checkSchoolBellTrigger(d.getHours(), d.getMinutes(), d.getSeconds());
+        enforceLiveRetention();
 
         // Header sağ üst canlı saat ve tarih
         const timeEl = document.getElementById('header-live-time');
@@ -1121,129 +1108,57 @@ const PanoTV = (function () {
         }, 8000);
     }
 
-    function checkSchoolBellTrigger(hour, min, sec) {
-        if (sec !== 0) return;
-
-        const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-        const bellTimes = {
-            "09:00": { title: "🔔 1. DERS BAŞLADI!", sub: "Tüm öğrencilerimize başarılı bir ders dileriz.", type: "ders" },
-            "09:40": { title: "🔔 1. TENEFFÜS!", sub: "Dinlenme vakti! Teneffüsünüz iyi geçsin.", type: "teneffus" },
-            "09:50": { title: "🔔 2. DERS BAŞLADI!", sub: "İyi dersler dileriz.", type: "ders" },
-            "10:30": { title: "🔔 2. TENEFFÜS!", sub: "Dinlenme vakti!", type: "teneffus" },
-            "10:40": { title: "🔔 3. DERS BAŞLADI!", sub: "İyi dersler dileriz.", type: "ders" },
-            "11:20": { title: "🔔 3. TENEFFÜS!", sub: "Dinlenme vakti!", type: "teneffus" },
-            "11:30": { title: "🔔 4. DERS BAŞLADI!", sub: "İyi dersler dileriz.", type: "ders" },
-            "12:10": { title: "🔔 TENEFFÜS!", sub: "Kısa dinlenme arası.", type: "teneffus" },
-            "12:15": { title: "🔔 5. DERS BAŞLADI!", sub: "İyi dersler dileriz.", type: "ders" },
-            "12:55": { title: "🍽 ÖĞLE ARASI!", sub: "Afiyet olsun! Yemekhane ve serbest zaman.", type: "teneffus" },
-            "13:40": { title: "🔔 6. DERS BAŞLADI!", sub: "İyi dersler dileriz.", type: "ders" },
-            "14:20": { title: "🔔 TENEFFÜS!", sub: "Dinlenme vakti!", type: "teneffus" },
-            "14:25": { title: "🔔 7. DERS BAŞLADI!", sub: "İyi dersler dileriz.", type: "ders" },
-            "15:05": { title: "🔔 TENEFFÜS!", sub: "Son ders öncesi dinlenme vakti.", type: "teneffus" },
-            "15:10": { title: "🔔 8. DERS BAŞLADI!", sub: "Son ders! İyi dersler dileriz.", type: "ders" },
-            "15:50": { title: "🔔 DERSLER BİTTİ!", sub: "Bugünkü dersler tamamlandı. İyi akşamlar dileriz!", type: "cikis" }
-        };
-
-        if (bellTimes[timeStr]) {
-            lastTriggeredBellTime = timeStr;
-            triggerSchoolBellAnons(bellTimes[timeStr]);
-        }
-    }
-
     /**
      * Yapılandırılan okul konumunun hava durumunu çek (Open-Meteo API)
      */
+    function locationKey() {
+        const k = (panoData && panoData.konum) || {};
+        return JSON.stringify([k.sehir || '', k.ilce || '', k.enlem, k.boylam]);
+    }
+
+    async function fetchWithDeadline(url) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        try { return await fetch(url, { signal: controller.signal }); }
+        finally { clearTimeout(timer); }
+    }
+
     async function fetchSchoolWeather() {
+        const key = locationKey();
+        const k = (panoData && panoData.konum) || {};
+        const label = k.ilce || k.sehir || '';
+        function show(temp, desc, emoji) {
+            const values = { 'header-weather-temp': temp, 'header-weather-desc': desc,
+                'header-weather-icon': emoji, 'screensaver-weather-text': temp + ' — ' + desc };
+            for (const [id, value] of Object.entries(values)) {
+                const el = document.getElementById(id); if (el) el.textContent = value;
+            }
+        }
+        show('--°C ' + label, label ? 'Güncel veri bekleniyor' : 'Konum seçin', '🌐');
+        if (k.enlem == null || k.boylam == null || k.enlem === '' || k.boylam === '') return;
         try {
-            const konum = Object.assign({ sehir: '', ilce: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
-            // Eğer koordinatlar eksikse ancak şehir/ilçe adı varsa SeyirKonum ile koordinatları otomatik çöz
-            if ((konum.enlem === null || konum.boylam === null || konum.enlem === '' || konum.boylam === '') && konum.sehir && typeof SeyirKonum !== 'undefined') {
-                const eslesen = SeyirKonum.koordinatGetir(konum.sehir, konum.ilce);
-                if (eslesen) {
-                    konum.enlem = eslesen.enlem;
-                    konum.boylam = eslesen.boylam;
-                    if (eslesen.ilce && !konum.ilce) konum.ilce = eslesen.ilce;
-                }
-            }
-            if (konum.enlem === null || konum.boylam === null || konum.enlem === '' || konum.boylam === '') return;
-            const hamEnlem = Number(konum.enlem);
-            const hamBoylam = Number(konum.boylam);
-            if (!Number.isFinite(hamEnlem) || hamEnlem < -90 || hamEnlem > 90 || !Number.isFinite(hamBoylam) || hamBoylam < -180 || hamBoylam > 180) return;
-            const enlem = hamEnlem;
-            const boylam = hamBoylam;
-            const tempEl = document.getElementById('header-weather-temp');
-            const descEl = document.getElementById('header-weather-desc');
-            const ilceAdi = (konum.ilce && typeof konum.ilce === 'string') ? konum.ilce.trim() : '';
-            const sehirAdi = (konum.sehir && typeof konum.sehir === 'string') ? konum.sehir.trim() : '';
-            const konumBaslik = ilceAdi || sehirAdi || 'Okul Konumu';
-
-            if (tempEl) {
-                tempEl.textContent = `--°C ${konumBaslik}`;
-            }
-
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(enlem)}&longitude=${encodeURIComponent(boylam)}&current_weather=true`);
-            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const res = await fetchWithDeadline(`https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(k.enlem)}&longitude=${encodeURIComponent(k.boylam)}&current_weather=true`);
+            if (!res.ok) throw new Error('Hava durumu HTTP ' + res.status);
             const json = await res.json();
-            if (json && json.current_weather) {
-                const temp = Math.round(json.current_weather.temperature);
-                const code = json.current_weather.weathercode;
-                const iconEl = document.getElementById('header-weather-icon');
-
-                if (tempEl) tempEl.textContent = `${temp}°C ${konumBaslik}`;
-
-                let desc = 'Açık & Güneşli';
-                let emoji = '☀️';
-
-                if (code === 0) { desc = 'Açık & Güneşli'; emoji = '☀️'; }
-                else if (code === 1 || code === 2) { desc = 'Parçalı Bulutlu'; emoji = '⛅'; }
-                else if (code === 3) { desc = 'Çok Bulutlu / Kapalı'; emoji = '☁️'; }
-                else if (code >= 45 && code <= 48) { desc = 'Sisli'; emoji = '🌫️'; }
-                else if (code >= 51 && code <= 67) { desc = 'Yağmurlu'; emoji = '🌧️'; }
-                else if (code >= 71 && code <= 77) { desc = 'Kar Yağışlı'; emoji = '🌨️'; }
-                else if (code >= 80 && code <= 82) { desc = 'Sağanak Yağışlı'; emoji = '🌧️'; }
-                else if (code === 85 || code === 86) { desc = 'Kar Sağanağı'; emoji = '🌨️'; }
-                else if (code >= 95) { desc = 'Gök Gürültülü Fırtına'; emoji = '⛈️'; }
-
-                if (descEl) descEl.textContent = desc;
-                if (iconEl) iconEl.textContent = emoji;
-
-                // Başarılı sonucu önbelleğe al
-                try {
-                    localStorage.setItem('seyir_cached_weather_v1', JSON.stringify({
-                        temp, desc, emoji, konum: konumBaslik,
-                        ts: Date.now()
-                    }));
-                } catch (_) { }
-
-                // Ekran koruyucu hava widget'ını da güncelle
-                const scWeatherText = document.getElementById('screensaver-weather-text');
-                if (scWeatherText) scWeatherText.textContent = `${temp}°C — ${desc}`;
-            }
-        } catch (e) {
-            console.warn('Hava durumu çekilemedi, önbellek kontrol ediliyor:', e);
-            // Önbellekten son geçerli veriyi yükle
-            try {
-                const cachedW = localStorage.getItem('seyir_cached_weather_v1');
-                if (cachedW) {
-                    const cw = JSON.parse(cachedW);
-                    const tempEl2 = document.getElementById('header-weather-temp');
-                    const descEl2 = document.getElementById('header-weather-desc');
-                    const iconEl2 = document.getElementById('header-weather-icon');
-                    if (tempEl2 && cw.temp !== undefined) tempEl2.textContent = `${cw.temp}°C ${cw.konum || ''}`;
-                    if (descEl2 && cw.desc) descEl2.textContent = cw.desc;
-                    if (iconEl2 && cw.emoji) iconEl2.textContent = cw.emoji;
-                    return;
-                }
-            } catch (_) { }
-            // Önbellekte de veri yoksa bilgilendirici mesaj göster
-            const tempElFallback = document.getElementById('header-weather-temp');
-            const descElFallback = document.getElementById('header-weather-desc');
-            if (tempElFallback && tempElFallback.textContent.startsWith('--')) {
-                tempElFallback.textContent = '🌐 Bağlantı Bekleniyor';
-            }
-            if (descElFallback && descElFallback.textContent === 'Canlı Hava Durumu') {
-                descElFallback.textContent = 'İnternet bağlantısı kurulunca güncellenecek';
-            }
+            const w = json.current_weather;
+            if (!w || !Number.isFinite(w.temperature) || !Number.isFinite(w.weathercode)) throw new Error('Geçersiz hava durumu');
+            if (locationKey() !== key) return;
+            const code = w.weathercode;
+            let desc = 'Açık', emoji = '☀️';
+            if (code >= 95) { desc = 'Fırtına'; emoji = '⛈️'; }
+            else if (code >= 85 || (code >= 71 && code <= 77)) { desc = 'Kar yağışlı'; emoji = '🌨️'; }
+            else if (code >= 51) { desc = 'Yağmurlu'; emoji = '🌧️'; }
+            else if (code >= 45) { desc = 'Sisli'; emoji = '🌫️'; }
+            else if (code >= 1) { desc = 'Bulutlu'; emoji = '☁️'; }
+            const temp = Math.round(w.temperature);
+            show(`${temp}°C ${label}`, desc, emoji);
+            try { localStorage.setItem('seyir_cached_weather_v1', JSON.stringify({temp, desc, emoji, key, ts: Date.now()})); } catch (_) {}
+        } catch (_) {
+            if (locationKey() !== key) return;
+            let c; try { c = JSON.parse(localStorage.getItem('seyir_cached_weather_v1')); } catch (_) {}
+            if (c && c.key === key && Number.isFinite(c.temp) && Date.now() >= c.ts && Date.now() - c.ts <= 7200000) {
+                show(`${c.temp}°C ${label}`, `${c.desc} (son kayıt: ${new Date(c.ts).toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'})})`, c.emoji);
+            } else show('--°C ' + label, 'Güncel veri yok', '🌐');
         }
     }
 
@@ -1384,10 +1299,20 @@ const PanoTV = (function () {
         }
 
         diniIcerikContainer.innerHTML = html;
+        if (!globalNamazTimes.length) updateNamazUI();
     }
 
     function updateNamazUI() {
-        if (!globalNamazTimes || globalNamazTimes.length === 0) return;
+        if (namazVeriGunu && namazVeriGunu !== new Date().toDateString()) {
+            globalNamazTimes = []; namazVeriGunu = null;
+            tetikleNamazYenileme('gün değişti');
+        }
+        if (!globalNamazTimes.length) {
+            for (const [id, value] of Object.entries({'namaz-vakit-adi':'Güncel vakit yok', 'namaz-vakit-saat':'--:--', 'namaz-kalan-sure':'--:--:--', 'namaz-kalan-etiket':'Konum ve bağlantıyı kontrol edin', 'screensaver-namaz-text':'Güncel vakit yok'})) {
+                const el = document.getElementById(id); if (el) el.textContent = value;
+            }
+            return;
+        }
 
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -1453,7 +1378,7 @@ const PanoTV = (function () {
         const h = Math.floor(remainingTotalSeconds / 3600);
         const m = Math.floor((remainingTotalSeconds % 3600) / 60);
         const s = remainingTotalSeconds % 60;
-        const remainingStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        const remainingStr = nextVakit === globalNamazTimes[0] && currentMinutes >= parseInt(globalNamazTimes[5].time) * 60 + Number(globalNamazTimes[5].time.split(':')[1]) ? '--:--:--' : `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
         const view1 = document.getElementById('namaz-card-view1');
         const view2 = document.getElementById('namaz-card-view2');
@@ -1606,78 +1531,43 @@ const PanoTV = (function () {
     function updateStatus(now) {
         if (!panoData) return;
 
-        // Backward compat
-        if (Array.isArray(panoData.dersProgrami) && !panoData.dersProgramiOrtaokul) {
-            panoData.dersProgramiOrtaokul = [...panoData.dersProgrami];
-        }
-
         const statusLise = calculateStatus(panoData.dersProgramiLise, now);
+        const statusOrta = calculateStatus(panoData.dersProgramiOrtaokul, now);
+        const gunler = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+        const yeniAktif = [];
+        const gun = now.getDay();
+        const haftaIci = gun >= 1 && gun <= 5;
 
-        if (statusLise && statusLise.index !== undefined) {
-            let index = statusLise.index;
-            let gunler = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-            let bugunAd = gunler[now.getDay()];
-            let yeniAktif = [];
+        // Sıradaki dersleri göstermeye gerek yok; sadece o an aktif olarak işlenen dersler gösterilir
+        if (haftaIci) {
+            const gunAdi = gunler[gun];
+            for (const [sinif, gunlukProgram] of Object.entries(panoData.dersProgramiDetay || {})) {
+                const seviye = parseInt(sinif, 10);
+                const program = seviye >= 1 && seviye <= 8 ? panoData.dersProgramiOrtaokul : panoData.dersProgramiLise;
+                // Öğle arası haftalık sınıf matrisinde bir ders değildir.
+                const dersler = (program || []).filter(row => !/öğle|teneffüs|ara/i.test(row.ders || ''));
+                const status = calculateStatus(dersler, now);
+                if (!status || status.index < 0) continue;
+                // Ders dışı durumlar (Teneffüs, Başlamadı, Bitti) aktif ders sayılmaz
+                if (status.text === 'Başlamadı' || status.text === 'Teneffüs' || status.text === 'Bitti') continue;
 
-            let baslik = "ŞU ANKİ DERSLER";
-
-            // Eğer Gün Bitti ise (index -1) veya Haftasonu ise bir sonraki aktif günü ve 0. dersi (ilk ders) bul
-            if (index === -1 || bugunAd === "Cumartesi" || bugunAd === "Pazar") {
-                index = 0;
-                let nextDay = (now.getDay() + 1) % 7;
-                if (nextDay === 6) nextDay = 1; // Cumartesi ise Pazartesi yap
-                if (nextDay === 0) nextDay = 1; // Pazar ise Pazartesi yap
-                if (now.getDay() === 5 && statusLise.index === -1) nextDay = 1; // Cuma akşamı ise Pazartesi yap
-                bugunAd = gunler[nextDay];
-                baslik = "İLK DERSLER (" + bugunAd.toUpperCase() + ")";
+                const index = status.index;
+                const ders = gunlukProgram[gunAdi]?.[index];
+                if (!ders || !ders.ders) continue;
+                const atama = (panoData.tamamlamaAtamalari?.[gunAdi] || []).find(a => a.saat === index && a.sinif === sinif);
+                const gizlilik = panoGizlilikAyarlari();
+                const hoca = gizlilik.dersOgretmeniGoster ? panoPersonelAdiniBicimle(atama ? atama.nobetci : (ders.hoca || ders.ogretmen), 'Ders Öğretmeni') : '';
+                const ad = formatDersPanoTV(atama ? atama.dersAdi : ders.ders);
+                yeniAktif.push({ sinif, ders: ad + (hoca ? ` (${hoca})` : '') + (atama ? ' (Tamamlama)' : '') });
             }
-
-            if (panoData.dersProgramiDetay) {
-                for (const sinif in panoData.dersProgramiDetay) {
-                    const gunluk = panoData.dersProgramiDetay[sinif][bugunAd];
-                    if (gunluk && gunluk[index]) {
-                        // Check if there is a Tamamlama assignment for this class and period
-                        const gizlilik = panoGizlilikAyarlari();
-                        const dersOgretmeni = gizlilik.dersOgretmeniGoster
-                            ? panoPersonelAdiniBicimle(gunluk[index].hoca || gunluk[index].ogretmen, 'Ders Öğretmeni')
-                            : '';
-                        let dersText = formatDersPanoTV(gunluk[index].ders) + (dersOgretmeni ? ` (${dersOgretmeni})` : '');
-
-                        if (panoData.tamamlamaAtamalari && panoData.tamamlamaAtamalari[bugunAd]) {
-                            const tamamlama = panoData.tamamlamaAtamalari[bugunAd].find(a => a.saat === index && a.sinif === sinif);
-                            if (tamamlama) {
-                                const tamamlamaOgretmeni = gizlilik.dersOgretmeniGoster
-                                    ? panoPersonelAdiniBicimle(tamamlama.nobetci, 'Ders Tamamlama Öğretmeni')
-                                    : '';
-                                dersText = formatDersPanoTV(tamamlama.dersAdi)
-                                    + (tamamlamaOgretmeni ? ` (${tamamlamaOgretmeni} - Tamamlama)` : ' (Tamamlama)');
-                            }
-                        }
-
-                        yeniAktif.push({
-                            sinif: sinif,
-                            ders: dersText
-                        });
-                    }
-                }
-            }
-
-            yeniAktif.sort((a, b) => a.sinif.localeCompare(b.sinif, 'tr'));
-
-            if (JSON.stringify(panoData.aktifDersler || []) !== JSON.stringify(yeniAktif)) {
-                panoData.aktifDersler = yeniAktif;
-                if (typeof renderAktifDerslerUI === 'function') renderAktifDerslerUI();
-
-                // Başlığı sabit ŞU ANKİ DERSLER tut
-                const baslikEl = document.getElementById('pano-dersler-baslik');
-                if (baslikEl) {
-                    baslikEl.innerHTML = `⏰ ŞU ANKİ DERSLER`;
-                }
-            }
-        } else if (panoData.aktifDersler && panoData.aktifDersler.length > 0) {
-            panoData.aktifDersler = [];
-            if (typeof renderAktifDerslerUI === 'function') renderAktifDerslerUI();
         }
+        yeniAktif.sort((a, b) => a.sinif.localeCompare(b.sinif, 'tr', { numeric: true }));
+        if (JSON.stringify(panoData.aktifDersler || []) !== JSON.stringify(yeniAktif)) {
+            panoData.aktifDersler = yeniAktif;
+            renderAktifDerslerUI();
+        }
+        const baslikEl = document.getElementById('pano-dersler-baslik');
+        if (baslikEl) baslikEl.textContent = '⏰ ŞU ANKİ DERSLER';
 
         const renderStatus = (status) => {
             const box = document.getElementById('pano-status');
@@ -1694,10 +1584,10 @@ const PanoTV = (function () {
             }
         };
 
-        renderStatus(statusLise);
+        renderStatus(statusLise || statusOrta);
 
         // Teneffüs anında nöbetçi öğretmenleri öne çıkarma ve canlı vurgulama (Madde 4)
-        const isTeneffus = !!(statusLise && (statusLise.text === 'Teneffüs' || statusLise.icon === '☕'));
+        const isTeneffus = [statusLise, statusOrta].some(status => status && (status.text === 'Teneffüs' || status.icon === '☕'));
         applyTeneffusDutyHighlight(isTeneffus);
     }
 
@@ -1876,134 +1766,33 @@ const PanoTV = (function () {
      * Namaz Vakitlerini çek (Aladhan API)
      */
     async function fetchNamazVakitleri() {
+        const key = locationKey();
+        const k = (panoData && panoData.konum) || {};
+        const today = new Date();
+        const day = today.toDateString();
+        const apiDay = [today.getDate(), today.getMonth() + 1, today.getFullYear()].map((v, i) => i < 2 ? String(v).padStart(2, '0') : v).join('-');
+        globalNamazTimes = []; namazVeriGunu = null;
         try {
-            const konum = Object.assign({ sehir: '', ilce: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
-
-            // SeyirKonum ile koordinatları ve ASCII şehir/ilçe adını tamamla
-            let asciiSehir = '';
-            let asciiIlce = '';
-            if (typeof SeyirKonum !== 'undefined' && konum.sehir) {
-                const eslesen = SeyirKonum.koordinatGetir(konum.sehir, konum.ilce);
-                if (eslesen) {
-                    if (konum.enlem === null || konum.boylam === null || konum.enlem === '' || konum.boylam === '') {
-                        konum.enlem = eslesen.enlem;
-                        konum.boylam = eslesen.boylam;
-                    }
-                    asciiSehir = eslesen.asciiSehir;
-                    asciiIlce = eslesen.asciiIlce;
-                    if (eslesen.ilce && !konum.ilce) konum.ilce = eslesen.ilce;
-                }
-            }
-
-            const enlem = Number(konum.enlem);
-            const boylam = Number(konum.boylam);
-            let apiUrl = '';
-
-            // Koordinat varsa AlAdhan koordinat API'si (enlem/boylam ile Türkçe karakter hatası %100 önlenir)
-            if (Number.isFinite(enlem) && Number.isFinite(boylam) && enlem >= -90 && enlem <= 90 && boylam >= -180 && boylam <= 180) {
-                apiUrl = `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(enlem)}&longitude=${encodeURIComponent(boylam)}&method=13`;
-            } else if (asciiSehir || konum.sehir) {
-                // Koordinat yoksa ASCII adı ile şehir bazlı sorgu
-                const sorguSehir = asciiSehir || konum.sehir;
-                apiUrl = 'https://api.aladhan.com/v1/timingsByCity?city=' +
-                    encodeURIComponent(sorguSehir) + '&country=Turkey&method=13';
-            } else {
-                return;
-            }
-
-            const res = await fetch(apiUrl);
-            if (!res.ok) throw new Error('API Hatası: ' + res.status);
+            if (k.enlem == null || k.boylam == null || k.enlem === '' || k.boylam === '') throw new Error('Konum seçin');
+            const res = await fetchWithDeadline(`https://api.aladhan.com/v1/timings/${apiDay}?latitude=${encodeURIComponent(k.enlem)}&longitude=${encodeURIComponent(k.boylam)}&method=13`);
+            if (!res.ok) throw new Error('Vakit HTTP ' + res.status);
             const json = await res.json();
-            const timings = json && json.data && json.data.timings;
-            if (!timings) throw new Error('Vakit verisi eksik');
-
-            const hamVakitler = [
-                { name: 'İmsak', time: timings.Imsak },
-                { name: 'Güneş', time: timings.Sunrise },
-                { name: 'Öğle', time: timings.Dhuhr },
-                { name: 'İkindi', time: timings.Asr },
-                { name: 'Akşam', time: timings.Maghrib },
-                { name: 'Yatsı', time: timings.Isha }
-            ];
-
-            // API "05:47 (+03)" biçiminde dönebilir; HH:MM'e indirge.
-            const temizVakitler = hamVakitler
-                .map(v => ({ name: v.name, time: normalizeVakitSaati(v.time) }))
-                .filter(v => v.time !== null);
-
-            if (temizVakitler.length === hamVakitler.length) {
-                globalNamazTimes = temizVakitler;
-                namazVeriGunu = new Date().toDateString();
-                try {
-                    localStorage.setItem('seyir_cached_namaz_v1', JSON.stringify({
-                        gun: namazVeriGunu,
-                        konum: `${konum.sehir}/${konum.ilce}`,
-                        vakitler: temizVakitler
-                    }));
-                } catch (e) { }
-            } else {
-                console.warn('Namaz vakitleri eksik/bozuk geldi, mevcut vakitler korunuyor.', timings);
+            if (!json.data || !json.data.date || json.data.date.gregorian.date !== apiDay) throw new Error('Vakit tarihi uyuşmuyor');
+            const t = json.data.timings;
+            const vakitler = [['İmsak','Imsak'],['Güneş','Sunrise'],['Öğle','Dhuhr'],['İkindi','Asr'],['Akşam','Maghrib'],['Yatsı','Isha']].map(([name, id]) => ({name, time:normalizeVakitSaati(t[id])}));
+            if (vakitler.some(v => !v.time)) throw new Error('Vakit verisi eksik');
+            if (locationKey() !== key || day !== new Date().toDateString()) return;
+            globalNamazTimes = vakitler; namazVeriGunu = day;
+            try { localStorage.setItem('seyir_cached_namaz_v1', JSON.stringify({gun:day, key, vakitler})); } catch (_) {}
+        } catch (_) {
+            if (locationKey() !== key || day !== new Date().toDateString()) return;
+            let c; try { c = JSON.parse(localStorage.getItem('seyir_cached_namaz_v1')); } catch (_) {}
+            if (c && c.key === key && c.gun === day && Array.isArray(c.vakitler) && c.vakitler.length === 6 && c.vakitler.every(v => v && typeof v.name === 'string' && normalizeVakitSaati(v.time) === v.time)) {
+                globalNamazTimes = c.vakitler; namazVeriGunu = day;
             }
-
-            updateNamazUI();
-        } catch (error) {
-            console.warn('Namaz vakitleri AlAdhan API hatası, ikinci kaynak deneniyor:', error);
-            // ── İkinci Fallback: AwqatSalah API (AlAdhan'a alternatif) ──
-            try {
-                const konum2 = Object.assign({ sehir: '', enlem: null, boylam: null }, (panoData && panoData.konum) || {});
-                if (konum2.enlem && konum2.boylam) {
-                    const res2 = await fetch(
-                        `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(Number(konum2.enlem))}&longitude=${encodeURIComponent(Number(konum2.boylam))}&method=13&school=1`
-                    );
-                    if (res2.ok) {
-                        const j2 = await res2.json();
-                        const t2 = j2 && j2.data && j2.data.timings;
-                        if (t2) {
-                            const hamVakitler2 = [
-                                { name: 'İmsak', time: t2.Imsak },
-                                { name: 'Güneş', time: t2.Sunrise },
-                                { name: 'Öğle', time: t2.Dhuhr },
-                                { name: 'İkindi', time: t2.Asr },
-                                { name: 'Akşam', time: t2.Maghrib },
-                                { name: 'Yatsı', time: t2.Isha }
-                            ];
-                            const temiz2 = hamVakitler2
-                                .map(v => ({ name: v.name, time: normalizeVakitSaati(v.time) }))
-                                .filter(v => v.time !== null);
-                            if (temiz2.length === 6) {
-                                globalNamazTimes = temiz2;
-                                namazVeriGunu = new Date().toDateString();
-                                try {
-                                    localStorage.setItem('seyir_cached_namaz_v1', JSON.stringify({
-                                        gun: namazVeriGunu,
-                                        konum: `${konum2.sehir || ''}`,
-                                        vakitler: temiz2
-                                    }));
-                                } catch (_) { }
-                                updateNamazUI();
-                                return;
-                            }
-                        }
-                    }
-                }
-            } catch (e2) {
-                console.warn('Namaz vakitleri ikinci kaynak da başarısız, localStorage önbelleği kullanılıyor:', e2);
-            }
-            // ── Son Çare: localStorage önbelleği ──
-            try {
-                const rawCachedNamaz = localStorage.getItem('seyir_cached_namaz_v1');
-                if (rawCachedNamaz) {
-                    const parsedCached = JSON.parse(rawCachedNamaz);
-                    if (parsedCached && Array.isArray(parsedCached.vakitler) && parsedCached.vakitler.length === 6) {
-                        globalNamazTimes = parsedCached.vakitler;
-                    }
-                }
-            } catch (e) { }
-            updateNamazUI();
         }
+        updateNamazUI();
     }
-
-
 
     /**
      * Kod Satırı Tarzı Daktilo (Typewriter) Efekti
@@ -2170,6 +1959,12 @@ const PanoTV = (function () {
         }
 
         function updateScreensaverClock() {
+            const name = document.getElementById('screensaver-school-name');
+            if (name && panoData) name.textContent = panoData.okulAdi || 'Seyir Dijital Pano';
+            const slogan = document.getElementById('screensaver-slogan');
+            if (slogan && panoData) { slogan.textContent = panoData.slogan || ''; slogan.style.display = slogan.textContent ? 'block' : 'none'; }
+            const logo = document.getElementById('screensaver-logo-img');
+            if (logo && panoData && logo.getAttribute('src') !== panoData.okulLogo) logo.src = panoData.okulLogo || 'img/seyir-icon.svg';
             const timeEl = document.getElementById('screensaver-time');
             const dateEl = document.getElementById('screensaver-date');
             const namazEl = document.getElementById('screensaver-namaz-text');
@@ -2308,10 +2103,13 @@ const PanoTV = (function () {
 
     // Public API
     return {
-        init: init
+        init: init,
+        getData: () => panoData,
+        escapeHtml: escapeHtml
     };
 
 })();
+window.PanoTV = PanoTV;
 
 function initScaleEngine() {
     try {
@@ -2374,6 +2172,7 @@ let seyirPanoZilInterval = null;
 let seyirPanoAktifTorenAudio = null;
 
 function initSeyirPanoZilEngine() {
+    const escapeHtml = PanoTV.escapeHtml;
     if (seyirPanoZilInterval) return; // Zaten çalışıyor
 
     // Web Audio Synthesizer
@@ -2509,6 +2308,7 @@ function initSeyirPanoZilEngine() {
 
     // Pano Ekranında Canlı Zil Bildirimi Göster
     function gosterPanoZilBanner(zil, sure) {
+        const panoData = PanoTV.getData();
         const config = (panoData && panoData.zilYonetimi) || {};
 
         // Ekranda neon parlama dalgası efekti
@@ -2614,6 +2414,7 @@ function initSeyirPanoZilEngine() {
 
     // Pano Ekranında Canlı Tören / İstiklal Marşı Başlat
     function calPanoToren(toren) {
+        const panoData = PanoTV.getData();
         if (!toren || !toren.audioId || !window.SeyirAudioStore) return;
 
         if (seyirPanoAktifTorenAudio) {
@@ -2680,6 +2481,7 @@ function initSeyirPanoZilEngine() {
 
     // 1 Saniyelik Zil Zamanlayıcı Döngüsü
     seyirPanoZilInterval = setInterval(() => {
+        const panoData = PanoTV.getData();
         if (!panoData || !panoData.zilYonetimi) return;
         const config = panoData.zilYonetimi;
 
@@ -2691,14 +2493,15 @@ function initSeyirPanoZilEngine() {
         const mm = String(now.getMinutes()).padStart(2, '0');
         const ss = String(now.getSeconds()).padStart(2, '0');
         const dakikaStr = `${hh}:${mm}`;
+        const dakikaAnahtari = now.toDateString() + ":" + dakikaStr;
 
         // Ders Zili Kontrolü (Hafta sonu sessizliği ve sistem aktiflik kontrolü)
         const dersZiliCalabilir = (config.aktif !== false) && !(config.haftasonuSessiz !== false && isHaftasonu);
-        if (dersZiliCalabilir && seyirPanoSonCalanDakika !== dakikaStr && (ss === '00' || ss === '01')) {
+        if (dersZiliCalabilir && seyirPanoSonCalanDakika !== dakikaAnahtari) {
             const aktifZiller = (config.cizelge || []).filter(z => z.aktif !== false);
             const eslesen = aktifZiller.find(z => z.saat === dakikaStr);
             if (eslesen) {
-                seyirPanoSonCalanDakika = dakikaStr;
+                seyirPanoSonCalanDakika = dakikaAnahtari;
 
                 let customAudioId = null;
                 let melodi = eslesen.melodi;
@@ -2709,20 +2512,20 @@ function initSeyirPanoZilEngine() {
                 } else if (!melodi || melodi === 'varsayilan') {
                     if (eslesen.tur === 'ogrenci') {
                         melodi = config.melodiOgrenci || 'modern';
-                        if (melodi === 'custom') customAudioId = 'zil_ogrenci_custom';
+                        if (melodi === 'custom') customAudioId = config.customAudioOgrenci?.id || 'zil_ogrenci_custom';
                     } else if (eslesen.tur === 'ogretmen') {
                         melodi = config.melodiOgretmen || 'chime';
-                        if (melodi === 'custom') customAudioId = 'zil_ogretmen_custom';
+                        if (melodi === 'custom') customAudioId = config.customAudioOgretmen?.id || 'zil_ogretmen_custom';
                     } else if (eslesen.tur === 'cikis') {
                         melodi = config.melodiCikis || 'westminster';
-                        if (melodi === 'custom') customAudioId = 'zil_cikis_custom';
+                        if (melodi === 'custom') customAudioId = config.customAudioCikis?.id || 'zil_cikis_custom';
                     } else {
                         melodi = 'modern';
                     }
                 } else if (melodi === 'custom') {
-                    if (eslesen.tur === 'ogrenci') customAudioId = 'zil_ogrenci_custom';
-                    else if (eslesen.tur === 'ogretmen') customAudioId = 'zil_ogretmen_custom';
-                    else if (eslesen.tur === 'cikis') customAudioId = 'zil_cikis_custom';
+                    if (eslesen.tur === 'ogrenci') customAudioId = config.customAudioOgrenci?.id || 'zil_ogrenci_custom';
+                    else if (eslesen.tur === 'ogretmen') customAudioId = config.customAudioOgretmen?.id || 'zil_ogretmen_custom';
+                    else if (eslesen.tur === 'cikis') customAudioId = config.customAudioCikis?.id || 'zil_cikis_custom';
                 }
 
                 const sure = parseInt(eslesen.sure, 10) || parseInt(config.calmaSuresi, 10) || 8;
@@ -2746,7 +2549,7 @@ function initSeyirPanoZilEngine() {
 
         // Tören & Zamanlanmış Müzikler Kontrolü
         if (config.torenMuzikleri && Array.isArray(config.torenMuzikleri) && config.torenMuzikleri.length > 0) {
-            if (seyirPanoSonCalanTorenDakika !== dakikaStr && (ss === '00' || ss === '01')) {
+            if (seyirPanoSonCalanTorenDakika !== dakikaAnahtari) {
                 const aktifTorenler = config.torenMuzikleri.filter(m => m.aktif !== false);
                 const eslesenToren = aktifTorenler.find(m => {
                     if (m.saat !== dakikaStr) return false;
@@ -2754,7 +2557,7 @@ function initSeyirPanoZilEngine() {
                     return m.gunler.includes(dayOfWeek);
                 });
                 if (eslesenToren) {
-                    seyirPanoSonCalanTorenDakika = dakikaStr;
+                    seyirPanoSonCalanTorenDakika = dakikaAnahtari;
                     calPanoToren(eslesenToren);
                 }
             }

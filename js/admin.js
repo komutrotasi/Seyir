@@ -335,8 +335,8 @@ function guvenliIceAktarmaNesnesi(deger, derinlik = 0) {
 
 function yedekGecmisiniKucult(veri) {
     if (!veri || !Array.isArray(veri.yedekGecmisi)) return false;
-    let degisti = veri.yedekGecmisi.length > 15;
-    veri.yedekGecmisi = veri.yedekGecmisi.slice(0, 15).map(item => {
+    let degisti = veri.yedekGecmisi.length > 5;
+    veri.yedekGecmisi = veri.yedekGecmisi.slice(0, 5).map(item => {
         if (!item || typeof item !== 'object') {
             degisti = true;
             return null;
@@ -349,6 +349,12 @@ function yedekGecmisiniKucult(veri) {
         }
         return kayit;
     }).filter(Boolean);
+    let bytes = 0;
+    veri.yedekGecmisi = veri.yedekGecmisi.filter(item => {
+        bytes += JSON.stringify(item).length * 2;
+        if (bytes > 512 * 1024) { degisti = true; return false; }
+        return true;
+    });
     return degisti;
 }
 
@@ -359,28 +365,53 @@ window.escapeJsAttr = escapeJsAttr;
 const SEYIR_LOCAL_AUTH = window.SeyirLocalAuth;
 const SEYIR_PRIVATE_STORAGE_KEY = 'seyir_admin_data';
 const SEYIR_PUBLIC_STORAGE_KEY = 'seyir_public_data';
+const defaultDerslerOrtaokul = Object.freeze([]);
+const defaultDerslerLise = Object.freeze([]);
 let appData = {};
-
-const BASLANGIC_HABER_GORSELLERI = [
-    { anahtar: '17671892', yol: 'img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg' },
-    { anahtar: '17651353', yol: 'img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg' },
-    { anahtar: '17641455', yol: 'img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg' },
-    { anahtar: '17630148', yol: 'img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg' },
-    { anahtar: '17627027', yol: 'img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg' }
-];
-
-function baslangicHaberGorselleriniDuzelt(haberler) {
-    let degisti = false;
-    (Array.isArray(haberler) ? haberler : []).forEach(haber => {
-        const aramaMetni = String(haber.link || '') + ' ' + String(haber.gorsel || '');
-        const yerel = BASLANGIC_HABER_GORSELLERI.find(kayit => aramaMetni.includes(kayit.anahtar));
-        if (yerel && haber.gorsel !== yerel.yol) {
-            haber.gorsel = yerel.yol;
-            degisti = true;
-        }
-    });
-    return degisti;
+let editorRelease = null;
+let loadedPrivateRaw;
+let dataReady = false;
+let pendingMediaWrites = 0;
+Object.defineProperty(window, 'dataReady', { get: () => dataReady, configurable: true });
+Object.defineProperty(window, 'editorRelease', { get: () => editorRelease, configurable: true });
+function assertEditor() {
+    if (!SEYIR_LOCAL_AUTH?.isAuthenticated()) {
+        window.dispatchEvent(new Event('seyir-session-expired'));
+        throw new Error('Oturum süresi doldu. Yeniden giriş yapın.');
+    }
+    if (!editorRelease || !dataReady) throw new Error('Düzenleme kilidi veya veri yüklemesi hazır değil.');
+    if (localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY) !== loadedPrivateRaw) {
+        throw new Error('Kayıt başka bir işlemde değişti. Değişikliklerinizi kopyalayıp sayfayı yenileyin.');
+    }
 }
+// Medya katmanı, bekleyen asenkron işlerde oturumu yeniden kontrol eder.
+window.seyirAssertMediaWrite = assertEditor;
+window.seyirMediaBusy = delta => { pendingMediaWrites += delta; };
+window.seyirAssertMediaDelete = id => {
+    assertEditor();
+    if (SeyirBackup.references(JSON.parse(localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY) || '{}')).includes(id)) throw new Error('Kullanılan medya silinemez.');
+};
+async function acquireEditor() {
+    if (editorRelease) return;
+    if (!navigator.locks) throw new Error('Güvenli düzenleme için localhost veya HTTPS üzerinde güncel bir tarayıcı kullanın.');
+    await new Promise((resolve, reject) => {
+        navigator.locks.request('seyir-admin-editor', {ifAvailable: true}, async lock => {
+            if (!lock) { reject(new Error('Yönetim başka bir sekmede açık. O sekmeden çıkış yapıp burada tekrar giriş yapın.')); return; }
+            await new Promise(release => { editorRelease = release; resolve(); });
+        }).catch(reject);
+    });
+}
+function releaseEditor() {
+    // Devam eden dosya işlemi bitene kadar diğer sekme yazamaz.
+    if (pendingMediaWrites) { setTimeout(releaseEditor, 50); return; }
+    if (editorRelease) { const release = editorRelease; editorRelease = null; release(); }
+}
+async function deleteUnusedMedia(id) {
+    assertEditor();
+    if (!id || SeyirBackup.references(appData).includes(id)) return;
+    if (!(await SeyirAudioStore.deleteAudio(id))) BhUI.toast('Kayıt kaldırıldı; kullanılmayan medya temizlenemedi.', 'warning');
+}
+
 
 function varsayilanGizlilikAyarlari() {
     return {
@@ -421,31 +452,11 @@ function nobetKaydiniBicimle(kayit, mod, sira) {
 }
 
 function kisiselAlanlariTemizle(veri) {
-    if (!veri || typeof veri !== 'object') return veri;
-    veri.tumOgretmenler = [];
-    veri.ogretmenler = [];
-    veri.ogretmenBranslar = [];
-    veri.nobetciOgretmenler = [];
-    veri.nobetciGunluk = {};
-    veri.sinifRehberlik = {};
-    veri.sinifDersOgretmen = {};
-    veri.tamamlamaAtamalari = {};
-
-    Object.values(veri.dersProgramiDetay || {}).forEach(gunler => {
-        Object.values(gunler || {}).forEach(dersler => {
-            (Array.isArray(dersler) ? dersler : []).forEach(ders => {
-                if (ders && typeof ders === 'object') {
-                    delete ders.hoca;
-                    delete ders.ogretmen;
-                }
-            });
-        });
-    });
-    return veri;
+    return window.SeyirDataPolicy.clearPersonnel(veri);
 }
 
 function panoIcinAcikVeriOlustur(kaynak, dosyayaAktar = false) {
-    const acik = JSON.parse(JSON.stringify(kaynak || {}));
+    const acik = window.SeyirDataPolicy.projectPublic(kaynak || {});
     const gizlilik = gizlilikAyarlari(acik);
     // data.json hiçbir zaman tam personel adı içermez; yerel pano için okulun
     // açık seçimi geçerli olabilir, dosya aktarımında en fazla baş harf kullanılır.
@@ -512,6 +523,7 @@ function panoIcinAcikVeriOlustur(kaynak, dosyayaAktar = false) {
         tur: 'seyir-public',
         surum: 1,
         anonimlestirilmis: mod !== 'tam',
+        personelSonKullanim: SeyirDataPolicy.publicExpiry(kaynak),
         olusturmaZamani: new Date().toISOString()
     };
     return acik;
@@ -522,10 +534,31 @@ function acikPanoVerisiniYayinla() {
 }
 
 function saveData() {
-    if (!appData.veriYonetimi) appData.veriYonetimi = {};
-    appData.veriYonetimi.sonGozdenGecirme = new Date().toISOString();
-    localStorage.setItem(SEYIR_PRIVATE_STORAGE_KEY, JSON.stringify(appData));
-    acikPanoVerisiniYayinla();
+    if (!SEYIR_LOCAL_AUTH || !SEYIR_LOCAL_AUTH.isAuthenticated()) {
+        window.dispatchEvent(new Event('seyir-session-expired'));
+        throw new Error('Oturum süresi doldu. Yeniden giriş yapın.');
+    }
+    assertEditor();
+    const old = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
+    try {
+        appData = SeyirDataPolicy.validate(appData);
+        yedekGecmisiniKucult(appData);
+        if (!appData.veriYonetimi) appData.veriYonetimi = {};
+        // Saklama saati ilgisiz ayar kayıtlarında veya yeni personel eklenince uzatılmaz.
+        if (!appData.veriYonetimi.sonGozdenGecirme) appData.veriYonetimi.sonGozdenGecirme = new Date().toISOString();
+        const since = Date.parse(appData.veriYonetimi.sonGozdenGecirme);
+        const retention = Math.max(1, Number(gizlilikAyarlari(appData).saklamaSuresiGun) || 365) * 86400000;
+        if (!Number.isFinite(since) || Date.now() - since > retention || since > Date.now()) {
+            kisiselAlanlariTemizle(appData);
+            appData.veriYonetimi.sonGozdenGecirme = new Date().toISOString();
+        }
+        SeyirBackup.commit(appData, panoIcinAcikVeriOlustur(appData, false));
+        loadedPrivateRaw = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
+    } catch (error) {
+        if (old) appData = JSON.parse(old);
+        if (typeof BhUI !== 'undefined') BhUI.toast(error.message, 'error');
+        throw error;
+    }
     if (typeof window.updateVeriKPIs === 'function') window.updateVeriKPIs();
 }
 
@@ -559,16 +592,58 @@ document.addEventListener('DOMContentLoaded', () => {
             : 'Bu cihazdaki eski Seyir verilerini temizle';
     }
 
-    function openDashboard() {
+    async function openDashboard() {
+        await acquireEditor();
         loginScreen.style.display = 'none';
         dashboard.style.display = 'flex';
         passwordInput.value = '';
         repeatInput.value = '';
-        loadData();
+        await loadData();
     }
 
+    function checkSession() {
+        if (dashboard.style.display !== 'flex' || SEYIR_LOCAL_AUTH.isAuthenticated()) return;
+        dashboard.style.display = 'none'; loginScreen.style.display = 'flex';
+        dataReady = false;
+        releaseEditor();
+        window.closeVideoPreview?.();
+        document.querySelectorAll('[id^="modal-"]').forEach(modal => {
+            if (!modal.matches('.modal, [id="modal-teachers"], [id="modal-reset"], [id="modal-zil-ekle"], [id="modal-toren-muzik"], [id="modal-karusel-video"], [id="modal-video-preview"]')) return;
+            modal.style.display = 'none';
+            modal.querySelectorAll('input, textarea').forEach(input => { if (!['checkbox','radio','button'].includes(input.type)) input.value = ''; });
+        });
+        if (window.SeyirAudioStore) window.SeyirAudioStore.stopAll();
+        if (typeof seyirZilEngine !== 'undefined') seyirZilEngine.stop();
+        window.speechSynthesis?.cancel();
+        updateLoginMode();
+        authMessage.textContent = 'Oturum süresi doldu. Yeniden giriş yapın.';
+    }
+    window.addEventListener('seyir-session-expired', checkSession);
+    window.addEventListener('focus', checkSession);
+    document.addEventListener('visibilitychange', checkSession);
+    setInterval(checkSession, 1000);
+    for (const type of ['click', 'input', 'change', 'submit', 'drop']) {
+        document.addEventListener(type, event => {
+            if (!loginScreen.contains(event.target) && (pendingMediaWrites || !SEYIR_LOCAL_AUTH.isAuthenticated())) {
+                event.preventDefault(); event.stopImmediatePropagation(); checkSession();
+            }
+        }, true);
+    }
+    window.addEventListener('storage', event => {
+        if (event.key === 'seyir_local_credentials' || (event.key === SEYIR_PRIVATE_STORAGE_KEY && event.newValue === null)) {
+            SEYIR_LOCAL_AUTH.logout(); checkSession(); appData = getBosSablon();
+        }
+    });
+    setInterval(() => {
+        if (!SEYIR_LOCAL_AUTH.isAuthenticated()) return;
+        const since = Date.parse(appData.veriYonetimi?.sonGozdenGecirme || '');
+        if (Number.isFinite(since) && Date.now() - since > Math.max(1, Number(gizlilikAyarlari(appData).saklamaSuresiGun) || 365) * 86400000) {
+            saveData(); populateForms();
+        }
+    }, 60000);
+
     updateLoginMode();
-    if (SEYIR_LOCAL_AUTH && SEYIR_LOCAL_AUTH.isAuthenticated()) openDashboard();
+    if (SEYIR_LOCAL_AUTH && SEYIR_LOCAL_AUTH.isAuthenticated()) openDashboard().catch(error => { authMessage.textContent = error.message; });
 
     authForm.addEventListener('submit', async event => {
         event.preventDefault();
@@ -579,11 +654,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!SEYIR_LOCAL_AUTH.isConfigured()) {
                 if (passwordInput.value !== repeatInput.value) throw new Error('Parolalar eşleşmiyor.');
                 await SEYIR_LOCAL_AUTH.createPassword(passwordInput.value);
-                openDashboard();
+                await openDashboard();
                 BhUI.toast('Bu cihaz için yönetici parolası oluşturuldu.', 'success');
             } else {
                 await SEYIR_LOCAL_AUTH.login(passwordInput.value);
-                openDashboard();
+                await openDashboard();
             }
         } catch (error) {
             authMessage.textContent = error.message || 'Giriş işlemi tamamlanamadı.';
@@ -606,10 +681,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    authReset.addEventListener('click', () => {
+    authReset.addEventListener('click', async () => {
         if (!confirm('Bu işlem parolayla birlikte bu bilgisayardaki TÜM okul verilerini kalıcı olarak silecek. Devam edilsin mi?')) return;
         if (!confirm('Son onay: Okul ayarları, logo, programlar ve parola silinecek.')) return;
-        SEYIR_LOCAL_AUTH.clearAll();
+        await SEYIR_LOCAL_AUTH.clearAll();
         window.location.reload();
     });
 
@@ -917,142 +992,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load Data
 
     /**
-     * KVKK uyumlu istemci taraflı örnek demo veri motoru.
-     * Boş kurulumda öğretmen/nöbet/sınıf alanlarını demo verisiyle doldurur.
-     * data/data.json'a YAZILMAZ — yalnızca localStorage'a kaydedilir.
+     * Kişisel veri ve örnek personel içermeyen boş kurulum şablonu.
      */
-    function getOrnekOgretmenVeNobetVerisi() {
-        return {
-            tumOgretmenler: [
-                'Ahmet Yılmaz', 'Ayşe Demir', 'Mehmet Kaya', 'Fatma Çelik', 'Ali Öztürk',
-                'Zeynep Şahin', 'Mustafa Koç', 'Hatice Aydın', 'Hüseyin Arslan', 'Elif Yıldız',
-                'Emre Aksoy', 'Burak Doğan', 'Seda Polat', 'Deniz Kılıç', 'Hasan Can'
-            ],
-            ogretmenBranslar: [
-                'Ahmet Yılmaz : Matematik',
-                'Ayşe Demir : Türk Dili ve Edebiyatı',
-                'Mehmet Kaya : Fizik',
-                'Fatma Çelik : Kimya',
-                'Ali Öztürk : Biyoloji',
-                'Zeynep Şahin : Tarih',
-                'Mustafa Koç : Coğrafya',
-                'Hatice Aydın : Din Kültürü ve Ahlak Bilgisi',
-                'Hüseyin Arslan : İngilizce',
-                'Elif Yıldız : Bilişim Teknolojileri',
-                'Emre Aksoy : Beden Eğitimi',
-                'Burak Doğan : Felsefe',
-                'Seda Polat : Müzik',
-                'Deniz Kılıç : Görsel Sanatlar',
-                'Hasan Can : Arapça'
-            ],
-            sinifRehberlik: {
-                '9/A': 'Ahmet Yılmaz',
-                '9/B': 'Ayşe Demir',
-                '10/A': 'Mehmet Kaya',
-                '10/B': 'Fatma Çelik',
-                '11/A': 'Ali Öztürk',
-                '11/B': 'Zeynep Şahin',
-                '12/A': 'Mustafa Koç',
-                '12/B': 'Hüseyin Arslan'
-            },
-            nobetciGunluk: {
-                'Pazartesi': [
-                    'Ahmet Yılmaz (Nöbetçi İdareci)',
-                    'Ayşe Demir (Zemin Kat)',
-                    'Mehmet Kaya (1. Kat)',
-                    'Fatma Çelik (Bahçe)'
-                ],
-                'Salı': [
-                    'Ali Öztürk (Nöbetçi İdareci)',
-                    'Zeynep Şahin (Zemin Kat)',
-                    'Mustafa Koç (1. Kat)',
-                    'Hatice Aydın (Bahçe)'
-                ],
-                'Çarşamba': [
-                    'Hüseyin Arslan (Nöbetçi İdareci)',
-                    'Elif Yıldız (Zemin Kat)',
-                    'Burak Doğan (1. Kat)',
-                    'Emre Aksoy (Bahçe)'
-                ],
-                'Perşembe': [
-                    'Mehmet Kaya (Nöbetçi İdareci)',
-                    'Deniz Kılıç (Zemin Kat)',
-                    'Seda Polat (1. Kat)',
-                    'Ahmet Yılmaz (Bahçe)'
-                ],
-                'Cuma': [
-                    'Ali Öztürk (Nöbetçi İdareci)',
-                    'Ayşe Demir (Zemin Kat)',
-                    'Fatma Çelik (1. Kat)',
-                    'Hasan Can (Bahçe)'
-                ]
-            },
-            dersProgramiDetay: {}
-        };
-    }
-
     function getBosSablon() {
-        return {
-            okulAdi: "Mahmud Celaleddin Ökten",
-            okulTuru: "Anadolu İmam Hatip Lisesi",
-            slogan: "Birlikte Zirveye Koşuyoruz !...",
-            okulLogo: "img/okul_logo.png",
-            daktiloYazilari: ["Medya Okulu"],
-            mebHaberler: [],
-            okulWebSiteUrl: "https://konyamcosihl.meb.k12.tr/",
-            konum: { sehir: "Konya", ilce: "Karatay", enlem: 37.8874, boylam: 32.5334 },
-            ayarlar: { karuselSuresi: 5000, temaOtomatik: true, daktiloHiz: 90, daktiloBekleme: 2200, tickerDurum: true, tickerBaslik: "⚡ DUYURULAR", tickerHiz: "normal", tickerAyrac: "⚡" },
-            gizlilik: varsayilanGizlilikAyarlari(),
-            veriYonetimi: { sonGozdenGecirme: new Date().toISOString() },
-            duyurular: [],
-            sinavlar: [],
-            kayanYazi: [],
-            tumOgretmenler: [],
-            ogretmenBranslar: [],
-            dersProgrami: {},
-            nobetciOgretmenler: {},
-            nobetciGunluk: {},
-            otomatikYedek: {
-                aktif: false,
-                saat: "17:00",
-                hedefTur: "indir",
-                klasorAdi: "",
-                sonYedekTarihi: "",
-                sonYedekZamani: ""
-            },
-            yedekGecmisi: [],
-            zilYonetimi: {
-                aktif: true,
-                melodiOgrenci: "modern",
-                melodiOgretmen: "chime",
-                melodiCikis: "westminster",
-                sesSeviyesi: 80,
-                calmaSuresi: 8,
-                haftasonuSessiz: true,
-                sesliAnons: false,
-                cizelge: [
-                    { id: "zil_1", saat: "08:28", tur: "ogretmen", baslik: "1. Ders Öğretmen Zili", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_2", saat: "08:30", tur: "ogrenci", baslik: "1. Ders Giriş Zili", melodi: "varsayilan", sure: 8, aktif: true, anons: "1. ders başlamıştır. İyi dersler dileriz." },
-                    { id: "zil_3", saat: "09:10", tur: "cikis", baslik: "1. Ders Çıkış / Teneffüs", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_4", saat: "09:18", tur: "ogretmen", baslik: "2. Ders Öğretmen Zili", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_5", saat: "09:20", tur: "ogrenci", baslik: "2. Ders Giriş Zili", melodi: "varsayilan", sure: 8, aktif: true, anons: "2. ders başlamıştır." },
-                    { id: "zil_6", saat: "10:00", tur: "cikis", baslik: "2. Ders Çıkış / Teneffüs", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_7", saat: "10:08", tur: "ogretmen", baslik: "3. Ders Öğretmen Zili", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_8", saat: "10:10", tur: "ogrenci", baslik: "3. Ders Giriş Zili", melodi: "varsayilan", sure: 8, aktif: true, anons: "" },
-                    { id: "zil_9", saat: "10:50", tur: "cikis", baslik: "3. Ders Çıkış / Teneffüs", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_10", saat: "10:58", tur: "ogretmen", baslik: "4. Ders Öğretmen Zili", melodi: "varsayilan", sure: 6, aktif: true, anons: "" },
-                    { id: "zil_11", saat: "11:00", tur: "ogrenci", baslik: "4. Ders Giriş Zili", melodi: "varsayilan", sure: 8, aktif: true, anons: "" },
-                    { id: "zil_12", saat: "11:40", tur: "cikis", baslik: "4. Ders Çıkış / Öğle Arası", melodi: "varsayilan", sure: 7, aktif: true, anons: "Öğle arası başlamıştır. Afiyet olsun." }
-                ],
-                gecmis: []
-            },
-            karuselVideolar: []
-        };
+        return window.SeyirDataPolicy.emptyTemplate();
     }
 
     async function baslangicVerisiniOku() {
         try {
-            const res = await fetch('data/data.json?t=' + new Date().getTime());
+            const res = await fetch('data/data.json');
             if (!res.ok) return null;
             const veri = await res.json();
             return veri && typeof veri === 'object' ? veri : null;
@@ -1069,53 +1017,37 @@ document.addEventListener('DOMContentLoaded', () => {
      *        admin panelinin aynı içeriği göstermesini sağlar.
      *        "Verileri Sıfırla" akışında false verilir (gerçekten boş duruma dönmek için).
      */
-    async function loadData(dosyadanTohumla = true) {
+    function isLegacyDemoData(raw) {
+        if (!raw) return false;
+        const s = typeof raw === 'string' ? raw : JSON.stringify(raw);
+        const markers = [
+            "Mahmud Celaleddin Ökten", "konyamcosihl", "Fikirden Koda",
+            "Hafta Sonu DYK", "1. Dönem Genel Veli", "TEKNOFEST 2026",
+            "Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik",
+            "Ali Öztürk", "Zeynep Şahin", "Mustafa Koç", "Hatice Aydın",
+            "Hüseyin Arslan", "Elif Yıldız", "Emre Aksoy", "Burak Doğan",
+            "Seda Polat", "Deniz Kılıç", "Hasan Can", "Tuğba Dağlı",
+            "1. Dönem 1. Ortak Yazılı Sınavı", "TÜBİTAK 4006"
+        ];
+        return markers.some(m => s.includes(m));
+    }
+
+    async function loadData(dosyadanTohumla = true, hatayiIlet = false) {
         try {
             const dosyaVerisi = dosyadanTohumla ? await baslangicVerisiniOku() : null;
-            const local = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
-            let kimlikMigrasyonu = false;
-            if (local) {
-                appData = JSON.parse(local);
-                const bosEskiKimlik = (!appData.okulAdi || appData.okulAdi === 'Seyir Dijital Pano') &&
-                    !String(appData.okulWebSiteUrl || '').trim() &&
-                    !String(appData.okulLogo || '').trim() &&
-                    (!Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0);
-                if (bosEskiKimlik && dosyaVerisi) {
-                    const yerelKopya = Object.assign({}, appData);
-                    ['okulAdi', 'okulLogo', 'slogan', 'daktiloYazilari', 'okulWebSiteUrl', 'mebHaberler', 'konum']
-                        .forEach(alan => delete yerelKopya[alan]);
-                    appData = Object.assign(getBosSablon(), dosyaVerisi, yerelKopya);
-                    kimlikMigrasyonu = true;
-                } else if (dosyaVerisi && String(appData.okulWebSiteUrl || '').replace(/\/+$/, '') === 'https://konyamcosihl.meb.k12.tr') {
-                    if (!Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0) {
-                        appData.mebHaberler = dosyaVerisi.mebHaberler || [];
-                        kimlikMigrasyonu = true;
-                    }
-                    if (!String(appData.okulLogo || '').trim()) {
-                        appData.okulLogo = dosyaVerisi.okulLogo || 'img/okul_logo.png';
-                        kimlikMigrasyonu = true;
-                    }
-                }
-            } else {
-                appData = Object.assign(getBosSablon(), dosyaVerisi || {});
+            let local = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
+            if (local && isLegacyDemoData(local)) {
+                try {
+                    localStorage.removeItem(SEYIR_PRIVATE_STORAGE_KEY);
+                    localStorage.removeItem(SEYIR_PUBLIC_STORAGE_KEY);
+                    localStorage.setItem('seyir_clean_init_20261004', '1');
+                    local = null;
+                } catch (_) {}
             }
-
-            // Cihazda öğretmen/nöbet verisi yoksa örnek demo kadroyu otomatik yükle
-            if (!Array.isArray(appData.tumOgretmenler) || appData.tumOgretmenler.length === 0) {
-                const ornek = getOrnekOgretmenVeNobetVerisi();
-                appData.tumOgretmenler = [...ornek.tumOgretmenler];
-                appData.ogretmenBranslar = [...ornek.ogretmenBranslar];
-                if (!appData.sinifRehberlik || Object.keys(appData.sinifRehberlik).length === 0) {
-                    appData.sinifRehberlik = Object.assign({}, ornek.sinifRehberlik);
-                }
-                if (!appData.nobetciGunluk || Object.keys(appData.nobetciGunluk).length === 0) {
-                    appData.nobetciGunluk = JSON.parse(JSON.stringify(ornek.nobetciGunluk));
-                }
-                kimlikMigrasyonu = true;
-            }
-
-            if (yedekGecmisiniKucult(appData)) kimlikMigrasyonu = true;
-            if (baslangicHaberGorselleriniDuzelt(appData.mebHaberler)) kimlikMigrasyonu = true;
+            loadedPrivateRaw = local;
+            appData = window.SeyirDataPolicy.validate(local ? JSON.parse(local) : (dosyaVerisi || getBosSablon()));
+            dataReady = true;
+            yedekGecmisiniKucult(appData);
 
             // Sayfa ilk açılışında (oturum zaten açıksa) loadData, DOMContentLoaded
             // geri çağrımının ORTASINDA senkron çalışır. Oysa renderDersler /
@@ -1128,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const gizlilik = gizlilikAyarlari(appData);
             appData.gizlilik = gizlilik;
-            if (kimlikMigrasyonu) saveData();
+
             const son = Date.parse((appData.veriYonetimi && appData.veriYonetimi.sonGozdenGecirme) || '');
             const sureMs = Math.max(1, Number(gizlilik.saklamaSuresiGun) || 365) * 86400000;
             if (Number.isFinite(son) && Date.now() - son > sureMs) {
@@ -1137,12 +1069,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 BhUI.toast('Saklama süresi dolan personel verileri otomatik temizlendi.', 'warning');
             } else {
                 if (!appData.veriYonetimi) appData.veriYonetimi = { sonGozdenGecirme: new Date().toISOString() };
-                acikPanoVerisiniYayinla();
+                saveData();
             }
 
             populateForms();
         } catch (e) {
+            dataReady = false;
+            dashboard.style.display = 'none'; loginScreen.style.display = 'flex';
+            releaseEditor();
+            authMessage.textContent = 'Veri yüklenemedi; mevcut kayıt değiştirilmedi. ' + e.message;
             console.error("Veri yüklenemedi", e);
+            if (hatayiIlet) throw e;
         }
     }
 
@@ -1181,7 +1118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.getElementById('inp-okulAdi').value = appData.okulAdi || "";
         const elOkulTuru = document.getElementById('inp-okulTuru');
-        if (elOkulTuru) elOkulTuru.value = appData.okulTuru || "İmam Hatip Ortaokulu";
+        if (elOkulTuru) elOkulTuru.value = appData.okulTuru || "";
         const elSlogan = document.getElementById('inp-slogan');
         if (elSlogan) elSlogan.value = appData.slogan || "";
         document.getElementById('inp-webUrl').value = appData.okulWebSiteUrl || "";
@@ -1258,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Okul Logosu Önizlemesi (Madde 3.1 & Özel Logo)
         const logoPreview = document.getElementById('img-okulLogo-preview');
         if (logoPreview) {
-            logoPreview.src = appData.okulLogo || "img/okul_logo.png";
+            logoPreview.src = appData.okulLogo || "img/seyir-icon.svg";
         }
 
         // Nöbetçi
@@ -1484,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="ticker-item-actions">
                     <button type="button" class="btn-icon" onclick="duplicateKayanYazi(${i})" title="Bu Yazıyı Kopyala/Çoğalt">
-                        <i class="fa-regular fa-copy"></i>
+                        <i class="fa-solid fa-copy"></i>
                     </button>
                     <button type="button" class="btn-icon" onclick="moveKayanYazi(${i}, -1)" title="Yukarı Taşı" ${i === 0 ? 'disabled style="opacity:0.35; cursor:not-allowed;"' : ''}>
                         <i class="fa-solid fa-arrow-up"></i>
@@ -1976,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <p style="margin: 0 0 10px 0; color: #334155; font-size: 0.9rem; line-height: 1.5;">${escapeHtml(d.icerik || '')}</p>
                         <div style="display: flex; align-items: center; gap: 12px; font-size: 0.8rem; color: #64748b;">
-                            <span><i class="fa-regular fa-calendar"></i> ${escapeHtml(d.tarih || '')}</span>
+                            <span><i class="fa-solid fa-calendar"></i> ${escapeHtml(d.tarih || '')}</span>
                         </div>
                     </div>
                     <div class="list-item-actions" style="margin-left: 15px; display: flex; gap: 6px;">
@@ -2193,7 +2130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const prevTarih = document.getElementById('prev-sinav-tarih-saat');
         if (prevTarih) {
             const gunEk = gunAdi ? ` (${gunAdi})` : '';
-            prevTarih.innerHTML = `<b>Tarih & Saat:</b> ⏰ ${gosterimTarih} - ${saatMetni}${gunEk}`;
+            prevTarih.innerHTML = `<b>Tarih & Saat:</b> ⏰ ${gosterimTarih} - ${escapeHtml(saatMetni)}${escapeHtml(gunEk)}`;
         }
 
         const prevKalan = document.getElementById('prev-sinav-kalan');
@@ -2307,7 +2244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ['9', '10', '11', '12'].forEach(sev => {
             const hasClass = sinifHavuzu.some(s => s.startsWith(sev));
             if (hasClass) {
-                html += `<button type="button" class="btn-sinif-chip" style="background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; font-weight: 800;" onclick="topluSinifEkle('${sev}')">Tüm ${sev}'lar</button>`;
+                html += `<button type="button" class="btn-sinif-chip" style="background: #e0f2fe; border-color: #7dd3fc; color: #0369a1; font-weight: 800;" data-sinif-seviye="${sev}">Tüm ${sev}'lar</button>`;
             }
         });
 
@@ -2315,10 +2252,16 @@ document.addEventListener('DOMContentLoaded', () => {
         sinifHavuzu.slice(0, 15).forEach(sinif => {
             const isSel = seciliSiniflar.includes(sinif);
             const activeCls = isSel ? ' active' : '';
-            html += `<button type="button" class="btn-sinif-chip${activeCls}" onclick="toggleSinifSecimi('${escapeHtml(sinif)}')">${escapeHtml(sinif)}</button>`;
+            html += `<button type="button" class="btn-sinif-chip${activeCls}" data-sinif-sec="${escapeHtml(sinif)}">${escapeHtml(sinif)}</button>`;
         });
 
         container.innerHTML = html;
+        container.querySelectorAll('[data-sinif-sec]').forEach(button => {
+            button.addEventListener('click', () => toggleSinifSecimi(button.dataset.sinifSec));
+        });
+        container.querySelectorAll('[data-sinif-seviye]').forEach(button => {
+            button.addEventListener('click', () => topluSinifEkle(button.dataset.sinifSeviye));
+        });
     }
 
     // Geçmiş Sınavları Toplu Temizleme
@@ -2433,8 +2376,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <strong>👥 Sınıflar:</strong> <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 5px; font-weight: 700; color: #0369a1;">${escapeHtml(s.siniflar || 'Tüm Sınıflar')}</span>
                         </p>
                         <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: #64748b; flex-wrap: wrap;">
-                            <span><i class="fa-regular fa-calendar"></i> <strong>${escapeHtml(s.tarih || '')}</strong></span>
-                            <span><i class="fa-regular fa-clock"></i> <strong>${saatMetni}</strong></span>
+                            <span><i class="fa-solid fa-calendar"></i> <strong>${escapeHtml(s.tarih || '')}</strong></span>
+                            <span><i class="fa-solid fa-clock"></i> <strong>${saatMetni}</strong></span>
                         </div>
                     </div>
                     <div class="list-item-actions" style="margin-left: 15px; display: flex; gap: 6px;">
@@ -4383,7 +4326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         BhUI.toast('Güvenli ve taşınabilir data.json indirildi.', 'success');
     }));
 
-    document.querySelectorAll('.btn-download-private-json').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-download-private-json').forEach(btn => btn.addEventListener('click', async () => {
         const onay = confirm(
             'UYARI: Bu özel yönetim yedeği öğretmen adları ve program bilgileri gibi kişisel veriler içerebilir.\n\n' +
             'Dosyayı web sunucusuna yüklemeyin; yalnızca yetkili ve şifreli kurumsal alanda saklayın. Devam edilsin mi?'
@@ -4391,16 +4334,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!onay) return;
         formVerileriniOku();
         saveData();
-        const yedek = JSON.parse(JSON.stringify(appData));
-        delete yedek.yedekGecmisi;
-        yedek._meta = {
-            tur: 'seyir-private-backup',
-            surum: 1,
-            kisiselVeriIcerir: true,
-            olusturmaZamani: new Date().toISOString()
-        };
-        jsonDosyasiIndir(yedek, 'seyir-yonetim-yedegi.private.json');
-        BhUI.toast('Özel yönetim yedeği indirildi.', 'warning');
+        try {
+            const yedek = await SeyirBackup.create(appData);
+            jsonDosyasiIndir(yedek, 'seyir-tam-yedek.private.json');
+            BhUI.toast('Yapılandırma ve medya içeren tam yedek indirildi.', 'success');
+        } catch (error) { BhUI.toast(error.message, 'error'); }
+
     }));
 
     // JSON İçe Aktar (Dosya Yükle) Mantığı
@@ -4415,16 +4354,23 @@ document.addEventListener('DOMContentLoaded', () => {
         inpJsonFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            if (file.size > 5 * 1024 * 1024) {
-                alert('JSON Dosyası Yüklenemedi: Dosya 5 MB sınırını aşıyor.');
+            if (file.size > 180 * 1024 * 1024) {
+                alert('JSON Dosyası Yüklenemedi: Dosya 180 MB sınırını aşıyor.');
                 inpJsonFile.value = '';
                 return;
             }
 
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
+                const oncekiVeri = appData;
+                const oncekiOzel = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
+                const oncekiAcik = localStorage.getItem(SEYIR_PUBLIC_STORAGE_KEY);
+                let yazildi = false;
+                let eskiMedya = null;
+                let medyaIslemi = false;
                 try {
-                    const importedData = guvenliIceAktarmaNesnesi(JSON.parse(event.target.result));
+                    const prepared = await SeyirBackup.prepare(JSON.parse(event.target.result));
+                    const importedData = prepared.data;
                     if (typeof importedData !== 'object' || importedData === null) {
                         throw new Error('Geçersiz JSON formatı.');
                     }
@@ -4435,14 +4381,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         inpJsonFile.value = '';
                         return;
                     }
+                    assertEditor();
+                    pendingMediaWrites++; medyaIslemi = true;
+                    if (prepared.records.length) {
+                        eskiMedya = await SeyirAudioStore.listAll();
+                        const merged = new Map(eskiMedya.map(item => [item.id, item]));
+                        prepared.records.forEach(item => merged.set(item.id, item));
+                        await SeyirAudioStore.replaceAll([...merged.values()], assertEditor);
+                    }
                     delete importedData._meta;
                     appData = importedData;
+                    yazildi = true;
                     saveData();
-                    loadData();
+                    await loadData(false, true);
                     BhUI.toast('JSON verileri başarıyla yüklendi ve sisteme kaydedildi!', 'success');
                 } catch (err) {
+                    if (eskiMedya) await SeyirAudioStore.replaceAll(eskiMedya);
+                    appData = oncekiVeri;
+                    if (yazildi) {
+                        for (const [key, value] of [[SEYIR_PRIVATE_STORAGE_KEY, oncekiOzel], [SEYIR_PUBLIC_STORAGE_KEY, oncekiAcik]]) {
+                            if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value);
+                        }
+                        try { populateForms(); } catch (_) { /* Mevcut kayıt korunur. */ }
+                    }
+                    loadedPrivateRaw = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
                     alert('JSON Dosyası Yüklenemedi: ' + err.message);
-                }
+                } finally { if (medyaIslemi) pendingMediaWrites--; }
                 inpJsonFile.value = '';
             };
             reader.readAsText(file, 'UTF-8');
@@ -4451,9 +4415,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnClearJsonData = document.getElementById('btn-clear-json-data');
     if (btnClearJsonData) {
-        btnClearJsonData.addEventListener('click', () => {
+        btnClearJsonData.addEventListener('click', async () => {
             if (confirm("Bu cihazdaki okul verileri, açık pano kopyası, tema tercihi ve yönetici parolası kalıcı olarak silinecek. Devam edilsin mi?")) {
-                SEYIR_LOCAL_AUTH.clearAll();
+                await SEYIR_LOCAL_AUTH.clearAll();
                 alert('Bu cihazdaki tüm Seyir verileri silindi. İlk kurulum ekranına dönülecek.');
                 window.location.reload();
             }
@@ -4606,7 +4570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isActive) {
                 banner.classList.add('active');
                 const kalan = getKalanSureMetni(config.saat || '17:00');
-                statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Otomatik yedekleme <strong>aktif</strong>. Her gün saat <strong>${config.saat || '17:00'}</strong>'da yedek üretilecek.`;
+                statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Otomatik yedekleme <strong>aktif</strong>. Her gün saat <strong>${escapeHtml(config.saat || '17:00')}</strong>'da yedek üretilecek.`;
                 countdown.textContent = `Sıradaki Yedek: ${kalan}`;
             } else {
                 banner.classList.remove('active');
@@ -4661,7 +4625,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <tr>
                     <td style="font-weight: 600; color: var(--text-main); white-space: nowrap;">
-                        <i class="fa-regular fa-clock" style="color: var(--text-muted); margin-right: 5px;"></i>
+                        <i class="fa-solid fa-clock" style="color: var(--text-muted); margin-right: 5px;"></i>
                         ${escapeHtml(item.tarih || '-')}
                     </td>
                     <td>
@@ -4702,22 +4666,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const timestamp = getTarihSaatEtiketi();
         const dosyaAdi = `seyir-yedek-${timestamp}.json`;
-        const yedekVeri = JSON.parse(JSON.stringify(appData));
-        delete yedekVeri.yedekGecmisi;
-        yedekVeri._meta = {
-            tur: isAuto ? 'seyir-auto-backup' : 'seyir-manual-backup',
-            surum: 1,
-            kisiselVeriIcerir: true,
-            olusturmaZamani: new Date().toISOString(),
-            etiket: timestamp
-        };
+        const yedekVeri = await SeyirBackup.create(appData);
+        // Dahili geçmiş yalnızca yapılandırma anlık görüntüsüdür; medya cihazda kalır.
+        const snapshot = JSON.parse(JSON.stringify(yedekVeri.veri));
+        delete snapshot.yedekGecmisi;
 
         const config = appData.otomatikYedek || {};
         const hedefTur = config.hedefTur || 'indir';
         let hedefMetni = 'Tarayıcı İndirmeleri';
 
         if (hedefTur === 'dahili') {
-            hedefMetni = 'Sistem İçi Güvenli Havuz';
+            hedefMetni = 'Cihaz içi yapılandırma (medya hariç)';
         } else if (hedefTur === 'klasor') {
             hedefMetni = config.klasorAdi ? `Klasör: ${config.klasorAdi}` : 'Yerel Klasör';
             let klasoreYazildi = false;
@@ -4758,12 +4717,12 @@ document.addEventListener('DOMContentLoaded', () => {
             hedef: hedefMetni,
             boyut: ((new Blob([JSON.stringify(yedekVeri)]).size) / 1024).toFixed(1) + ' KB',
             tur: isAuto ? 'Otomatik' : 'Manuel',
-            veri: JSON.parse(JSON.stringify(yedekVeri))
+            veri: snapshot
         };
 
         appData.yedekGecmisi.unshift(yeniKayit);
-        if (appData.yedekGecmisi.length > 15) {
-            appData.yedekGecmisi = appData.yedekGecmisi.slice(0, 15);
+        if (appData.yedekGecmisi.length > 5) {
+            appData.yedekGecmisi = appData.yedekGecmisi.slice(0, 5);
         }
 
         // Otomatik yedekleme son kayıt saatini ve tarihini güncelle
@@ -4781,14 +4740,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return dosyaAdi;
     }
 
-    window.restoreFromHistory = function restoreFromHistory(index) {
+    window.restoreFromHistory = async function restoreFromHistory(index) {
         if (!appData.yedekGecmisi || !appData.yedekGecmisi[index]) return;
         const item = appData.yedekGecmisi[index];
         if (!confirm(`"${item.tarih}" tarihli yedeği geri yüklemek istediğinize emin misiniz?\n\nBu işlem mevcut okul panosu verilerinin üzerine yazacaktır.`)) {
             return;
         }
         try {
-            const restoredData = JSON.parse(JSON.stringify(item.veri));
+            const restoredData = (await SeyirBackup.prepare(item.veri)).data;
             delete restoredData._meta;
 
             // Yedek geçmişini ve otomatik yedek ayarlarını koru
@@ -4804,7 +4763,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             saveData();
-            loadData();
+            await loadData(false, true);
             window.updateVeriKPIs();
             renderBackupHistory();
             BhUI.toast(`"${item.tarih}" tarihli yedek noktasına başarıyla dönüldü!`, 'success');
@@ -4813,11 +4772,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.downloadFromHistory = function downloadFromHistory(index) {
+    window.downloadFromHistory = async function downloadFromHistory(index) {
         if (!appData.yedekGecmisi || !appData.yedekGecmisi[index]) return;
         const item = appData.yedekGecmisi[index];
         const dosya = item.dosyaAdi || `seyir-yedek-${getTarihSaatEtiketi()}.json`;
-        jsonDosyasiIndir(item.veri, dosya);
+        try { jsonDosyasiIndir(await SeyirBackup.create(item.veri), dosya); }
+        catch (error) { BhUI.toast(error.message, "error"); return; }
         BhUI.toast(`"${dosya}" dosyası indirildi.`, 'success');
     };
 
@@ -5055,15 +5015,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnResetLogo) {
         btnResetLogo.addEventListener('click', () => {
             if (confirm('Okul logosunu varsayılana sıfırlamak istediğinize emin misiniz?')) {
-                appData.okulLogo = 'img/okul_logo.png';
+                appData.okulLogo = 'img/seyir-icon.svg';
                 const preview = document.getElementById('img-okulLogo-preview');
-                if (preview) preview.src = 'img/okul_logo.png';
+                if (preview) preview.src = 'img/seyir-icon.svg';
                 const inpFile = document.getElementById('inp-okulLogo-file');
                 if (inpFile) inpFile.value = '';
                 saveData();
                 BhUI.toast('Varsayılan okul logosuna dönüldü.', 'info');
             }
         });
+    }
+
+    const BASLANGIC_HABER_GORSELLERI = [
+        { anahtar: '17671892', yol: 'img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg' },
+        { anahtar: '17651353', yol: 'img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg' },
+        { anahtar: '17641455', yol: 'img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg' },
+        { anahtar: '17630148', yol: 'img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg' },
+        { anahtar: '17627027', yol: 'img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg' }
+    ];
+
+    function baslangicHaberGorselleriniDuzelt(haberler) {
+        let degisti = false;
+        (Array.isArray(haberler) ? haberler : []).forEach(haber => {
+            const aramaMetni = String(haber.link || '') + ' ' + String(haber.gorsel || '');
+            const yerel = BASLANGIC_HABER_GORSELLERI.find(kayit => aramaMetni.includes(kayit.anahtar));
+            if (yerel && haber.gorsel !== yerel.yol) {
+                haber.gorsel = yerel.yol;
+                degisti = true;
+            }
+        });
+        return degisti;
     }
 
     // Dinamik MEB Haberleri Çekme Fonksiyonu
@@ -5913,11 +5894,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 atananlarBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text3);">Bu gün için henüz bir ders tamamlama ataması yapılmamıştır.</td></tr>';
             } else {
                 // Saat (period) sırasına göre sırala
-                const siraliAtamalar = [...gununAtamalari].sort((a, b) => a.saat - b.saat);
-                siraliAtamalar.forEach((atama, idx) => {
+                const siraliAtamalar = gununAtamalari.map((atama, idx) => ({atama, idx})).sort((a, b) => a.atama.saat - b.atama.saat);
+                siraliAtamalar.forEach(({atama, idx}) => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                    <td style="padding: 12px 15px; border-bottom: 1px solid var(--sidebar-border); color: var(--text1); font-weight: bold;">${atama.saat + 1}. Ders</td>
+                    <td style="padding: 12px 15px; border-bottom: 1px solid var(--sidebar-border); color: var(--text1); font-weight: bold;">${escapeHtml(String(atama.saat + 1))}. Ders</td>
                     <td style="padding: 12px 15px; border-bottom: 1px solid var(--sidebar-border);">
                         <div style="font-weight: 600; color: var(--primary);">${escapeHtml(atama.sinif)}</div>
                         <div style="font-size: 0.85rem; color: var(--text2);">${escapeHtml(atama.dersAdi)}</div>
@@ -9986,6 +9967,7 @@ function hesaplaSonrakiZil() {
  * Gerçek Zil Çalma Eylemi
  */
 function calZil(zil, tetiklemeTuru = "Otomatik") {
+    assertEditor();
     const data = getZilVerisi();
     if (!zil) return;
 
@@ -9999,20 +9981,20 @@ function calZil(zil, tetiklemeTuru = "Otomatik") {
     } else if (!melodi || melodi === 'varsayilan') {
         if (zil.tur === 'ogrenci') {
             melodi = data.melodiOgrenci || 'modern';
-            if (melodi === 'custom') customAudioId = 'zil_ogrenci_custom';
+            if (melodi === 'custom') customAudioId = data.customAudioOgrenci?.id || 'zil_ogrenci_custom';
         } else if (zil.tur === 'ogretmen') {
             melodi = data.melodiOgretmen || 'chime';
-            if (melodi === 'custom') customAudioId = 'zil_ogretmen_custom';
+            if (melodi === 'custom') customAudioId = data.customAudioOgretmen?.id || 'zil_ogretmen_custom';
         } else if (zil.tur === 'cikis') {
             melodi = data.melodiCikis || 'westminster';
-            if (melodi === 'custom') customAudioId = 'zil_cikis_custom';
+            if (melodi === 'custom') customAudioId = data.customAudioCikis?.id || 'zil_cikis_custom';
         } else {
             melodi = 'modern';
         }
     } else if (melodi === 'custom') {
-        if (zil.tur === 'ogrenci') customAudioId = 'zil_ogrenci_custom';
-        else if (zil.tur === 'ogretmen') customAudioId = 'zil_ogretmen_custom';
-        else if (zil.tur === 'cikis') customAudioId = 'zil_cikis_custom';
+        if (zil.tur === 'ogrenci') customAudioId = data.customAudioOgrenci?.id || 'zil_ogrenci_custom';
+        else if (zil.tur === 'ogretmen') customAudioId = data.customAudioOgretmen?.id || 'zil_ogretmen_custom';
+        else if (zil.tur === 'cikis') customAudioId = data.customAudioCikis?.id || 'zil_cikis_custom';
     }
 
     const sure = parseInt(zil.sure, 10) || parseInt(data.calmaSuresi, 10) || 8;
@@ -10041,7 +10023,7 @@ function calZil(zil, tetiklemeTuru = "Otomatik") {
     // Sesli anons varsa melodinin ardından veya 2 sn sonra oku
     if (data.sesliAnons && zil.anons && zil.anons.trim()) {
         setTimeout(() => {
-            calZilSesliAnons(zil.anons);
+            if (SEYIR_LOCAL_AUTH.isAuthenticated() && dataReady) calZilSesliAnons(zil.anons);
         }, Math.min(2500, sure * 600));
     }
 
@@ -10079,12 +10061,14 @@ function initZilScheduler() {
     if (zilTimerInterval) clearInterval(zilTimerInterval);
 
     zilTimerInterval = setInterval(() => {
+        if (!SEYIR_LOCAL_AUTH.isAuthenticated() || !dataReady || !editorRelease) return;
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
         const mm = String(now.getMinutes()).padStart(2, '0');
         const ss = String(now.getSeconds()).padStart(2, '0');
         const saatStr = `${hh}:${mm}:${ss}`;
         const dakikaStr = `${hh}:${mm}`;
+        const dakikaAnahtari = now.toDateString() + ":" + dakikaStr;
 
         // Canlı Saati Yaz
         const clockEl = document.getElementById('zil-live-clock');
@@ -10102,17 +10086,17 @@ function initZilScheduler() {
 
         // Ders Zili Kontrolü (Hafta sonu sessizliği ve sistem aktiflik kontrolü)
         const dersZiliCalabilir = (data.aktif !== false) && !(data.haftasonuSessiz !== false && isHaftasonu);
-        if (dersZiliCalabilir && sonCalanDakika !== dakikaStr && (ss === '00' || ss === '01')) {
+        if (dersZiliCalabilir && sonCalanDakika !== dakikaAnahtari) {
             const aktifZiller = (data.cizelge || []).filter(z => z.aktif !== false);
             const eslesen = aktifZiller.find(z => z.saat === dakikaStr);
             if (eslesen) {
-                sonCalanDakika = dakikaStr;
+                sonCalanDakika = dakikaAnahtari;
                 calZil(eslesen, "Otomatik Zamanlayıcı");
             }
         }
 
         // Tören & Zamanlanmış Müzikler Kontrolü (Haftanın gününe göre otomatik çalma)
-        if (data.torenMuzikleri && data.torenMuzikleri.length > 0 && sonCalanTorenDakika !== dakikaStr && (ss === '00' || ss === '01')) {
+        if (data.torenMuzikleri && data.torenMuzikleri.length > 0 && sonCalanTorenDakika !== dakikaAnahtari) {
             const aktifTorenler = data.torenMuzikleri.filter(m => m.aktif !== false);
             const eslesenToren = aktifTorenler.find(m => {
                 if (m.saat !== dakikaStr) return false;
@@ -10120,7 +10104,7 @@ function initZilScheduler() {
                 return m.gunler.includes(dayOfWeek);
             });
             if (eslesenToren) {
-                sonCalanTorenDakika = dakikaStr;
+                sonCalanTorenDakika = dakikaAnahtari;
                 const idx = data.torenMuzikleri.indexOf(eslesenToren);
                 if (idx !== -1 && typeof window.onCalToren === 'function') {
                     window.onCalToren(idx, "Otomatik Tören Zamanlayıcı");
@@ -10487,11 +10471,9 @@ window.silToren = async function (index) {
     if (!data.torenMuzikleri[index]) return;
     const item = data.torenMuzikleri[index];
     if (confirm(`"${item.baslik}" kaydı silinsin mi?`)) {
-        if (item.audioId && window.SeyirAudioStore) {
-            await window.SeyirAudioStore.deleteAudio(item.audioId);
-        }
         data.torenMuzikleri.splice(index, 1);
         saveData();
+        await deleteUnusedMedia(item.audioId);
         renderTorenMuzikleriTablo();
         if (typeof BhUI !== 'undefined') BhUI.toast('Tören kaydı silindi.', 'info');
     }
@@ -10685,12 +10667,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file) return;
 
             try {
-                if (window.SeyirAudioStore) {
-                    await window.SeyirAudioStore.saveAudio(audioKey, file);
-                }
+                const newAudioKey = audioKey + '_' + crypto.randomUUID();
+                await window.SeyirAudioStore.saveAudio(newAudioKey, file);
+                assertEditor();
                 const data = getZilVerisi();
                 data[propName] = {
-                    id: audioKey,
+                    id: newAudioKey,
                     name: file.name,
                     size: file.size
                 };
@@ -10712,16 +10694,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnRemove?.addEventListener('click', async () => {
             if (confirm('Yüklenen bu özel ses dosyasını silip varsayılan melodiye dönmek istiyor musunuz?')) {
-                if (window.SeyirAudioStore) {
-                    await window.SeyirAudioStore.deleteAudio(audioKey);
-                }
                 const data = getZilVerisi();
+                const removedId = data[propName]?.id || audioKey;
                 data[propName] = null;
                 if (turId === 'ogrenci') data.melodiOgrenci = 'modern';
                 else if (turId === 'ogretmen') data.melodiOgretmen = 'chime';
                 else if (turId === 'cikis') data.melodiCikis = 'westminster';
 
                 saveData();
+                await deleteUnusedMedia(removedId);
                 syncZilFormUI();
                 renderZilKPIs();
                 if (typeof BhUI !== 'undefined') {
@@ -10896,10 +10877,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const inpFile = document.getElementById('inp-modal-zil-file');
         if (melodi === 'custom' && inpFile && inpFile.files && inpFile.files[0]) {
             const f = inpFile.files[0];
-            customAudioId = 'custom_bell_' + zilId;
+            customAudioId = 'custom_bell_' + crypto.randomUUID();
             customAudioName = f.name;
             if (window.SeyirAudioStore) {
                 await window.SeyirAudioStore.saveAudio(customAudioId, f);
+                assertEditor();
             }
         }
 
@@ -10992,11 +10974,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const inpFile = document.getElementById('inp-modal-toren-file');
         if (inpFile && inpFile.files && inpFile.files[0]) {
             const file = inpFile.files[0];
-            audioId = 'muzik_' + torenId;
+            audioId = 'muzik_' + crypto.randomUUID();
             dosyaAdi = file.name;
             dosyaBoyut = file.size;
             if (window.SeyirAudioStore) {
                 await window.SeyirAudioStore.saveAudio(audioId, file);
+                assertEditor();
             }
         }
 
@@ -11104,11 +11087,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (tur === 'mp4-file') {
             const f = inpVideoFilePick && inpVideoFilePick.files && inpVideoFilePick.files[0];
             if (f) {
-                mediaId = 'vid_' + Date.now();
+                mediaId = 'vid_' + crypto.randomUUID();
                 dosyaAdi = f.name;
                 dosyaBoyut = f.size;
                 if (window.SeyirAudioStore) {
                     await window.SeyirAudioStore.saveAudio(mediaId, f);
+                assertEditor();
                 }
             } else if (!mediaId) {
                 alert('Lütfen bilgisayarınızdan bir MP4 video dosyası seçiniz.');
@@ -11220,10 +11204,10 @@ window.renderKaruselVideoTablo = function () {
         const ytId = item.youtubeId || (isYouTube ? parseYouTubeId(item.url) : null);
         const thumbUrl = ytId
             ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
-            : 'img/okul_logo.png';
+            : 'img/seyir-icon.svg';
 
         const turBadge = isYouTube
-            ? `<span class="video-source-badge badge-youtube"><i class="fa-brands fa-youtube"></i> YouTube</span>`
+            ? `<span class="video-source-badge badge-youtube"><i class="fa-solid fa-video"></i> YouTube</span>`
             : `<span class="video-source-badge badge-mp4"><i class="fa-solid fa-file-video"></i> MP4 Video</span>`;
 
         const sureMetni = item.dongu
@@ -11239,7 +11223,7 @@ window.renderKaruselVideoTablo = function () {
                 </td>
                 <td>
                     <div class="video-thumb-preview" onclick="onPreviewVideo(${index})" title="Önizle ve Oynat" style="cursor: pointer;">
-                        <img src="${thumbUrl}" alt="Thumbnail" onerror="this.src='img/okul_logo.png'">
+                        <img src="${thumbUrl}" alt="Thumbnail" onerror="this.src='img/seyir-icon.svg'">
                         <div class="play-icon-overlay"><i class="fa-solid fa-play"></i></div>
                     </div>
                 </td>
@@ -11291,11 +11275,9 @@ window.silVideo = async function (index) {
     if (!videolar[index]) return;
     const v = videolar[index];
     if (confirm(`"${v.baslik}" videosu silinsin mi?`)) {
-        if (v.mediaId && window.SeyirAudioStore) {
-            try { await window.SeyirAudioStore.deleteAudio(v.mediaId); } catch (e) { }
-        }
         videolar.splice(index, 1);
         saveData();
+        await deleteUnusedMedia(v.mediaId);
         renderKaruselVideoUI();
         if (typeof BhUI !== 'undefined') BhUI.toast('Video listeden silindi.', 'info');
     }
@@ -11397,7 +11379,10 @@ window.closeVideoModal = function () {
     }
 };
 
+let videoPreviewGeneration = 0;
 window.onPreviewVideo = async function (index) {
+    window.closeVideoPreview();
+    const generation = videoPreviewGeneration;
     const videolar = getKaruselVideoVerisi();
     if (!videolar[index]) return;
     const item = videolar[index];
@@ -11415,9 +11400,9 @@ window.onPreviewVideo = async function (index) {
 
     if (isYouTube && ytId) {
         const ccParam = item.altyaziKapat !== false ? '&cc_load_policy=0&iv_load_policy=3' : '';
-        const loopParam = item.dongu ? `&loop=1&playlist=${ytId}` : '';
+        const loopParam = item.dongu ? `&loop=1&playlist=${escapeHtml(ytId)}` : '';
         wrap.innerHTML = `
-            <iframe src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&controls=1&rel=0${ccParam}${loopParam}" 
+            <iframe src="https://www.youtube-nocookie.com/embed/${escapeHtml(ytId)}?autoplay=1&controls=1&rel=0${ccParam}${loopParam}"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                     referrerpolicy="strict-origin-when-cross-origin"
@@ -11425,8 +11410,11 @@ window.onPreviewVideo = async function (index) {
         `;
     } else if (item.tur === 'mp4-file' && item.mediaId && window.SeyirAudioStore) {
         const audioRec = await window.SeyirAudioStore.getAudio(item.mediaId);
+        if (generation !== videoPreviewGeneration) return;
         if (audioRec && audioRec.blob) {
             const url = URL.createObjectURL(audioRec.blob);
+            if (wrap.dataset.objectUrl) URL.revokeObjectURL(wrap.dataset.objectUrl);
+            wrap.dataset.objectUrl = url;
             const loopAttr = item.dongu ? 'loop' : '';
             wrap.innerHTML = `
                 <video src="${url}" controls autoplay ${loopAttr} style="width: 100%; height: 100%; object-fit: contain;"></video>
@@ -11447,10 +11435,18 @@ window.onPreviewVideo = async function (index) {
 };
 
 window.closeVideoPreview = function () {
+    videoPreviewGeneration++;
     const modal = document.getElementById('modal-video-preview');
     const wrap = document.getElementById('wrap-preview-video-player');
-    if (wrap) wrap.innerHTML = '';
+    if (wrap) {
+        wrap.innerHTML = '';
+        if (wrap.dataset.objectUrl) { URL.revokeObjectURL(wrap.dataset.objectUrl); delete wrap.dataset.objectUrl; }
+    }
     if (modal) modal.style.display = 'none';
 };
 
 
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(error => console.warn('Çevrimdışı yönetim hazırlanamadı:', error));
+}

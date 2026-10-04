@@ -25,7 +25,7 @@
 
         <div class="login-box glass-panel" id="login-card">
             <div class="login-logo-container">
-                <img src="img/favicon.png" alt="Logo" class="login-logo-img">
+                <img src="img/seyir-icon-192.png" alt="Logo" class="login-logo-img">
                 <div class="logo-shield-badge"><i class="fa-solid fa-shield-halved"></i></div>
             </div>
             <h2 class="login-title" id="local-auth-title">Seyir Yönetim</h2>
@@ -62,7 +62,7 @@
             <div class="sidebar-header">
                 <div class="sidebar-brand-group">
                     <div class="brand-logo-wrapper">
-                        <img src="img/favicon.png" alt="Logo" class="sidebar-logo-img">
+                        <img src="img/seyir-icon-192.png" alt="Logo" class="sidebar-logo-img">
                         <span class="logo-glow-ring"></span>
                     </div>
                     <div class="sidebar-brand-text">
@@ -227,7 +227,7 @@
                             style="display: flex; align-items: center; gap: 20px; padding: 18px; background: rgba(59, 130, 246, 0.05); border: 1.5px dashed rgba(59, 130, 246, 0.35); border-radius: 14px; margin-bottom: 22px; flex-wrap: wrap;">
                             <div class="logo-preview-wrapper"
                                 style="position: relative; width: 88px; height: 88px; border-radius: 16px; background: #ffffff; border: 2px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.06); flex-shrink: 0;">
-                                <img id="img-okulLogo-preview" src="img/okul_logo.png" alt="Okul Logosu Önizleme"
+                                <img id="img-okulLogo-preview" src="img/seyir-icon.svg" alt="Okul Logosu Önizleme"
                                     style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px;">
                             </div>
                             <div style="flex: 1; min-width: 220px;">
@@ -260,7 +260,7 @@
                             <div class="form-group">
                                 <label><i class="fa-solid fa-school"></i> Okul Adı (Kurum Adı)</label>
                                 <input type="text" id="inp-okulAdi" class="form-control"
-                                    placeholder="Örn: Sancaktepe veya Mahmud Celaleddin Ökten">
+                                    placeholder="Örn: Sancaktepe veya Seyir Dijital Pano">
                                 <small
                                     style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.78rem;">
                                     Okulun ana adı (Pano başlığının 1. satırında kalın ve belirgin görünür).
@@ -270,6 +270,7 @@
                             <div class="form-group">
                                 <label><i class="fa-solid fa-graduation-cap"></i> Okul Türü</label>
                                 <select id="inp-okulTuru" class="form-control" style="font-weight: 500;">
+                                    <option value="">(Belirtilmemiş / Genel)</option>
                                     <optgroup label="🕌 İmam Hatip Okul Türleri">
                                         <option value="İmam Hatip Ortaokulu">İmam Hatip Ortaokulu</option>
                                         <option value="Anadolu İmam Hatip Lisesi">Anadolu İmam Hatip Lisesi</option>
@@ -433,7 +434,7 @@
 
                                     <div>
                                         <label for="inp-daktilo-bekleme" style="font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
-                                            <i class="fa-regular fa-clock" style="color: #3b82f6; margin-right: 5px;"></i> Mesaj Bekleme Süresi (ms)
+                                            <i class="fa-solid fa-clock" style="color: #3b82f6; margin-right: 5px;"></i> Mesaj Bekleme Süresi (ms)
                                         </label>
                                         <input type="number" id="inp-daktilo-bekleme" class="form-control" min="800" max="10000" step="100" value="2200" placeholder="2200">
                                         <small style="display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.76rem;">
@@ -487,7 +488,7 @@
 
                                     <div>
                                         <label for="inp-screensaver-mesai-bitis" style="color: #e2e8f0; font-weight: 600; font-size: 0.84rem; margin-bottom: 6px; display: block;">
-                                            <i class="fa-regular fa-clock" style="color: #f59e0b; margin-right: 5px;"></i> Akşam Uyku Saati (Mesai Bitişi)
+                                            <i class="fa-solid fa-clock" style="color: #f59e0b; margin-right: 5px;"></i> Akşam Uyku Saati (Mesai Bitişi)
                                         </label>
                                         <input type="time" id="inp-screensaver-mesai-bitis" value="17:30" class="form-control" style="background: #1e293b; color: #ffffff; border: 1px solid #475569; font-weight: 600;">
                                     </div>
@@ -1017,7 +1018,7 @@
                             style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
                             <div>
                                 <h2 style="display: flex; align-items: center; gap: 10px; margin: 0 0 6px 0;">
-                                    <span style="color: #ef4444;"><i class="fa-brands fa-youtube"></i></span>
+                                    <span style="color: #ef4444;"><i class="fa-solid fa-video"></i></span>
                                     <span>Karusel Video Listesi</span>
                                     <span id="badge-video-sayisi" class="badge"
                                         style="font-size: 0.8rem; background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-weight: 700;">0
@@ -3682,7 +3683,7 @@
                             <!-- Saat Seçimi -->
                             <div class="auto-backup-box">
                                 <div class="auto-backup-box-title">
-                                    <i class="fa-regular fa-clock" style="color: #6366f1;"></i> 1. Günlük Yedekleme
+                                    <i class="fa-solid fa-clock" style="color: #6366f1;"></i> 1. Günlük Yedekleme
                                     Saati
                                 </div>
                                 <div class="time-picker-wrap">
@@ -3741,7 +3742,7 @@
                                     <label class="dest-option-label" id="lbl-dest-dahili">
                                         <input type="radio" name="auto-backup-dest" value="dahili">
                                         <div style="flex: 1;">
-                                            <div>💾 <strong>Sistem İçi Güvenli Havuz (Yerel Snapshot)</strong></div>
+                                            <div>💾 <strong>Cihaz İçi Yapılandırma (Medya Hariç)</strong></div>
                                             <div
                                                 style="font-size: 0.73rem; color: var(--text-muted); font-weight: 400;">
                                                 Dosya indirmeden tarayıcı hafızasında saklar, tek tıkla geri dönülmesini
@@ -5385,7 +5386,7 @@
                         ve Kaynağı</label>
                     <div class="video-type-btn-group">
                         <button type="button" class="video-type-btn active" data-tur="youtube" id="btn-type-youtube">
-                            <i class="fa-brands fa-youtube" style="color: #ef4444; font-size: 1.1rem;"></i> YouTube
+                            <i class="fa-solid fa-video" style="color: #ef4444; font-size: 1.1rem;"></i> YouTube
                         </button>
                         <button type="button" class="video-type-btn" data-tur="mp4-url" id="btn-type-mp4-url">
                             <i class="fa-solid fa-link" style="color: #7c3aed; font-size: 1rem;"></i> MP4 Bağlantısı
@@ -5524,9 +5525,11 @@
     </div>
 
     <script src="js/sehir-koordinat.js?v=20260930_5f6f637b"></script>
-    <script src="js/audio-store.js?v=20260930_5ef087ed"></script>
-    <script src="js/local-auth.js?v=20260930_a8e68658"></script>
-    <script src="js/admin.js?v=20260930_d3bdf951"></script>
+    <script src="js/data-policy.js?v=20261004_a0d8f0b1"></script>
+    <script src="js/audio-store.js?v=20261004_2a96b2ca"></script>
+    <script src="js/backup.js?v=20261004_de700fb2"></script>
+    <script src="js/local-auth.js?v=20261003_a685c3c2"></script>
+    <script src="js/admin.js?v=20261004_2be4e575"></script>
 </body>
 
 </html>

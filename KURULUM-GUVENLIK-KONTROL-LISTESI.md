@@ -19,8 +19,7 @@ açtığı bilgisayarın ilgili tarayıcı profilinde saklanır.
 1. Okul bilgisayarında `https://seyir.komutrotasi.com` açılır.
 2. Sağ alttaki “Designed & Developed by” imza kartına tıklanır.
 3. İlk kullanım ekranında bu bilgisayara özel yönetici parolası iki kez yazılır.
-4. İlk açılışta Mahmud Celaleddin Ökten AİHL adı, logosu ve örnek başlangıç haberleri
-   görünür; okul bunları panelden kendi adı, logosu ve MEB sitesiyle değiştirir.
+4. İlk açılışta nötr Seyir adı ve boş şablon görünür; okul adı, logo, konum ve içerikler panelden girilir.
 5. Sonraki kullanımlarda aynı kart doğrudan parola giriş ekranını açar.
 
 Parola açık metin olarak kaydedilmez. Rastgele salt ve 210.000 turlu PBKDF2-SHA256
@@ -55,7 +54,7 @@ JSON/cache dosyasına yazılmaz. Sonuç `seyir_admin_data` ve gizlilik uygulanm�
 - `seyir_admin_data`: yalnızca yönetim panelinin kullandığı özel yerel veri.
 - `seyir_public_data`: panonun okuduğu, görünürlük kuralları uygulanmış yerel kopya.
 - Varsayılan personel görünümü görev adıdır; rehber ve ders öğretmeni kapalıdır.
-- “Bu Cihazdaki Tüm Yerel Veriyi Sil” okul verileriyle birlikte parolayı da siler.
+- “Bu Cihazdaki Tüm Yerel Veriyi Sil” okul verileri, parola, yerel ses/video ve Seyir önbelleğini siler. Dışarı indirilmiş yedekleri silmez.
 - Özel yönetim yedeği kişisel veri içerebilir; web sunucusuna yüklenmemelidir.
 
 Okul; aydınlatma metni, hukuki sebep, yetkiler ve saklama süresini ayrıca belirlemelidir.
@@ -81,3 +80,12 @@ php tests/meb-parser-test.php
 Kullanıcı tarafından ayrıca ilk parola oluşturma, giriş/çıkış, parola değiştirme, yedek
 alma, veri silme ve farklı MEB temalarından haber çekme işlemleri gerçek tarayıcıda manuel
 olarak denenmelidir.
+
+
+## 7. Dağıtım sınırı
+
+Geliştirme sunucusunu `./baslat-seyir.sh` / `BASLAT-SEYIR.bat` ile yalnızca `127.0.0.1` üzerinde çalıştırın. Bu betikler `tools/dev-router.php` izin listesini uygular. PHP dahili sunucusu `.htaccess` okumaz.
+
+Genel ağda HTTPS, Apache/Nginx erişim kuralları ve yanıt başlıkları ayrıca doğrulanmalıdır. `.git`, `tests`, `tools`, özel yedekler ve eski okul görsellerini dağıtmayın. Kaynak deposunun tamamını web köküne kopyalamayın. `node tools/dagitim-hazirla.js /tmp/seyir-yayin` temiz izin listeli paket oluşturur; bu bir yayınlama işlemi değildir.
+
+Toplu doğrulama: `python3 tools/test-runner.py`. Gerçek TV/tahta üzerinde ses izni, yeniden başlatma ve en az bir tam okul günü açık kalma kontrolü ayrıca yapılmalıdır.

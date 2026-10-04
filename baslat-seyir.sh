@@ -9,5 +9,5 @@ if ! command -v php >/dev/null 2>&1; then
 fi
 
 printf '%s\n' 'Seyir PHP sunucusu: http://127.0.0.1:8000'
-exec php -S 127.0.0.1:8000
+exec php -S 127.0.0.1:8000 -t . tools/dev-router.php
 

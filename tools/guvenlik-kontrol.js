@@ -23,24 +23,12 @@ const rateLimitPhp = oku('lib/rate-limit.php');
 const xlsxYolu = path.join(KOK, 'js/vendor/xlsx.full.min.js');
 const veri = JSON.parse(oku('data/data.json'));
 
-if ((veri.okulWebSiteUrl || '').trim() !== 'https://konyamcosihl.meb.k12.tr/') {
-    sorunlar.push('data/data.json: başlangıç MEB okul adresi eksik veya hatalı');
+const gecerliOkullar = ['Seyir Dijital Pano', 'Mahmud Celaleddin Ökten'];
+const gecerliMebUrl = u => !u || /^https?:\/\/[a-z0-9.-]+\.meb\.(?:k12|gov)\.tr(?:\/|$)/i.test(u);
+if (!gecerliOkullar.includes(veri.okulAdi) || !gecerliMebUrl(veri.okulWebSiteUrl) || (veri.mebHaberler || []).length) {
+    sorunlar.push('data/data.json nötr veya kurumsal başlangıç şablonu olmalı');
 }
-const tamOkulAdi = (veri.okulTuru ? `${veri.okulAdi} ${veri.okulTuru}` : (veri.okulAdi || '')).trim();
-if (tamOkulAdi !== 'Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi') {
-    sorunlar.push('data/data.json: başlangıç okul adı eksik veya hatalı');
-}
-if (!Array.isArray(veri.mebHaberler) || veri.mebHaberler.length < 1) {
-    sorunlar.push('data/data.json: başlangıç haberleri eksik');
-} else if (veri.mebHaberler.some(haber => !/^img\/cache-haber\/[A-Za-z0-9_.-]+\.(?:jpe?g|png|webp)$/i.test(haber.gorsel || ''))) {
-    sorunlar.push('data/data.json: başlangıç haber görselleri yerel paket içinden gelmeli');
-} else {
-    for (const haber of veri.mebHaberler) {
-        if (!fs.existsSync(path.join(KOK, haber.gorsel))) {
-            sorunlar.push(`Başlangıç haber görseli eksik: ${haber.gorsel}`);
-        }
-    }
-}
+if (/getOrnekOgretmenVeNobetVerisi/.test(adminJs)) sorunlar.push('Otomatik örnek personel ekleme kaldırılmalı');
 
 const ozelAlanlar = [
     'tumOgretmenler', 'ogretmenler', 'ogretmenBranslar', 'nobetciOgretmenler',
@@ -109,7 +97,7 @@ if (!fetchGorselPhp.includes('seyirGorselHizSiniri') || !fetchGorselPhp.includes
 if (/preview\.innerHTML\s*=.*\$\{file\.name\}/.test(adminJs)) {
     sorunlar.push('js/admin.js: dosya adı innerHTML ile kaçışsız basılıyor');
 }
-if (!adminJs.includes('delete yedekVeri.yedekGecmisi')) {
+if (!oku('js/backup.js').includes('delete veri.yedekGecmisi')) {
     sorunlar.push('js/admin.js: yedek geçmişinin kendi içine katlanmasını önleyen temizlik eksik');
 }
 

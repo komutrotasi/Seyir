@@ -15,7 +15,7 @@
 
 ### 1. 🔔 Canlı Ders Zili & Görsel Anons Sistemi
 * **Dinamik Ders Zili Bildirimi:** Okul zil saatleriyle senkronize açılan görsel pop-up kartı ("Ders Zili Çaldı!").
-* **Görsel Anonslar & Acil Durum:** Kayan yazı ve tam ekran acil durum/kutlama bannerları.
+* **Görsel Bildirimler:** Kayan yazı, zil bildirimi ve tören katmanı. Merkezi acil yayın yönetimi bulunmaz.
 * **Günün Zaman Çizelgesi:** Anlık ders, teneffüs veya öğle arası durumunu gösteren canlı durum rozeti.
 
 ### 2. 👨‍🏫 Nöbetçi Öğretmen & İdari Bilgiler
@@ -25,7 +25,7 @@
 ### 3. 🌦️ Canlı Veri Akışı ve Bilgilendirme
 * **Hava Durumu:** Open-Meteo API entegrasyonuyla konum bazlı anlık sıcaklık ve hava durumu simgeleri.
 * **Vakit Bilgisi:** AlAdhan API ile anlık namaz ve ezan vakitleri gösterimi.
-* **Günün Sözü & Tarihte Bugün:** Her gün otomatik yenilenen edebi sözler ve tarihi olaylar.
+* **Dini İçerik ve Metinler:** Yerel ayet/hadis/dua havuzu ve yönetilebilir kayan yazılar. Bağımsız günlük tarih/söz servisi bulunmaz.
 * **MEB & Kurum Haberleri:** Farklı MEB temalarını okuyabilen haber köprüsü (`fetch-haberler.php`) ve yazmasız görsel aracısı (`fetch-gorsel.php`).
 
 ### 4. 🖥️ Akıllı Tahta & TV 16:9 Uyumluluğu
@@ -34,7 +34,7 @@
 
 ### 5. 🔐 Yönetim Paneli & Güvenlik
 * **Yönetim Paneli (`admin.html`):** İlk kullanımda cihaz-yerel parola belirleyerek nöbetçi listesi, duyurular, kutlama mesajları ve zil saatlerini yönetebileceğiniz modern arayüz.
-* **KVKK ve Güvenlik Standartları:** Dahili `KURULUM-GUVENLIK-KONTROL-LISTESI.md` ve `KVKK-AYDINLATMA-SABLONU.md` ile mevzuata tam uyumluluk.
+* **KVKK ve Güvenlik Standartları:** Dahili `KURULUM-GUVENLIK-KONTROL-LISTESI.md` ve `KVKK-AYDINLATMA-SABLONU.md` teknik kontrol ve aydınlatma şablonlarıdır; hukuki uyum garantisi değildir.
 
 ---
 
@@ -56,13 +56,14 @@ git clone git@github.com:komutrotasi/seyir.git
 cd seyir
 
 # 2. Yerel HTTP sunucusu açın
-python3 -m http.server 8080
-# veya
-npx serve .
+python3 -m http.server 8080 --bind 127.0.0.1
 
 # 3. Tarayıcıda açın
-http://localhost:8080
+http://127.0.0.1:8080
 ```
+
+Bu statik önizleme komutu `.htaccess` uygulamaz; yalnızca loopback üzerinde kullanın.
+Gizli dosyaları da engelleyen yerel başlatma için Yöntem B tercih edilir.
 
 Bu yöntem başlangıç panosunu ve yerel yönetim özelliklerini gösterir; PHP çalışmadığı için
 “Haberleri Şimdi Yenile” kullanılamaz. Haber yenilemesini sınamak için aşağıdaki PHP
@@ -111,3 +112,25 @@ seyir/
 ## 📄 Lisans
 
 Bu proje [MIT Lisansı](LICENSE) altında korunmaktadır.
+
+
+## Veri, yedek ve çalışma sınırları
+
+- İlk kurulum nötr, boş şablondur; örnek personel ve kuruma ait haber eklenmez.
+- Açık pano JSON'u yalnızca izin verilen alanları içerir. Serbest metin ve görselleri paylaşmadan önce kurum kontrol etmelidir.
+- **Tam özel yedek** (sürüm 2), yapılandırmayla birlikte başvurulan yerel ses/video dosyalarını ve SHA-256 bütünlük özetlerini içerir. Özetler imza veya şifreleme değildir. Yedek 128 MB medya, 5 MB yapılandırma sınırına tabidir.
+- Eski JSON yedekleri, başvurdukları medya bu cihazda mevcutsa alınabilir. Medya yoksa açık hata verilir; eksik yedek başarılı sayılmaz.
+- **Cihaz içi geçmiş**, en fazla 5 yapılandırma anlık görüntüsüdür. Medyayı kopyalamaz; cihaz kaybına karşı yedek değildir. Başka cihaza geçmeden tam yedeği indirin.
+- Özel ve açık yerel kayıt toplamı 4 MB ile sınırlıdır. Kota hatasında önceki kayıt geri yüklenir. Tarayıcının aniden kapanması/güç kesilmesi için iki depolama sistemi arasında tam işlem garantisi yoktur.
+- Personel saklama süresi ilk kayıt/son otomatik temizleme tarihinden hesaplanır. İlgisiz kayıtlar süreyi uzatmaz. Süre dolunca personel alanları ve yapılandırma geçmişi temizlenir; dışarı indirilmiş dosyalar otomatik silinemez.
+- Yerel yönetici oturumu 2 saattir; açık panel de süre dolunca kilitlenir. Bu kilit, işletim sistemine veya geliştirici araçlarına erişimi olan kişiye karşı bir güvenlik sınırı değildir.
+- Otomatik yedekleme için yönetim paneli açık ve oturum geçerli olmalıdır. Tarayıcı indirme/klasör izinleri gerekir; cihaz kapalıyken çalışmaz.
+- İlk başarılı çevrimiçi kurulumdan sonra uygulama kabuğu çevrimdışı açılır. YouTube ve canlı haber/API erişimi internet gerektirir. Vakit yalnızca aynı gün/konum için; hava kaydı yalnızca aynı konumda en fazla 2 saat kullanılabilir.
+- Zil sesi tarayıcının ses iznine, cihazın uyanık kalmasına ve hoparlöre bağlıdır. Eşzamanlı açık birden fazla zil sekmesi aynı anda ses verebilir; cihazda tek aktif zil ekranı kullanın.
+- Yeni sürüm için açık Seyir sekmelerini kapatıp yeniden açın. Çalışan pano ortasında Service Worker zorla değiştirilmez.
+
+## Doğrulama
+
+`node tools/surum-guncelle.js` ile varlık sürümlerini güncelledikten sonra `python3 tools/test-runner.py` çalıştırın. Tarayıcı testleri için Python Playwright ve Chrome/Chromium gerekir. Testler geçici tarayıcı profilleri ve loopback test sunucusu kullanır. Tarihsel bulgular, düzeltme kanıtları ve güncel mimari ayrıntılar birleştirilmiş [tam analiz ve proje raporunda](SEYIR_TAM_ANALIZ_VE_PROJE_RAPORU.md) bulunur.
+
+API sözleşmeleri: [AlAdhan](https://aladhan.com/prayer-times-api), [Open-Meteo](https://open-meteo.com/en/docs). Projenin mevcut MIT beyanına karşılık gelen metin `LICENSE` dosyasına eklenmiştir; üçüncü taraf font/ikon/kütüphaneler kendi lisanslarına tabidir ([MIT metin kaynağı](https://opensource.org/license/mit)).

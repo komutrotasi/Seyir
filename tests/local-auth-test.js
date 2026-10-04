@@ -48,7 +48,7 @@ require('../js/local-auth.js');
     await auth.login('YeniParola456!');
     assert.strictEqual(auth.isAuthenticated(), true);
 
-    auth.clearAll();
+    await auth.clearAll();
     assert.strictEqual(auth.isConfigured(), false);
     assert.strictEqual(auth.isAuthenticated(), false);
     console.log('Cihaz-yerel parola oluşturma, giriş, değiştirme ve silme testleri başarılı.');

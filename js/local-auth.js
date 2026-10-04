@@ -111,7 +111,7 @@
     function isAuthenticated() {
         try {
             const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
-            if (!session || session.authenticated !== true || Number(session.expiresAt) <= Date.now()) {
+            if (!readCredentials() || !session || session.authenticated !== true || !Number.isFinite(session.expiresAt) || session.expiresAt <= Date.now()) {
                 sessionStorage.removeItem(SESSION_KEY);
                 return false;
             }
@@ -188,7 +188,16 @@
         startSession();
     }
 
-    function clearAll() {
+    async function clearAll() {
+        // Medya silinemediyse başarı bildirilmez; parola ve yapılandırma korunur.
+        if (window.SeyirAudioStore) await window.SeyirAudioStore.clearAll();
+        if (typeof caches !== 'undefined') {
+            const scopePath = new URL('./', window.location.href).pathname;
+            const prefix = 'seyir-' + encodeURIComponent(scopePath) + '-';
+            for (const name of await caches.keys()) {
+                if (name.startsWith(prefix) || name === 'seyir-pano-offline-v1.0') await caches.delete(name);
+            }
+        }
         function clearStorage(storage) {
             const keys = [];
             for (let i = 0; i < storage.length; i += 1) {

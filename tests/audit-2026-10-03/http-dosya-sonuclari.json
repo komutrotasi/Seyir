@@ -1,0 +1,102 @@
+{
+  "http": [
+    {
+      "name": "index",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "name": "git",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "name": "encoded-git",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "name": "private",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "name": "config",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "name": "tools",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "name": "news-method",
+      "status": 405,
+      "expected": 405,
+      "passed": true
+    },
+    {
+      "name": "news-origin",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "name": "news-ssrf-ip",
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    },
+    {
+      "name": "news-domain-suffix",
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    },
+    {
+      "name": "news-size",
+      "status": 413,
+      "expected": 413,
+      "passed": true
+    },
+    {
+      "name": "image-referrer",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "name": "image-ssrf",
+      "status": 400,
+      "expected": 400,
+      "passed": true
+    }
+  ],
+  "rateLimitStatuses": [
+    400,
+    400,
+    400,
+    400,
+    400,
+    400,
+    400,
+    400,
+    429,
+    429,
+    429,
+    429,
+    429,
+    429
+  ],
+  "scannedTextFiles": 53,
+  "encodingIssues": [],
+  "secretPatternMatches": [],
+  "scope": "Örüntü taraması sır bulunmadığını kanıtlamaz; genel ağa aktif test yapılmadı."
+}

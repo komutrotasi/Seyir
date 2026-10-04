@@ -46,6 +46,7 @@
 
             req.onsuccess = function (e) {
                 dbInstance = e.target.result;
+                dbInstance.onversionchange = () => { dbInstance.close(); dbInstance = null; };
                 resolve(dbInstance);
             };
 
@@ -63,9 +64,13 @@
      */
     async function saveAudio(id, file, customName) {
         if (!id) throw new Error('Ses kimliği (id) zorunludur.');
-        if (!file) throw new Error('Kaydedilecek dosya bulunamadı.');
+        if (!(file instanceof Blob)) throw new Error('Kaydedilecek dosya bulunamadı.');
+        if (file.size > window.SeyirDataPolicy.MAX_MEDIA) throw new Error('Medya 128 MB sınırını aşıyor.');
+        if (file.type && !/^(audio|video)\/[a-z0-9.+-]+$/i.test(file.type)) throw new Error('Yalnızca ses ve video dosyası yüklenebilir.');
+        window.seyirAssertMediaWrite?.();
 
         const db = await getDB();
+        window.seyirAssertMediaWrite?.();
         const fileName = customName || file.name || 'ses_dosyasi';
         const fileType = file.type || 'audio/mpeg';
         const fileSize = file.size || 0;
@@ -82,10 +87,19 @@
         return new Promise((resolve, reject) => {
             const tx = db.transaction([STORE_NAME], 'readwrite');
             const store = tx.objectStore(STORE_NAME);
-            const req = store.put(record);
-
-            req.onsuccess = () => resolve(record);
-            req.onerror = () => reject(req.error || new Error('Ses dosyası kaydedilemedi.'));
+            window.seyirMediaBusy?.(1);
+            let failure;
+            const all = store.getAll();
+            all.onsuccess = () => {
+                try {
+                    window.seyirAssertMediaWrite?.();
+                    const total = all.result.reduce((sum, item) => sum + (item.id === record.id ? 0 : item.blob.size), file.size);
+                    if (total > window.SeyirDataPolicy.MAX_MEDIA) throw new Error('Yerel medya toplamı 128 MB sınırını aşıyor. Kullanılmayan dosyaları kaldırın.');
+                    store.put(record);
+                } catch (error) { failure = error; tx.abort(); }
+            };
+            tx.oncomplete = () => { window.seyirMediaBusy?.(-1); resolve(record); };
+            tx.onabort = () => { window.seyirMediaBusy?.(-1); reject(failure || tx.error || new Error("Medya işlemi iptal edildi.")); };
         });
     }
 
@@ -114,15 +128,19 @@
      * ID'si verilen ses kaydını siler
      */
     async function deleteAudio(id) {
+        window.seyirAssertMediaWrite?.();
         if (!id) return false;
         try {
             const db = await getDB();
+            window.seyirAssertMediaWrite?.();
             return new Promise((resolve, reject) => {
                 const tx = db.transaction([STORE_NAME], 'readwrite');
                 const store = tx.objectStore(STORE_NAME);
+                window.seyirAssertMediaDelete?.(String(id));
                 const req = store.delete(String(id));
 
-                req.onsuccess = () => resolve(true);
+                tx.oncomplete = () => resolve(true);
+                tx.onabort = () => reject(tx.error || new Error("Silme işlemi iptal edildi."));
                 req.onerror = () => reject(req.error);
             });
         } catch (err) {
@@ -140,6 +158,7 @@
      */
     async function playAudio(id, volumePercent = 80, onEnded = null) {
         const item = await getAudio(id);
+        if (window.seyirAssertMediaWrite) { try { window.seyirAssertMediaWrite(); } catch (_) { return null; } }
         if (!item || !item.blob) {
             console.warn(`SeyirAudioStore: "${id}" kimlikli ses dosyası bulunamadı.`);
             return null;
@@ -150,15 +169,19 @@
         const vol = Math.max(0.05, Math.min(1.0, (Number(volumePercent) || 80) / 100));
         audio.volume = vol;
 
-        const cleanup = () => {
+        let cleaned = false;
+        const cleanup = (notify = true) => {
+            if (cleaned) return;
+            cleaned = true;
             const idx = activeAudios.indexOf(audio);
             if (idx !== -1) activeAudios.splice(idx, 1);
             URL.revokeObjectURL(objectUrl);
-            if (typeof onEnded === 'function') {
+            if (notify && typeof onEnded === 'function') {
                 try { onEnded(); } catch (e) { console.error(e); }
             }
         };
 
+        audio.seyirCleanup = cleanup;
         audio.addEventListener('ended', cleanup, { once: true });
         audio.addEventListener('error', (err) => {
             console.warn('Ses oynatma hatası:', err);
@@ -182,10 +205,11 @@
      */
     function stopAll() {
         if (Array.isArray(activeAudios)) {
-            activeAudios.forEach(a => {
+            activeAudios.slice().forEach(a => {
                 try {
                     a.pause();
                     a.currentTime = 0;
+                    a.seyirCleanup(false);
                 } catch (e) { }
             });
             activeAudios = [];
@@ -203,7 +227,36 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 
+    async function listAll() {
+        const db = await getDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).getAll();
+            tx.oncomplete = () => resolve(req.result);
+            tx.onabort = () => reject(tx.error);
+        });
+    }
+    async function replaceAll(records, authorize = () => {}) {
+        authorize();
+        const total = records.reduce((sum, item) => sum + item.blob.size, 0);
+        if (total > window.SeyirDataPolicy.MAX_MEDIA) throw new Error('Yerel medya toplamı 128 MB sınırını aşıyor.');
+        const db = await getDB();
+        authorize();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.clear();
+            records.forEach(record => store.put(record));
+            tx.oncomplete = () => resolve();
+            tx.onabort = () => reject(tx.error || new Error('Medya işlemi geri alındı.'));
+        });
+    }
+    async function clearAll() {
+        stopAll();
+        await replaceAll([]);
+    }
     return {
+        listAll, replaceAll, clearAll,
         saveAudio: saveAudio,
         getAudio: getAudio,
         deleteAudio: deleteAudio,

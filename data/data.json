@@ -1,71 +1,36 @@
 {
-    "okulAdi": "Mahmud Celaleddin Ökten",
-    "okulTuru": "Anadolu İmam Hatip Lisesi",
-    "slogan": "Birlikte Zirveye Koşuyoruz !...",
-    "okulLogo": "img/okul_logo.png",
+    "okulAdi": "Seyir Dijital Pano",
+    "okulTuru": "",
+    "okulLogo": "img/seyir-icon.svg",
+    "okulWebSiteUrl": "",
+    "slogan": "Açık Kaynak Dijital Okul Panosu",
     "daktiloYazilari": [
-        "Medya Okulu",
-        "Teknoloji Okulu",
-        "Aile Okulu",
-        "Kur'an Okulu",
-        "Bilim Okulu",
-        "Vefa Okulu",
-        "Hareket Okulu",
-        "İlim Okulu",
-        "Kariyer Okulu",
-        "Spor Okulu",
-        "Okuma Okulu",
-        "Türkiye Yüzyılı Maarif Okulu",
-        "Zanaat Okulu"
+        "Okulun Dijital Nabzı"
     ],
-    "mebHaberler": [
-        {
-            "tip": "slider",
-            "baslik": "Öğretmenimiz Tuğba Dağlı’nın Başarısı \"VI. Uluslararası Projeden Uygulamaya Eğitim Sempozyumuna Davet\"",
-            "gorsel": "img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg",
-            "link": "https://konyamcosihl.meb.k12.tr/icerikler/öğretmenimiz-tuğba-dağlının-başarısı-vi-uluslararası-projeden-uygulamaya-eğitim-sempozyumuna-davet_17671892.html"
-        },
-        {
-            "tip": "slider",
-            "baslik": "Okulumuza Hoş Geldiniz",
-            "gorsel": "img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg",
-            "link": "https://konyamcosihl.meb.k12.tr/icerikler/okulumuza-hoş-geldiniz_17651353.html"
-        },
-        {
-            "tip": "slider",
-            "baslik": "Din Öğretiminde İyi Örnekler Kongresi'nde İki Sözlü Bildirimiz Kabul Edildi",
-            "gorsel": "img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg",
-            "link": "https://konyamcosihl.meb.k12.tr/icerikler/din-öğretiminde-iyi-örnekler-kongresinde-iki-sözlü-bildirimiz-kabul-edildi_17641455.html"
-        },
-        {
-            "tip": "slider",
-            "baslik": "\"İrade Bizim Zafer Bizim\" 15 Temmuz'u Unutmadık Unutturmayacağız.",
-            "gorsel": "img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg",
-            "link": "https://konyamcosihl.meb.k12.tr/icerikler/irade-bizim-zafer-bizim-15-temmuzu-unutmadık-unutturmayacağız_17630148.html"
-        },
-        {
-            "tip": "slider",
-            "baslik": "Bu Okula Gelin Mutlaka Görün",
-            "gorsel": "img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg",
-            "link": "https://konyamcosihl.meb.k12.tr/icerikler/bu-okula-gelin-mutlaka-görün_17627027.html"
-        }
-    ],
-    "okulWebSiteUrl": "https://konyamcosihl.meb.k12.tr/",
+    "mebHaberler": [],
+    "fotograflar": [],
     "konum": {
-        "sehir": "Konya",
-        "ilce": "Karatay",
-        "enlem": 37.8874,
-        "boylam": 32.5334
+        "sehir": "",
+        "ilce": "",
+        "enlem": null,
+        "boylam": null
     },
-    "duyurular": [],
-    "sinavlar": [],
-    "kayanYazi": [],
-    "karuselVideolar": [],
     "ayarlar": {
         "karuselSuresi": 5000,
         "temaOtomatik": true,
         "daktiloHiz": 90,
-        "daktiloBekleme": 2200
+        "daktiloBekleme": 2200,
+        "tickerDurum": true,
+        "tickerBaslik": "DUYURULAR",
+        "tickerHiz": "normal",
+        "tickerAyrac": "•",
+        "screensaver": {
+            "aktif": true,
+            "mesaiBaslangic": "07:30",
+            "mesaiBitis": "17:30",
+            "boslukDakika": 30,
+            "haftasonuUyku": true
+        }
     },
     "gizlilik": {
         "personelAdiGosterim": "gorev",
@@ -74,8 +39,47 @@
         "dersOgretmeniGoster": false,
         "saklamaSuresiGun": 365
     },
-    "nobet_programi": {},
-    "dersProgramiLise": {},
+    "duyurular": [],
+    "sinavlar": [],
+    "kayanYazi": [],
+    "tumOgretmenler": [],
     "ogretmenler": [],
-    "ogretmenBranslar": []
+    "ogretmenBranslar": [],
+    "dersProgrami": [],
+    "dersProgramiLise": [],
+    "dersProgramiOrtaokul": [],
+    "dersProgramiDetay": {},
+    "dersHavuzuLise": [],
+    "dersHavuzuOrtaokul": [],
+    "sinifListesi": [],
+    "sinifDersleri": {},
+    "sinifDersOgretmen": {},
+    "sinifRehberlik": {},
+    "nobetciOgretmenler": [],
+    "nobetciGunluk": {},
+    "tamamlamaAtamalari": {},
+    "otomatikYedek": {
+        "aktif": false,
+        "saat": "17:00",
+        "hedefTur": "indir",
+        "klasorAdi": "",
+        "sonYedekTarihi": "",
+        "sonYedekZamani": ""
+    },
+    "yedekGecmisi": [],
+    "veriYonetimi": {},
+    "zilYonetimi": {
+        "aktif": false,
+        "melodiOgrenci": "modern",
+        "melodiOgretmen": "chime",
+        "melodiCikis": "westminster",
+        "sesSeviyesi": 80,
+        "calmaSuresi": 8,
+        "haftasonuSessiz": true,
+        "sesliAnons": false,
+        "cizelge": [],
+        "torenMuzikleri": [],
+        "gecmis": []
+    },
+    "karuselVideolar": []
 }

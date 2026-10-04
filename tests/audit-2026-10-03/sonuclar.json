@@ -1,0 +1,68 @@
+{
+  "tamamlama_stored_xss": {
+    "script_executed": true,
+    "persisted": true,
+    "dialogs": [
+      "İçe aktarılan dosya kişisel veri içerebilir ve bu cihazın yerel depolamasına kaydedilecektir. Dosyanın yetkili bir kaynaktan geldiğini doğruladınız mı?"
+    ],
+    "errors": []
+  },
+  "ui_program_roundtrip": {
+    "privateDay": {
+      "2": {
+        "ders": "Matematik",
+        "ogretmen": "",
+        "type": "ders"
+      }
+    },
+    "publicDay": [],
+    "validation": "veri.dersProgramiDetay.9A.Pazartesi: liste olmalıdır.",
+    "afterReloadClassCount": 0,
+    "errors": []
+  },
+  "large_media_roundtrip": {
+    "saveSucceeded": true,
+    "backup": "veri.karuselVideolar.dosyaBoyut: geçersiz sayı.",
+    "validation": "veri.karuselVideolar.dosyaBoyut: geçersiz sayı."
+  },
+  "pano_retention": {
+    "publicStillContainsName": true,
+    "panoDataContainsName": true,
+    "renderedName": true
+  },
+  "disabled_weekend_bell_banner": {
+    "day": "Saturday",
+    "configuredActive": false,
+    "overlayActive": true,
+    "title": "🔔 1. DERS BAŞLADI!"
+  },
+  "concurrent_admin_lost_update": {
+    "persistedSlogan": "",
+    "expected": "FIRST_TAB_NEW"
+  },
+  "delete_media_quota_rollback": {
+    "message": "Kayıt tamamlanamadı; önceki kayıt korundu. simulated quota",
+    "referenceRemains": true,
+    "mediaExists": false
+  },
+  "sorted_assignment_delete": {
+    "firstDisplayedRow": "2. Ders\n                    \n                        EARLY\n                        Test\n                    \n                     \n                     \n                    \n                         İptal",
+    "remaining": [
+      {
+        "saat": 1,
+        "sinif": "EARLY",
+        "dersAdi": "Test"
+      }
+    ]
+  },
+  "brand_fonts": [
+    {
+      "url": "http://127.0.0.1:18766/webfonts/fa-brands-400.woff2",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:18766/webfonts/fa-brands-400.ttf",
+      "status": 404
+    }
+  ]
+}

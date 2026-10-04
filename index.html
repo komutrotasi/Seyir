@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr https://*.ytimg.com https://*.youtube.com; font-src 'self' data:; connect-src 'self' https://api.open-meteo.com https://api.aladhan.com; media-src 'self' blob: data: https:; object-src 'none'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'">
-    <title>Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi | Seyir</title>
-    <meta name="description" content="Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi dijital bilgi panosu.">
+    <title>Seyir Dijital Pano — Okulun Dijital Nabzı</title>
+    <meta name="description" content="Seyir Dijital Pano dijital bilgi panosu.">
     <!-- Open Graph -->
     <meta property="og:title" content="Seyir Dijital Okul Panosu">
     <meta property="og:description" content="Akıllı tahta ve TV ekranları için çevrimdışı destekli dijital okul bilgi panosu.">
@@ -16,12 +16,12 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <!-- Favicon -->
-    <link rel="shortcut icon" href="img/favicon.png" type="image/png">
+    <link rel="shortcut icon" href="img/seyir-icon-192.png" type="image/png">
     <!-- Yerel Font Awesome: pano açılışında üçüncü taraf CDN bağlantısı kurulmaz. -->
     <link rel="stylesheet" href="css/fontawesome.min.css?v=20260930_ded1c367">
 
     <!-- PanoTV Styles -->
-    <link rel="stylesheet" href="css/seyir.css?v=20260930_bf6e54d4">
+    <link rel="stylesheet" href="css/seyir.css?v=20261004_09b1c70a">
 </head>
 
 <body>
@@ -31,7 +31,7 @@
         <div class="screensaver-drift-container" id="screensaver-drift">
             <!-- Logo -->
             <div class="screensaver-logo-wrap">
-                <img src="img/okul_logo.png" alt="Okul Logosu" class="screensaver-logo" id="screensaver-logo-img">
+                <img src="img/seyir-icon.svg" alt="Okul Logosu" class="screensaver-logo" id="screensaver-logo-img">
             </div>
             <!-- Okul Adı & Sloganı -->
             <div class="screensaver-school-name" id="screensaver-school-name">Yükleniyor...</div>
@@ -76,19 +76,19 @@
             <!-- HEADER -->
             <header class="pano-header">
                 <div class="pano-logo">
-                    <img src="img/okul_logo.png" alt="Mahmud Celaleddin Ökten Anadolu İmam Hatip Lisesi Logosu"
+                    <img src="img/seyir-icon.svg" alt="Seyir Dijital Pano Logosu"
                         class="pano-okul-logo-img">
                     <div class="pano-logo-text">
                         <h1 id="pano-okul-adi" class="koyu-gecisli-baslik">
-                            <span class="okul-ana-isim">Mahmud Celaleddin Ökten</span>
-                            <span class="okul-alt-isim">Anadolu İmam Hatip Lisesi</span>
+                            <span class="okul-ana-isim">Seyir Dijital</span>
+                            <span class="okul-alt-isim">Pano</span>
                         </h1>
                         <div class="pano-sub-identity">
                             <div class="pano-slogan-wrap" id="pano-slogan-wrap">
-                                <span class="pano-slogan-badge" id="pano-slogan">Birlikte Zirveye Koşuyoruz !...</span>
+                                <span class="pano-slogan-badge" id="pano-slogan">Açık Kaynak Dijital Okul Panosu</span>
                             </div>
                             <div class="code-subline">
-                                <span class="code-prompt">&gt;</span> <span id="pano-typewriter">Medya Okulu</span><span
+                                <span class="code-prompt">&gt;</span> <span id="pano-typewriter">Okulun Dijital Nabzı</span><span
                                     class="typewriter-cursor">_</span>
                             </div>
                         </div>
@@ -369,9 +369,10 @@
     <!-- Türkiye 81 İl Koordinat ve API Eşleme Modülü -->
     <script src="js/sehir-koordinat.js?v=20260930_5f6f637b"></script>
     <!-- Yerel Ses ve Müzik Depolama Modülü -->
-    <script src="js/audio-store.js?v=20260930_5ef087ed"></script>
+    <script src="js/data-policy.js?v=20261004_a0d8f0b1"></script>
+    <script src="js/audio-store.js?v=20261004_2a96b2ca"></script>
     <!-- PanoTV Core Logic -->
-    <script src="js/seyir.js?v=20260930_4bcaba98"></script>
+    <script src="js/seyir.js?v=20261004_2d8b2680"></script>
 </body>
 
 </html>
