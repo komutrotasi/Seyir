@@ -1,6 +1,6 @@
 /* Seyir: sürümlü uygulama kabuğu; kapsamı ve boyutu sınırlı çalışma önbelleği. */
 // GENERATED-PRECACHE-START
-const RELEASE = "0519e623fce5f027";
+const RELEASE = "09585544904ff100";
 const PRECACHE_ASSETS = [
     "./",
     "./index.html",
@@ -19,12 +19,13 @@ const PRECACHE_ASSETS = [
     "./js/sehir-koordinat.js?v=20260930_5f6f637b",
     "./js/data-policy.js?v=20261004_a0d8f0b1",
     "./js/audio-store.js?v=20261004_2a96b2ca",
-    "./js/seyir.js?v=20261004_2d8b2680",
+    "./js/seyir.js?v=20261004_ccc7111d",
     "./css/admin.css?v=20260930_618c0129",
     "./js/vendor/xlsx.full.min.js?v=20260930_6b3130af",
     "./js/backup.js?v=20261004_de700fb2",
-    "./js/local-auth.js?v=20261003_a685c3c2",
-    "./js/admin.js?v=20261004_2be4e575"
+    "./js/backup-handle-store.js?v=20261004_91354023",
+    "./js/local-auth.js?v=20261004_aa39bc11",
+    "./js/admin.js?v=20261004_b2d47558"
 ];
 // GENERATED-PRECACHE-END
 const PREFIX = 'seyir-' + encodeURIComponent(new URL(self.registration.scope).pathname) + '-';
@@ -34,8 +35,9 @@ const ASSETS = new Set(PRECACHE_ASSETS.map(path => new URL(path, self.registrati
 
 self.addEventListener('install', event => {
     // Tek bir zorunlu varlık bile eksikse eski çalışan sürüm korunur.
-    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_ASSETS.map(url => new Request(url, { cache: 'reload' })))));
-    // Açık panonun sürümünü ortasında değiştirmemek için skipWaiting kullanılmaz.
+    event.waitUntil(caches.open(CACHE_NAME)
+        .then(cache => cache.addAll(PRECACHE_ASSETS.map(url => new Request(url, { cache: 'reload' }))))
+        .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
     event.waitUntil((async () => {

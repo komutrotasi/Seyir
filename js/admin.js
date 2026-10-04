@@ -168,7 +168,7 @@ function renderNotificationsDropdown() {
         items.push({
             icon: '💾',
             title: 'Otomatik Yedekleme Devrede',
-            desc: `Her gün saat ${yedek.saat || '17:00'}'de veri tabanı otomatik indirilecek.`,
+            desc: `Her gün saat ${yedek.saat || '17:00'}'de cihaz içi yedek oluşturulacak; panel kapalıysa sonraki girişte telafi edilecek.`,
             time: 'Aktif Zamanlayıcı'
         });
     } else {
@@ -372,6 +372,10 @@ let editorRelease = null;
 let loadedPrivateRaw;
 let dataReady = false;
 let pendingMediaWrites = 0;
+let chosenDirectoryHandle = null;
+const backupHandleReady = window.SeyirBackupHandleStore?.get().then(handle => {
+    if (handle && typeof handle.queryPermission === 'function') chosenDirectoryHandle = handle;
+}).catch(error => console.warn('Kayıt klasörü geri yüklenemedi:', error)) || Promise.resolve();
 Object.defineProperty(window, 'dataReady', { get: () => dataReady, configurable: true });
 Object.defineProperty(window, 'editorRelease', { get: () => editorRelease, configurable: true });
 function assertEditor() {
@@ -599,6 +603,9 @@ document.addEventListener('DOMContentLoaded', () => {
         passwordInput.value = '';
         repeatInput.value = '';
         await loadData();
+        await backupHandleReady;
+        await checkAutoBackupScheduler();
+        haberleriGerekirseOtomatikYenile();
     }
 
     function checkSession() {
@@ -1017,33 +1024,10 @@ document.addEventListener('DOMContentLoaded', () => {
      *        admin panelinin aynı içeriği göstermesini sağlar.
      *        "Verileri Sıfırla" akışında false verilir (gerçekten boş duruma dönmek için).
      */
-    function isLegacyDemoData(raw) {
-        if (!raw) return false;
-        const s = typeof raw === 'string' ? raw : JSON.stringify(raw);
-        const markers = [
-            "Mahmud Celaleddin Ökten", "konyamcosihl", "Fikirden Koda",
-            "Hafta Sonu DYK", "1. Dönem Genel Veli", "TEKNOFEST 2026",
-            "Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik",
-            "Ali Öztürk", "Zeynep Şahin", "Mustafa Koç", "Hatice Aydın",
-            "Hüseyin Arslan", "Elif Yıldız", "Emre Aksoy", "Burak Doğan",
-            "Seda Polat", "Deniz Kılıç", "Hasan Can", "Tuğba Dağlı",
-            "1. Dönem 1. Ortak Yazılı Sınavı", "TÜBİTAK 4006"
-        ];
-        return markers.some(m => s.includes(m));
-    }
-
     async function loadData(dosyadanTohumla = true, hatayiIlet = false) {
         try {
             const dosyaVerisi = dosyadanTohumla ? await baslangicVerisiniOku() : null;
-            let local = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
-            if (local && isLegacyDemoData(local)) {
-                try {
-                    localStorage.removeItem(SEYIR_PRIVATE_STORAGE_KEY);
-                    localStorage.removeItem(SEYIR_PUBLIC_STORAGE_KEY);
-                    localStorage.setItem('seyir_clean_init_20261004', '1');
-                    local = null;
-                } catch (_) {}
-            }
+            const local = localStorage.getItem(SEYIR_PRIVATE_STORAGE_KEY);
             loadedPrivateRaw = local;
             appData = window.SeyirDataPolicy.validate(local ? JSON.parse(local) : (dosyaVerisi || getBosSablon()));
             dataReady = true;
@@ -4428,8 +4412,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // 💾 VERİ YÖNETİMİ, AKILLI OTOMATİK YEDEKLEME VE SNAPSHOT MOTORU
     // ══════════════════════════════════════════════════════════════════════
 
-    let chosenDirectoryHandle = null;
-
     function getTarihSaatEtiketi() {
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -4570,7 +4552,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isActive) {
                 banner.classList.add('active');
                 const kalan = getKalanSureMetni(config.saat || '17:00');
-                statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Otomatik yedekleme <strong>aktif</strong>. Her gün saat <strong>${escapeHtml(config.saat || '17:00')}</strong>'da yedek üretilecek.`;
+                statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Otomatik yedekleme <strong>aktif</strong>. Her gün saat <strong>${escapeHtml(config.saat || '17:00')}</strong>'da veya panel sonraki açıldığında telafi yedeği üretilecek.`;
                 countdown.textContent = `Sıradaki Yedek: ${kalan}`;
             } else {
                 banner.classList.remove('active');
@@ -4660,7 +4642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    async function executeBackupOperation(isAuto = false) {
+    async function executeBackupOperation(isAuto = false, planliTarih = '') {
         formVerileriniOku();
         saveData();
 
@@ -4684,7 +4666,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const opts = { mode: 'readwrite' };
                     let permission = await chosenDirectoryHandle.queryPermission(opts);
-                    if (permission !== 'granted') {
+                    if (permission !== 'granted' && !isAuto) {
                         permission = await chosenDirectoryHandle.requestPermission(opts);
                     }
                     if (permission === 'granted') {
@@ -4695,12 +4677,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         klasoreYazildi = true;
                     }
                 } catch (err) {
-                    console.warn('Yerel klasöre yazılamadı, indirmeye dönülüyor:', err);
+                    console.warn('Yerel klasöre yazılamadı, cihaz içi yedek korunuyor:', err);
                 }
             }
-            if (!klasoreYazildi) {
+            if (!klasoreYazildi && !isAuto) {
                 jsonDosyasiIndir(yedekVeri, dosyaAdi);
                 hedefMetni = 'Tarayıcı İndirmeleri (Yedek)';
+            } else if (!klasoreYazildi) {
+                hedefMetni = 'Cihaz içi yapılandırma (klasör izni bekliyor)';
             }
         } else {
             // 'indir'
@@ -4729,7 +4713,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!appData.otomatikYedek) appData.otomatikYedek = {};
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
-        appData.otomatikYedek.sonYedekTarihi = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        if (isAuto) {
+            appData.otomatikYedek.sonYedekTarihi = planliTarih || `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        }
         appData.otomatikYedek.sonYedekZamani = now.toLocaleString('tr-TR');
 
         saveData();
@@ -4794,7 +4780,18 @@ document.addEventListener('DOMContentLoaded', () => {
         BhUI.toast('Yedek kaydı silindi.', 'success');
     };
 
-    function checkAutoBackupScheduler() {
+    let autoBackupRunning = false;
+
+    function getMostRecentScheduledDate(now, saat) {
+        const parts = String(saat || '17:00').split(':').map(Number);
+        const scheduled = new Date(now);
+        scheduled.setHours(parts[0], parts[1], 0, 0);
+        if (scheduled.getTime() > now.getTime()) scheduled.setDate(scheduled.getDate() - 1);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${scheduled.getFullYear()}-${pad(scheduled.getMonth() + 1)}-${pad(scheduled.getDate())}`;
+    }
+
+    async function checkAutoBackupScheduler() {
         if (!appData || !appData.otomatikYedek) return;
         const config = appData.otomatikYedek;
 
@@ -4802,20 +4799,20 @@ document.addEventListener('DOMContentLoaded', () => {
         syncAutoBackupFormUI();
         window.updateVeriKPIs();
 
-        if (!config.aktif) return;
+        if (!config.aktif || autoBackupRunning || !dataReady || !SEYIR_LOCAL_AUTH?.isAuthenticated()) return;
 
         const now = new Date();
-        const pad = (n) => String(n).padStart(2, '0');
-        const currentTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-        const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        const planliTarih = getMostRecentScheduledDate(now, config.saat);
+        if (String(config.sonYedekTarihi || '') >= planliTarih) return;
 
-        // Hedef saat ile mevcut saat eşleşiyorsa ve bugün henüz yedek alınmadıysa
-        if (currentTime === config.saat && config.sonYedekTarihi !== todayStr) {
-            executeBackupOperation(true).then((dosyaAdi) => {
-                BhUI.toast(`🕒 Otomatik Günlük Yedek Alındı: ${dosyaAdi}`, 'success');
-            }).catch(err => {
-                console.error('Otomatik yedekleme hatası:', err);
-            });
+        autoBackupRunning = true;
+        try {
+            const dosyaAdi = await executeBackupOperation(true, planliTarih);
+            BhUI.toast(`🕒 Otomatik günlük yedek alındı: ${dosyaAdi}`, 'success');
+        } catch (err) {
+            console.error('Otomatik yedekleme hatası:', err);
+        } finally {
+            autoBackupRunning = false;
         }
     }
 
@@ -4869,7 +4866,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function initAutoBackupEngine() {
+    async function initAutoBackupEngine() {
         if (!appData.otomatikYedek) {
             appData.otomatikYedek = {
                 aktif: false,
@@ -4926,6 +4923,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if ('showDirectoryPicker' in window) {
                     try {
                         chosenDirectoryHandle = await window.showDirectoryPicker();
+                        await window.SeyirBackupHandleStore?.save(chosenDirectoryHandle);
                         appData.otomatikYedek.klasorAdi = chosenDirectoryHandle.name;
                         appData.otomatikYedek.hedefTur = 'klasor';
                         saveData();
@@ -4964,16 +4962,20 @@ document.addEventListener('DOMContentLoaded', () => {
         setupExcelDropzone('dropzone-nobet', 'inp-excel-nobet', 'preview-filename-nobet');
         setupExcelDropzone('dropzone-sinav', 'inp-excel-sinav', 'preview-filename-sinav');
 
+        // Önceki sayfa oturumunda seçilmiş klasör yüklenmeden planlı işlem başlatma.
+        await backupHandleReady;
+
         // UI ilk senkronizasyonu
         syncAutoBackupFormUI();
         renderBackupHistory();
         window.updateVeriKPIs();
 
-        // 30 saniyede bir zamanlayıcı kontrolü ve geri sayım tazelemesi
+        // Açılışta kaçırılmış yedeği telafi et; sonra zamanlayıcıyı düzenli denetle.
+        setTimeout(checkAutoBackupScheduler, 0);
         setInterval(checkAutoBackupScheduler, 30000);
     }
 
-    initAutoBackupEngine();
+    initAutoBackupEngine().catch(error => console.warn('Otomatik yedekleyici hazırlanamadı:', error));
 
     // ─── OKUL LOGOSU VE DİNAMİK HABER ÇEKME YÖNETİMİ — Madde 3.1 ───
     const inpLogoFile = document.getElementById('inp-okulLogo-file');
@@ -5026,30 +5028,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const BASLANGIC_HABER_GORSELLERI = [
-        { anahtar: '17671892', yol: 'img/cache-haber/1f7b850ded319eae7fd316971f12edbf.jpg' },
-        { anahtar: '17651353', yol: 'img/cache-haber/aa37a2d7e85bc9260d6b90520044e1a9.jpg' },
-        { anahtar: '17641455', yol: 'img/cache-haber/5838e94d73f6e588e7c5e20c37312ef9.jpg' },
-        { anahtar: '17630148', yol: 'img/cache-haber/14203116_whatsappimage20250710at22.31.50.jpg' },
-        { anahtar: '17627027', yol: 'img/cache-haber/dc47059d84dc535622c58a4fee7da05b.jpg' }
-    ];
-
-    function baslangicHaberGorselleriniDuzelt(haberler) {
-        let degisti = false;
-        (Array.isArray(haberler) ? haberler : []).forEach(haber => {
-            const aramaMetni = String(haber.link || '') + ' ' + String(haber.gorsel || '');
-            const yerel = BASLANGIC_HABER_GORSELLERI.find(kayit => aramaMetni.includes(kayit.anahtar));
-            if (yerel && haber.gorsel !== yerel.yol) {
-                haber.gorsel = yerel.yol;
-                degisti = true;
-            }
-        });
-        return degisti;
-    }
-
     // Dinamik MEB Haberleri Çekme Fonksiyonu
+    const SEYIR_NEWS_REFRESH_KEY = 'seyir_news_refresh_v1';
+    const SEYIR_NEWS_REFRESH_INTERVAL = 60 * 60 * 1000;
     let haberIstegiDenetleyici = null;
     let aktifHaberUrl = '';
+
+    function haberYenilemeKaydiniOku() {
+        try {
+            const kayit = JSON.parse(localStorage.getItem(SEYIR_NEWS_REFRESH_KEY) || 'null');
+            return kayit && typeof kayit.url === 'string' && Number.isFinite(kayit.zaman) ? kayit : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function haberleriGerekirseOtomatikYenile() {
+        if (!dataReady || !SEYIR_LOCAL_AUTH?.isAuthenticated()) return;
+        const url = String(appData.okulWebSiteUrl || '').trim();
+        if (!url) return;
+        const kayit = haberYenilemeKaydiniOku();
+        const haberYok = !Array.isArray(appData.mebHaberler) || appData.mebHaberler.length === 0;
+        const adresDegisti = !kayit || kayit.url !== url;
+        const sureDoldu = !kayit || Date.now() - kayit.zaman >= SEYIR_NEWS_REFRESH_INTERVAL;
+        if (haberYok || adresDegisti || sureDoldu) fetchMebHaberlerOtomatik(url);
+    }
 
     async function fetchMebHaberlerOtomatik(hedefUrl) {
         let url = (hedefUrl || document.getElementById('inp-webUrl').value || '').trim();
@@ -5131,9 +5134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // appData mebHaberler güncelle
                 if (data.haberler && Array.isArray(data.haberler)) {
                     appData.okulWebSiteUrl = url;
-                    baslangicHaberGorselleriniDuzelt(data.haberler);
                     appData.mebHaberler = data.haberler;
                     saveData();
+                    try {
+                        localStorage.setItem(SEYIR_NEWS_REFRESH_KEY, JSON.stringify({ url, zaman: Date.now() }));
+                    } catch (_) { /* Haber kaydı başarılıysa sayaç kotası sonucu geçersiz kılmaz. */ }
                 }
 
                 if (statusEl) {
@@ -5193,6 +5198,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchMebHaberlerOtomatik();
         });
     }
+    setInterval(haberleriGerekirseOtomatikYenile, 15 * 60 * 1000);
 
     // --- SÜRÜKLE BIRAK MANTIĞI & NÖBET YÖNETİMİ ---
     function getNobetZonesList() {
@@ -6038,7 +6044,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // İzinli Öğretmenlerin o saatteki derslerini bul
-        const atanabilecekDersler = []; // { izinli: 'Ahmet', sinif: '10/A', dersAdi: 'Matematik' }
+        const atanabilecekDersler = []; // { izinli: 'Öğretmen A', sinif: '10/A', dersAdi: 'Matematik' }
 
         if (appData.dersProgramiDetay) {
             for (const [sinif, gunlerObj] of Object.entries(appData.dersProgramiDetay)) {
@@ -6222,13 +6228,13 @@ window.currentProgramKademeFilter = 'all';
 // Çakışma Denetimi (Bir öğretmen aynı gün ve saatte birden fazla sınıfta derste mi?)
 window.checkTeacherConflicts = function () {
     const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
-    const conflictMap = {}; // { "Pazartesi": { "0": { "Ahmet Yılmaz": ["9A", "9B"] } } }
+    const conflictMap = {}; // { "Pazartesi": { "0": { "Öğretmen A": ["9A", "9B"] } } }
     let totalConflicts = 0;
 
     days.forEach(day => {
         conflictMap[day] = {};
         for (let p = 0; p < 10; p++) {
-            const teacherAssignments = {}; // { "Ahmet Yılmaz": ["9A", "9B"] }
+            const teacherAssignments = {}; // { "Öğretmen A": ["9A", "9B"] }
 
             if (appData.dersProgramiDetay && typeof appData.dersProgramiDetay === 'object') {
                 for (const [sinif, gunlerObj] of Object.entries(appData.dersProgramiDetay)) {
@@ -6810,7 +6816,7 @@ window.yazdirSinifProgrami = function () {
     const bugun = new Date().toLocaleDateString('tr-TR');
 
     let totalLessonsCount = 0;
-    const subjectTeacherMap = {}; // { "MATEMATİK": { saat: 6, hoca: "Ahmet YILMAZ" } }
+    const subjectTeacherMap = {}; // { "MATEMATİK": { saat: 6, hoca: "ÖĞRETMEN A" } }
 
     let rowsHtml = '';
     for (let p = 0; p < periodCount; p++) {
@@ -11448,5 +11454,16 @@ window.closeVideoPreview = function () {
 
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(error => console.warn('Çevrimdışı yönetim hazırlanamadı:', error));
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let updateReloadStarted = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (hadController && !updateReloadStarted) {
+            updateReloadStarted = true;
+            window.location.reload();
+        }
+    });
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(registration => {
+        registration.update().catch(() => {});
+        setInterval(() => registration.update().catch(() => {}), 60 * 60 * 1000);
+    }).catch(error => console.warn('Çevrimdışı yönetim hazırlanamadı:', error));
 }

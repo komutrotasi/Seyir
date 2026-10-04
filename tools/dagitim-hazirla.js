@@ -10,7 +10,7 @@ if (!target || target === root || target.startsWith(root + path.sep) || fs.exist
 }
 const files = ['index.html','admin.html','admin.php','sw.js','manifest.json','.htaccess','LICENSE',
     'fetch-haberler.php','fetch-gorsel.php','lib/meb-parser.php','lib/rate-limit.php',
-    'img/seyir-icon.svg','img/seyir-icon-192.png','img/seyir-icon-512.png','img/okul_logo.png','img/favicon.png',
+    'img/seyir-icon.svg','img/seyir-icon-192.png','img/seyir-icon-512.png',
     'data/data.json','data/dini_icerik.json','data/meb_haberler.json'];
 for (const dir of ['css','js','webfonts']) {
     function scan(rel) {

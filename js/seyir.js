@@ -184,35 +184,12 @@ const PanoTV = (function () {
             let localData = null;
             // Yönetim verisinin tamamını okumaz; admin panelinin gizlilik kurallarıyla
             // hazırladığı açık pano kopyasını kullanır.
-            function isLegacyDemoData(raw) {
-                if (!raw) return false;
-                const s = typeof raw === 'string' ? raw : JSON.stringify(raw);
-                const markers = [
-                    "Mahmud Celaleddin Ökten", "konyamcosihl", "Fikirden Koda",
-                    "Hafta Sonu DYK", "1. Dönem Genel Veli", "TEKNOFEST 2026",
-                    "Ahmet Yılmaz", "Ayşe Demir", "Mehmet Kaya", "Fatma Çelik",
-                    "Ali Öztürk", "Zeynep Şahin", "Mustafa Koç", "Hatice Aydın",
-                    "Hüseyin Arslan", "Elif Yıldız", "Emre Aksoy", "Burak Doğan",
-                    "Seda Polat", "Deniz Kılıç", "Hasan Can", "Tuğba Dağlı",
-                    "1. Dönem 1. Ortak Yazılı Sınavı", "TÜBİTAK 4006"
-                ];
-                return markers.some(m => s.includes(m));
-            }
-
             const localDataStr = localStorage.getItem('seyir_public_data');
             if (localDataStr) {
-                if (isLegacyDemoData(localDataStr)) {
-                    try {
-                        localStorage.removeItem('seyir_public_data');
-                        localStorage.setItem('seyir_clean_init_20261004', '1');
-                    } catch (_) {}
-                    localData = null;
-                } else {
-                    try {
-                        localData = JSON.parse(localDataStr);
-                    } catch (e) {
-                        console.error("Local data parse error", e);
-                    }
+                try {
+                    localData = JSON.parse(localDataStr);
+                } catch (e) {
+                    console.error("Local data parse error", e);
                 }
             }
 
@@ -1881,8 +1858,18 @@ const PanoTV = (function () {
 
         // ─── PWA Service Worker Kaydı ───
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').then((reg) => {
+            const hadController = Boolean(navigator.serviceWorker.controller);
+            let updateReloadStarted = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (hadController && !updateReloadStarted) {
+                    updateReloadStarted = true;
+                    window.location.reload();
+                }
+            });
+            navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then((reg) => {
                 console.info('[Seyir] Service Worker kayıt OK, kapsam:', reg.scope);
+                reg.update().catch(() => {});
+                setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
             }).catch((err) => {
                 console.warn('[Seyir] Service Worker kayıt başarısız:', err);
             });

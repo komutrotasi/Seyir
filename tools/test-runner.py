@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Depoyu değiştirmeyen bütünleşik kontroller; izole profil ve loopback sunucusu."""
 from pathlib import Path
-import os,sys,subprocess,socket,time,tempfile,urllib.request
+import importlib.util,os,sys,subprocess,socket,time,tempfile,urllib.request
 ROOT=Path(__file__).resolve().parent.parent
 os.chdir(ROOT)
+if importlib.util.find_spec('playwright') is None:
+ print('Eksik test bağımlılığı: python3 -m pip install -r requirements-dev.txt',file=sys.stderr)
+ sys.exit(2)
 commands=[['node','tools/encoding-kontrol.js'],['node','tools/guvenlik-kontrol.js'],['node','tools/surum-guncelle.js','--kontrol'],['node','tests/data-policy-test.js'],['node','tests/local-auth-test.js']]
 commands += [['node','--check',str(f)] for f in [*Path('js').glob('*.js'),*Path('tools').glob('*.js'),Path('sw.js')]]
 commands += [['php','-l',str(f)] for f in Path('.').rglob('*.php') if '.git' not in f.parts]
@@ -27,7 +30,7 @@ with tempfile.TemporaryFile() as log:
    try: urllib.request.urlopen(base+route);raise AssertionError('Geçersiz aracı isteği kabul edildi: '+route)
    except urllib.error.HTTPError as e: assert e.code in [400,403,405],(route,e.code)
   env={**os.environ,'SEYIR_TEST_URL':base}
-  for file,args in [('browser-regression.py',['3']),('pano-runtime-test.py',[]),('offline-freshness-test.py',[]),('storage-backup-test.py',[]),('session-test.py',[]),('resource-lifecycle-test.py',[]),('api-freshness-test.py',[]),('remediation-2026-10-04-test.py',[])]:
+  for file,args in [('browser-regression.py',['3']),('pano-runtime-test.py',[]),('offline-freshness-test.py',[]),('storage-backup-test.py',[]),('auto-backup-test.py',[]),('session-test.py',[]),('resource-lifecycle-test.py',[]),('api-freshness-test.py',[]),('remediation-2026-10-04-test.py',[]),('news-persistence-test.py',[])]:
    print('Tarayıcı:',file,flush=True);subprocess.run([sys.executable,'tests/'+file,*args],env=env,check=True)
  finally:
   server.terminate();server.wait(timeout=5)

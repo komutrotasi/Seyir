@@ -8,7 +8,7 @@ Admin panelinin (`admin.html`) tam yönetim verisi bundan ayrıdır:
 
 - **`localStorage['seyir_admin_data']`:** Öğretmen ve program ayrıntılarını içerebilen özel yönetim alanı. Pano bunu okumaz.
 - **`localStorage['seyir_public_data']`:** Gizlilik seçenekleri uygulanarak üretilen yerel pano kopyası.
-- **`data/data.json`:** Her yeni cihaz için Mahmud Celaleddin Ökten AİHL kimliğini ve resmî, herkese açık başlangıç haberlerini içeren; personel/öğrenci verisi içermeyen başlangıç şablonu.
+- **`data/data.json`:** Her yeni cihaz için kurum, personel, öğrenci ve haber kaydı içermeyen nötr sıfır-preset başlangıç şablonu.
 - **`localStorage['seyir_local_credentials']`:** Açık parola içermeyen PBKDF2 parola özeti ve rastgele salt.
 - **`*.private.json`:** Tam yönetim yedeği. Kişisel veri içerebilir ve web sunucusuna yüklenemez.
 
@@ -165,4 +165,3 @@ Bu alanlar `data.json`'a **yazılmaz**; pano tarafından bellekte üretilir:
 |---|---|
 | `data/dini_icerik.json` | `{ ayetler: [{ar, t, s}], hadisler: [{t, s}], dualar: [{t, s}] }` — `ar` Arapça metin, `t` Türkçe meal, `s` kaynak. Arapça yalnızca **Vaktin Ayeti** kartında gösterilir (AGENTS.md Kural 3.1). |
 | `data/meb_haberler.json` | Paketlenmiş başlangıç haberlerinin okunabilir örneği; pano bu ortak dosyayı çalışma zamanında okumaz. Güncel haberler cihazın `seyir_public_data` kaydından gelir. |
-

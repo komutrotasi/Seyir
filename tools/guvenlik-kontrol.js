@@ -17,16 +17,17 @@ const adminPhp = oku('admin.php');
 const adminJs = oku('js/admin.js');
 const localAuthJs = oku('js/local-auth.js');
 const seyirJs = oku('js/seyir.js');
+const swJs = oku('sw.js');
+const htaccess = oku('.htaccess');
 const fetchPhp = oku('fetch-haberler.php');
 const fetchGorselPhp = oku('fetch-gorsel.php');
 const rateLimitPhp = oku('lib/rate-limit.php');
 const xlsxYolu = path.join(KOK, 'js/vendor/xlsx.full.min.js');
 const veri = JSON.parse(oku('data/data.json'));
+const dataPolicy = require(path.join(KOK, 'js/data-policy.js'));
 
-const gecerliOkullar = ['Seyir Dijital Pano', 'Mahmud Celaleddin Ökten'];
-const gecerliMebUrl = u => !u || /^https?:\/\/[a-z0-9.-]+\.meb\.(?:k12|gov)\.tr(?:\/|$)/i.test(u);
-if (!gecerliOkullar.includes(veri.okulAdi) || !gecerliMebUrl(veri.okulWebSiteUrl) || (veri.mebHaberler || []).length) {
-    sorunlar.push('data/data.json nötr veya kurumsal başlangıç şablonu olmalı');
+if (JSON.stringify(veri) !== JSON.stringify(dataPolicy.emptyTemplate())) {
+    sorunlar.push('data/data.json yalnızca nötr sıfır-preset başlangıç şablonu olmalı');
 }
 if (/getOrnekOgretmenVeNobetVerisi/.test(adminJs)) sorunlar.push('Otomatik örnek personel ekleme kaldırılmalı');
 
@@ -113,6 +114,15 @@ try {
 if (seyirJs.includes('data/meb_haberler.json')) {
     sorunlar.push('js/seyir.js: okullar arasında ortak haber önbelleği okunuyor');
 }
+if (!swJs.includes('self.skipWaiting()') || !adminJs.includes("updateViaCache: 'none'") || !seyirJs.includes("updateViaCache: 'none'")) {
+    sorunlar.push('PWA: yeni Service Worker sürümünün gecikmeden etkinleşme akışı eksik');
+}
+if (!adminJs.includes("addEventListener('controllerchange'") || !seyirJs.includes("addEventListener('controllerchange'")) {
+    sorunlar.push('PWA: etkinleşen sürümden sonra kontrollü sayfa yenilemesi eksik');
+}
+if (!/<Files\s+["']sw\.js["']>[\s\S]*Cache-Control\s+["']no-cache, no-store, must-revalidate["']/i.test(htaccess)) {
+    sorunlar.push('.htaccess: sw.js için güncel sürümü zorlayan önbellek başlığı eksik');
+}
 if (/\.\.\/(?:nexus-auth\.js|styles\.css|login\.html)/.test(indexHtml + adminHtml)) {
     sorunlar.push('HTML: proje dışı NEXUS bağımlılığı bulundu');
 }
@@ -129,7 +139,7 @@ for (const [ad, html] of [['index.html', indexHtml], ['admin.html', adminHtml]])
 }
 
 const zorunluDosyalar = [
-    'admin.php', 'fetch-gorsel.php', 'js/local-auth.js', 'lib/meb-parser.php',
+    'admin.php', 'fetch-gorsel.php', 'js/local-auth.js', 'js/backup-handle-store.js', 'lib/meb-parser.php',
     'css/fontawesome.min.css', 'webfonts/fa-solid-900.woff2',
     'js/vendor/xlsx.full.min.js',
     'KURULUM-GUVENLIK-KONTROL-LISTESI.md', 'KVKK-AYDINLATMA-SABLONU.md'

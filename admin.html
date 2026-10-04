@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="img/seyir-icon-192.png" type="image/png">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.meb.k12.tr https://*.meb.gov.tr https://*.ytimg.com https://*.youtube.com; font-src 'self' data:; connect-src 'self'; media-src 'self' blob: data: https:; object-src 'none'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'">
     <title>Pano Yönetim Paneli</title>
@@ -340,9 +341,9 @@
                                 <small
                                     style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">
                                     <i class="fa-solid fa-circle-info"></i> Yalnızca resmî MEB okul adresleri kabul
-                                    edilir. Adres değiştirildiğinde haberler bir kez otomatik alınır; bu buton daha
-                                    sonra
-                                    elle yenilemek içindir.
+                                    edilir. Adres değiştirildiğinde ve yönetim paneli açıldığında haberler otomatik
+                                    kontrol edilir; başarılı kontrolden sonra en fazla saatte bir yenilenir. Bu buton
+                                    beklemeden elle yenilemek içindir.
                                 </small>
                             </div>
 
@@ -2157,7 +2158,7 @@
                                         </select>
                                     </div>
                                     <textarea id="txt-toplu-ogretmen" class="form-control" rows="8"
-                                        placeholder="Örnek Format:&#10;Ahmet Yılmaz - Matematik&#10;Ayşe Kaya - Türk Dili ve Edebiyatı&#10;Mehmet Demir - Fizik&#10;Fatma Çelik, Biyoloji&#10;Ali Öztürk"
+                                        placeholder="Örnek Format:&#10;Örnek Öğretmen A - Matematik&#10;Örnek Öğretmen B - Türk Dili ve Edebiyatı&#10;Örnek Öğretmen C - Fizik"
                                         style="font-family: monospace; font-size: 0.88rem; width: 100%; box-sizing: border-box; background: #ffffff;"
                                         oninput="updateTopluOgretmenPreview()"></textarea>
                                 </div>
@@ -3591,12 +3592,13 @@
                                     Tüm okul pano verilerini (ders programı, öğretmenler, sınıflar, nöbetçiler,
                                     sınavlar) tek tıkla yedeklemenizi, Excel şablonlarıyla toplu içeri aktarmanızı ve
                                     <strong>her gün belirlediğiniz saatte otomatik JSON yedeği</strong> alınmasını
-                                    sağlar.</p>
+                                    sağlar. Panel o sırada kapalıysa yedek, sonraki yönetici girişinde telafi edilir.</p>
                                 <p style="margin-bottom: 8px;"><strong>⚙️ Otomatik Yedekleme Özelliği:</strong>
                                     İstediğiniz saati ve hedef konumu (özel klasör veya tarayıcı indirmeleri)
-                                    seçtiğinizde, sistem her gün belirtilen saatte
+                                    seçtiğinizde, sistem admin paneli açıkken belirtilen saatte
                                     <code>seyir-yedek-YIL-AY-GUN_SAAT-DK-SN.json</code> formatında otomatik tarih+saat
-                                    etiketli yedek üretir.</p>
+                                    etiketli yedek üretir. Her otomatik işlem ayrıca cihaz içinde geri yüklenebilir
+                                    bir kopya saklar.</p>
                                 <p style="margin-bottom: 0;"><strong>🚀 Excel İle Toplu Yükleme:</strong> Ders Programı
                                     Excelini yüklediğinizde Sınıf Yönetimi, Öğretmen Yönetimi, Zaman Çizelgesi ve Ders
                                     Yönetimi menüleri kendiliğinden otomatik olarak dolar.</p>
@@ -3690,7 +3692,8 @@
                                     <input type="time" id="inp-auto-backup-time" class="time-picker-input"
                                         value="17:00">
                                     <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-                                        Her gün bu saatte arka planda otomatik tetiklenir.
+                                        Admin paneli açıkken bu saatte çalışır; kapalıyken kaçırılan yedek, sonraki
+                                        girişte otomatik olarak telafi edilir.
                                     </div>
                                 </div>
                                 <div style="margin-top: 14px; display: flex; gap: 8px;">
@@ -5070,7 +5073,7 @@
             <h2 style="margin-top:0; margin-bottom: 15px;">Öğretmen Havuzu</h2>
             <p style="color: var(--text2); margin-bottom: 15px;">Her satıra bir öğretmen adı yazın. Bu isimler
                 sürükle-bırak havuzunda görünecektir.</p>
-            <textarea id="inp-teachers-pool" class="form-control" rows="12" placeholder="Örn: Ahmet Yılmaz"></textarea>
+            <textarea id="inp-teachers-pool" class="form-control" rows="12" placeholder="Örn: Örnek Öğretmen A"></textarea>
             <div style="text-align: right; margin-top: 15px;">
                 <button class="btn-primary" id="btn-save-teachers">Uygula</button>
             </div>
@@ -5528,8 +5531,9 @@
     <script src="js/data-policy.js?v=20261004_a0d8f0b1"></script>
     <script src="js/audio-store.js?v=20261004_2a96b2ca"></script>
     <script src="js/backup.js?v=20261004_de700fb2"></script>
-    <script src="js/local-auth.js?v=20261003_a685c3c2"></script>
-    <script src="js/admin.js?v=20261004_2be4e575"></script>
+    <script src="js/backup-handle-store.js?v=20261004_91354023"></script>
+    <script src="js/local-auth.js?v=20261004_aa39bc11"></script>
+    <script src="js/admin.js?v=20261004_b2d47558"></script>
 </body>
 
 </html>

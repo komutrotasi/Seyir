@@ -191,6 +191,7 @@
     async function clearAll() {
         // Medya silinemediyse başarı bildirilmez; parola ve yapılandırma korunur.
         if (window.SeyirAudioStore) await window.SeyirAudioStore.clearAll();
+        if (window.SeyirBackupHandleStore) await window.SeyirBackupHandleStore.clear();
         if (typeof caches !== 'undefined') {
             const scopePath = new URL('./', window.location.href).pathname;
             const prefix = 'seyir-' + encodeURIComponent(scopePath) + '-';

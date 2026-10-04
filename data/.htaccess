@@ -2,8 +2,7 @@
 #
 # data/*.json dosyaları panonun (index.html) fetch ile okuması için
 # ERİŞİLEBİLİR kalmalıdır. Yalnızca log ve geçici dosyalar dışarıya kapatılır.
-# fetch-haberler.php hata kaydını data/php_errors.log içine yazar; bu dosyanın
-# tarayıcıdan okunabilir olması bilgi sızıntısıdır.
+# Olası log ve geçici dosyaların tarayıcıdan okunması bilgi sızıntısıdır.
 
 # Apache 2.4
 <IfModule mod_authz_core.c>

@@ -131,6 +131,6 @@ Bu proje [MIT Lisansı](LICENSE) altında korunmaktadır.
 
 ## Doğrulama
 
-`node tools/surum-guncelle.js` ile varlık sürümlerini güncelledikten sonra `python3 tools/test-runner.py` çalıştırın. Tarayıcı testleri için Python Playwright ve Chrome/Chromium gerekir. Testler geçici tarayıcı profilleri ve loopback test sunucusu kullanır. Tarihsel bulgular, düzeltme kanıtları ve güncel mimari ayrıntılar birleştirilmiş [tam analiz ve proje raporunda](SEYIR_TAM_ANALIZ_VE_PROJE_RAPORU.md) bulunur.
+`node tools/surum-guncelle.js` ile varlık sürümlerini güncelledikten sonra `python3 tools/test-runner.py` çalıştırın. Tarayıcı testleri için önce `python3 -m pip install -r requirements-dev.txt` komutuyla Python Playwright bağımlılığını kurun; ayrıca Chrome/Chromium gerekir. Testler geçici tarayıcı profilleri ve loopback test sunucusu kullanır. Tarihsel bulgular, düzeltme kanıtları ve güncel mimari ayrıntılar birleştirilmiş [tam analiz ve proje raporunda](SEYIR_TAM_ANALIZ_VE_PROJE_RAPORU.md) bulunur.
 
 API sözleşmeleri: [AlAdhan](https://aladhan.com/prayer-times-api), [Open-Meteo](https://open-meteo.com/en/docs). Projenin mevcut MIT beyanına karşılık gelen metin `LICENSE` dosyasına eklenmiştir; üçüncü taraf font/ikon/kütüphaneler kendi lisanslarına tabidir ([MIT metin kaynağı](https://opensource.org/license/mit)).

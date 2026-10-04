@@ -1,0 +1,2 @@
+# Yalnızca yerel uçtan uca testler içindir; yayın paketine eklenmez.
+playwright==1.55.0
