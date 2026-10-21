@@ -21,7 +21,7 @@
         karuselVideolar: [fields('id tur baslik url mediaId youtubeId sure otomatikGec sesli altyaziKapat dongu aktif dosyaAdi dosyaBoyut')],
         dersProgrami: [schedule], dersProgramiLise: [schedule], dersProgramiOrtaokul: [schedule],
         dersProgramiDetay: { '*': { '*': [lesson] } },
-        nobetciOgretmenler: [true], nobetciGunluk: { '*': [true] }, sinifRehberlik: { '*': true },
+        nobetciOgretmenler: [true], nobetciGunluk: { '*': [true] }, nobetciTarihli: { '*': [true] }, sinifRehberlik: { '*': true },
         tamamlamaAtamalari: { '*': [fields('saat sinif dersAdi nobetci izinli')] },
         zilYonetimi: {
             ...fields('aktif melodiOgrenci melodiOgretmen melodiCikis sesSeviyesi calmaSuresi haftasonuSessiz sesliAnons gorselBildirim nobetciVurgu neonEfekt'),
@@ -130,9 +130,9 @@
             "karuselVideolar": []
 };
     }
-    const stringArrays = new Set('daktiloYazilari fotograflar kayanYazi tumOgretmenler ogretmenler ogretmenBranslar nobetciOgretmenler dersHavuzuLise dersHavuzuOrtaokul sinifListesi bransListesi nobetAlanlari'.split(' '));
+    const stringArrays = new Set('daktiloYazilari fotograflar kayanYazi tumOgretmenler ogretmenler ogretmenBranslar ogretmenKulupleri nobetciOgretmenler dersHavuzuLise dersHavuzuOrtaokul sinifListesi bransListesi nobetAlanlari'.split(' '));
     const recordArrays = new Set('duyurular sinavlar mebHaberler karuselVideolar dersProgrami dersProgramiLise dersProgramiOrtaokul yedekGecmisi'.split(' '));
-    const maps = new Set('ayarlar konum gizlilik dersProgramiDetay sinifDersleri sinifDersOgretmen sinifRehberlik nobetciGunluk tamamlamaAtamalari veriYonetimi otomatikYedek zilYonetimi'.split(' '));
+    const maps = new Set('ayarlar konum gizlilik dersProgramiDetay sinifDersleri sinifDersOgretmen sinifRehberlik nobetciGunluk nobetciTarihli tamamlamaAtamalari veriYonetimi otomatikYedek zilYonetimi'.split(' '));
     const boolKeys = new Set('aktif temaOtomatik tickerDurum haftasonuUyku nobetciGoster rehberOgretmenGoster dersOgretmeniGoster haftasonuSessiz sesliAnons gorselBildirim nobetciVurgu neonEfekt otomatikGec sesli altyaziKapat dongu torenModu'.split(' '));
     const numberKeys = new Set('karuselSuresi daktiloHiz daktiloBekleme boslukDakika saklamaSuresiGun sesSeviyesi calmaSuresi sure dosyaBoyut size'.split(' '));
     const MAX_MEDIA = 128 * 1024 * 1024;
@@ -199,7 +199,12 @@
         for (const v of data.karuselVideolar || []) {
             if (v.youtubeId && !/^[A-Za-z0-9_-]{11}$/.test(v.youtubeId)) throw new Error('Geçersiz YouTube kimliği.');
         }
-        for (const key of ['nobetciGunluk', 'sinifDersleri']) for (const list of Object.values(data[key] || {})) if (!Array.isArray(list) || list.some(v => typeof v !== 'string')) throw new Error(key + ': metin listesi olmalıdır.');
+        for (const key of ['nobetciGunluk', 'nobetciTarihli', 'sinifDersleri']) for (const list of Object.values(data[key] || {})) if (!Array.isArray(list) || list.some(v => typeof v !== 'string')) throw new Error(key + ': metin listesi olmalıdır.');
+        // Tarihli nöbet anahtarları yerel takvim günüdür (YYYY-AA-GG); geçersiz günler reddedilir.
+        for (const day of Object.keys(data.nobetciTarihli || {})) {
+            const parsed = new Date(day + 'T00:00:00Z');
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== day) throw new Error('nobetciTarihli: geçersiz tarih ' + day);
+        }
         for (const value of Object.values(data.sinifRehberlik || {})) if (typeof value !== 'string') throw new Error('Geçersiz rehberlik kaydı.');
         for (const map of Object.values(data.sinifDersOgretmen || {})) if (!object(map) || Object.values(map).some(v => typeof v !== 'string')) throw new Error('Geçersiz ders öğretmeni kaydı.');
         for (const key of ['dersProgrami', 'dersProgramiLise', 'dersProgramiOrtaokul']) for (const row of data[key] || []) {
@@ -232,8 +237,8 @@
         return data;
     }
     function clearPersonnel(data) {
-        for (const key of ['tumOgretmenler', 'ogretmenler', 'ogretmenBranslar', 'nobetciOgretmenler', 'yedekGecmisi']) data[key] = [];
-        for (const key of ['nobetciGunluk', 'sinifRehberlik', 'sinifDersOgretmen', 'tamamlamaAtamalari']) data[key] = {};
+        for (const key of ['tumOgretmenler', 'ogretmenler', 'ogretmenBranslar', 'ogretmenKulupleri', 'nobetciOgretmenler', 'yedekGecmisi']) data[key] = [];
+        for (const key of ['nobetciGunluk', 'nobetciTarihli', 'sinifRehberlik', 'sinifDersOgretmen', 'tamamlamaAtamalari']) data[key] = {};
         if (data.zilYonetimi) data.zilYonetimi.gecmis = [];
         for (const days of Object.values(data.dersProgramiDetay || {})) for (const slots of Object.values(days || {})) {
             for (const row of Object.values(slots || {})) if (object(row)) { delete row.hoca; delete row.ogretmen; }

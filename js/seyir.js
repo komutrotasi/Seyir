@@ -331,11 +331,17 @@ const PanoTV = (function () {
         if (nobetcilerContainer) {
             // Gün hesaplama
             const gunler = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-            const bugunAd = gunler[new Date().getDay()];
+            const bugun = new Date();
+            const bugunAd = gunler[bugun.getDay()];
+            const bugunTarih = [bugun.getFullYear(), String(bugun.getMonth() + 1).padStart(2, '0'), String(bugun.getDate()).padStart(2, '0')].join('-');
+            // Tarihli çizelgede bugün varsa (boş liste dahil, örn. ara tatil) haftalık şablonun önüne geçer.
+            const tarihliNobet = panoData.nobetciTarihli && panoData.nobetciTarihli[bugunTarih];
 
             let gunlukNobetciler = [];
             if (!gizlilik.nobetciGoster) {
                 nobetcilerContainer.innerHTML = '<li class="nobetci-card"><div class="nobetci-info"><span class="isim" style="color:var(--text-muted);">Nöbetçi bilgisi gizlilik ayarıyla kapalı</span></div></li>';
+            } else if (Array.isArray(tarihliNobet)) {
+                gunlukNobetciler = tarihliNobet.filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
             } else if (panoData.nobetciGunluk && panoData.nobetciGunluk[bugunAd] && panoData.nobetciGunluk[bugunAd].length > 0) {
                 gunlukNobetciler = panoData.nobetciGunluk[bugunAd].filter(n => !n.includes("(Diğer)") && !n.includes("(Ders Tamamlama)") && !n.includes("(İzinli)"));
             } else if (panoData.nobetciOgretmenler && Array.isArray(panoData.nobetciOgretmenler)) {
@@ -1355,7 +1361,8 @@ const PanoTV = (function () {
         const h = Math.floor(remainingTotalSeconds / 3600);
         const m = Math.floor((remainingTotalSeconds % 3600) / 60);
         const s = remainingTotalSeconds % 60;
-        const remainingStr = nextVakit === globalNamazTimes[0] && currentMinutes >= parseInt(globalNamazTimes[5].time) * 60 + Number(globalNamazTimes[5].time.split(':')[1]) ? '--:--:--' : `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        // Yatsı sonrasında da sayaç ertesi günün İmsak'ına doğru akar (bugünkü İmsak saati yaklaşık değer olarak kullanılır).
+        const remainingStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
         const view1 = document.getElementById('namaz-card-view1');
         const view2 = document.getElementById('namaz-card-view2');

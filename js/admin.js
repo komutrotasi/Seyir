@@ -478,13 +478,17 @@ function panoIcinAcikVeriOlustur(kaynak, dosyayaAktar = false) {
     if (!gizlilik.nobetciGoster) {
         acik.nobetciOgretmenler = [];
         acik.nobetciGunluk = {};
+        acik.nobetciTarihli = {};
     } else {
         acik.nobetciOgretmenler = (Array.isArray(acik.nobetciOgretmenler) ? acik.nobetciOgretmenler : [])
             .map((kayit, i) => nobetKaydiniBicimle(kayit, mod, i)).filter(Boolean);
-        Object.keys(acik.nobetciGunluk || {}).forEach(gun => {
-            acik.nobetciGunluk[gun] = (Array.isArray(acik.nobetciGunluk[gun]) ? acik.nobetciGunluk[gun] : [])
-                .map((kayit, i) => nobetKaydiniBicimle(kayit, mod, i)).filter(Boolean);
-        });
+        // Haftalık şablon ve tarihli çizelge aynı gizlilik biçimlendirmesinden geçer.
+        for (const alan of ['nobetciGunluk', 'nobetciTarihli']) {
+            Object.keys(acik[alan] || {}).forEach(gun => {
+                acik[alan][gun] = (Array.isArray(acik[alan][gun]) ? acik[alan][gun] : [])
+                    .map((kayit, i) => nobetKaydiniBicimle(kayit, mod, i)).filter(Boolean);
+            });
+        }
     }
 
     if (!gizlilik.rehberOgretmenGoster) {
@@ -2738,6 +2742,8 @@ document.addEventListener('DOMContentLoaded', () => {
         filteredTeachers.forEach(t => {
             const assignment = ogretmenBranslar.find(item => item.startsWith(t + ' :'));
             const currentBrans = assignment ? assignment.split(':')[1].trim() : '';
+            const kulupKaydi = (appData.ogretmenKulupleri || []).find(item => item.startsWith(t + ' :'));
+            const kulup = kulupKaydi ? kulupKaydi.slice(t.length + 2).trim() : '';
 
             // Rehberlik Bul
             let rehberSinif = "-";
@@ -2792,6 +2798,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div>
                             <div style="font-weight: 700; color: var(--text-main); font-size: 0.92rem;">${escapeHtml(t)}</div>
                             ${currentBrans ? `<span style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(currentBrans)}</span>` : '<span style="font-size: 0.75rem; color: #dc2626; font-weight: 600;">⚠️ Branş Yok</span>'}
+                            ${kulup ? `<div style="font-size: 0.72rem; color: #7c3aed; font-weight: 600; margin-top: 2px;">🏅 ${escapeHtml(kulup)}</div>` : ''}
                         </div>
                     </div>
                 </td>
@@ -2898,6 +2905,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (confirm(teacherName + ' isimli öğretmeni silmek istediğinize emin misiniz?')) {
             appData.tumOgretmenler = (appData.tumOgretmenler || []).filter(t => t !== teacherName);
             appData.ogretmenBranslar = (appData.ogretmenBranslar || []).filter(item => !item.startsWith(teacherName + ' :'));
+            appData.ogretmenKulupleri = (appData.ogretmenKulupleri || []).filter(item => !item.startsWith(teacherName + ' :'));
             saveData();
             renderOgretmenTable();
             if (typeof renderDersler === 'function') renderDersler();
@@ -2916,9 +2924,10 @@ document.addEventListener('DOMContentLoaded', () => {
             appData.tumOgretmenler = appData.tumOgretmenler.map(t => t === oldName ? newName : t);
         }
 
-        // 2. ogretmenBranslar
-        if (Array.isArray(appData.ogretmenBranslar)) {
-            appData.ogretmenBranslar = appData.ogretmenBranslar.map(item => {
+        // 2. ogretmenBranslar ve ogretmenKulupleri
+        for (const alan of ['ogretmenBranslar', 'ogretmenKulupleri']) {
+            if (!Array.isArray(appData[alan])) continue;
+            appData[alan] = appData[alan].map(item => {
                 if (item.startsWith(oldName + ' :')) {
                     return item.replace(oldName + ' :', newName + ' :');
                 }
@@ -2935,11 +2944,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 4. nobetciGunluk
-        if (appData.nobetciGunluk && typeof appData.nobetciGunluk === 'object') {
-            for (const [gun, liste] of Object.entries(appData.nobetciGunluk)) {
+        // 4. nobetciGunluk ve tarihli nöbet çizelgesi
+        for (const alan of ['nobetciGunluk', 'nobetciTarihli']) {
+            if (!appData[alan] || typeof appData[alan] !== 'object') continue;
+            for (const [gun, liste] of Object.entries(appData[alan])) {
                 if (Array.isArray(liste)) {
-                    appData.nobetciGunluk[gun] = liste.map(kayit => {
+                    appData[alan][gun] = liste.map(kayit => {
                         if (kayit.startsWith(oldName + ' (')) {
                             return newName + kayit.substring(oldName.length);
                         }
@@ -4329,6 +4339,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // JSON İçe Aktar (Dosya Yükle) Mantığı
     const btnUploadJsonButtons = document.querySelectorAll('.js-upload-json');
     const inpJsonFile = document.getElementById('inp-json-file');
+    // _meta.tur "seyir-kismi-veri" olan dosyalar yalnızca bu alanlardan listelediklerini günceller.
+    const SEYIR_KISMI_ALANLAR = new Set(('tumOgretmenler ogretmenBranslar ogretmenKulupleri bransListesi dersProgrami ' +
+        'dersProgramiLise dersProgramiOrtaokul dersProgramiDetay dersHavuzuLise dersHavuzuOrtaokul sinifListesi ' +
+        'sinifDersleri sinifDersOgretmen sinifRehberlik nobetciGunluk nobetciTarihli nobetciOgretmenler nobetAlanlari').split(' '));
 
     if (btnUploadJsonButtons.length > 0 && inpJsonFile) {
         btnUploadJsonButtons.forEach(button => button.addEventListener('click', () => {
@@ -4353,12 +4367,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 let eskiMedya = null;
                 let medyaIslemi = false;
                 try {
-                    const prepared = await SeyirBackup.prepare(JSON.parse(event.target.result));
-                    const importedData = prepared.data;
+                    const hamVeri = JSON.parse(event.target.result);
+                    const kismiAlanlar = hamVeri && hamVeri._meta && hamVeri._meta.tur === 'seyir-kismi-veri'
+                        ? hamVeri._meta.alanlar : null;
+                    if (kismiAlanlar && (!Array.isArray(kismiAlanlar) || kismiAlanlar.length === 0 ||
+                        kismiAlanlar.some(alan => !SEYIR_KISMI_ALANLAR.has(alan) || !Object.hasOwn(hamVeri, alan)))) {
+                        throw new Error('Kısmi veri dosyasının alan listesi geçersiz.');
+                    }
+                    const prepared = await SeyirBackup.prepare(hamVeri);
+                    let importedData = prepared.data;
                     if (typeof importedData !== 'object' || importedData === null) {
                         throw new Error('Geçersiz JSON formatı.');
                     }
+                    if (kismiAlanlar) {
+                        // Mevcut kayıt korunur; yalnızca dosyanın bildirdiği bölümler değiştirilir.
+                        const birlesik = JSON.parse(JSON.stringify(appData));
+                        kismiAlanlar.forEach(alan => { birlesik[alan] = importedData[alan]; });
+                        importedData = birlesik;
+                    }
+                    const kapsamMetni = kismiAlanlar
+                        ? 'Bu dosya yalnızca şu bölümleri güncelleyecek, diğer verileriniz korunacak:\n• ' +
+                            (hamVeri._meta.aciklama ? String(hamVeri._meta.aciklama) + '\n• ' : '') + kismiAlanlar.join(', ') + '\n\n'
+                        : 'Bu dosya bu cihazdaki tüm Seyir verisinin yerine geçecek.\n\n';
                     if (!confirm(
+                        kapsamMetni +
                         'İçe aktarılan dosya kişisel veri içerebilir ve bu cihazın yerel depolamasına kaydedilecektir. ' +
                         'Dosyanın yetkili bir kaynaktan geldiğini doğruladınız mı?'
                     )) {
