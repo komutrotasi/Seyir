@@ -32,8 +32,8 @@ if (JSON.stringify(veri) !== JSON.stringify(dataPolicy.emptyTemplate())) {
 if (/getOrnekOgretmenVeNobetVerisi/.test(adminJs)) sorunlar.push('Otomatik örnek personel ekleme kaldırılmalı');
 
 const ozelAlanlar = [
-    'tumOgretmenler', 'ogretmenler', 'ogretmenBranslar', 'nobetciOgretmenler',
-    'nobetciGunluk', 'sinifRehberlik', 'sinifDersOgretmen', 'tamamlamaAtamalari'
+    'tumOgretmenler', 'ogretmenler', 'ogretmenBranslar', 'ogretmenKulupleri', 'nobetciOgretmenler',
+    'nobetciGunluk', 'nobetciTarihli', 'sinifRehberlik', 'sinifDersOgretmen', 'tamamlamaAtamalari'
 ];
 
 for (const alan of ozelAlanlar) {

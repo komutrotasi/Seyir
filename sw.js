@@ -1,6 +1,6 @@
 /* Seyir: sürümlü uygulama kabuğu; kapsamı ve boyutu sınırlı çalışma önbelleği. */
 // GENERATED-PRECACHE-START
-const RELEASE = "09585544904ff100";
+const RELEASE = "f34cb86490f7bb60";
 const PRECACHE_ASSETS = [
     "./",
     "./index.html",
@@ -17,15 +17,15 @@ const PRECACHE_ASSETS = [
     "./css/fontawesome.min.css?v=20260930_ded1c367",
     "./css/seyir.css?v=20261004_09b1c70a",
     "./js/sehir-koordinat.js?v=20260930_5f6f637b",
-    "./js/data-policy.js?v=20261004_a0d8f0b1",
+    "./js/data-policy.js?v=20261021_2941bdba",
     "./js/audio-store.js?v=20261004_2a96b2ca",
-    "./js/seyir.js?v=20261004_ccc7111d",
+    "./js/seyir.js?v=20261021_7e56bc76",
     "./css/admin.css?v=20260930_618c0129",
     "./js/vendor/xlsx.full.min.js?v=20260930_6b3130af",
     "./js/backup.js?v=20261004_de700fb2",
     "./js/backup-handle-store.js?v=20261004_91354023",
     "./js/local-auth.js?v=20261004_aa39bc11",
-    "./js/admin.js?v=20261004_b2d47558"
+    "./js/admin.js?v=20261021_921d3c58"
 ];
 // GENERATED-PRECACHE-END
 const PREFIX = 'seyir-' + encodeURIComponent(new URL(self.registration.scope).pathname) + '-';

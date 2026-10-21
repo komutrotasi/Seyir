@@ -96,6 +96,7 @@ yazılmazlar.
 |---|---|---|
 | `tumOgretmenler` | `string[]` | Öğretmen havuzu. Sürükle-bırak nöbet ekranının kaynağıdır. |
 | `ogretmenBranslar` | `string[]` | **`"Ad Soyad : Branş"`** biçiminde düz metin kayıtları. |
+| `ogretmenKulupleri` | `string[]` | **`"Ad Soyad : Kulüp"`** biçiminde eğitici kol (kulüp) kayıtları. Panoya gönderilmez; saklama süresinde temizlenir. |
 | `bransListesi` | `string[]` | Seçilebilir branş adları (admin'de yönetilir). |
 | `sinifListesi` | `string[]` | Sınıf adları (ör. `"9-A"`). |
 | `sinifRehberlik` | `object` | `{ "<sınıf>": "<rehber öğretmen adı>" }`. |
@@ -107,10 +108,25 @@ yazılmazlar.
 | Alan | Tip | Açıklama |
 |---|---|---|
 | `nobetciGunluk` | `object` | `{ "<gün>": ["Ad Soyad (Nöbet Yeri)", …] }`. Gün adları Türkçe (`"Pazartesi"` …). |
+| `nobetciTarihli` | `object` | `{ "YYYY-AA-GG": ["Ad Soyad (Nöbet Yeri)", …] }`. Haftadan haftaya dönen çizelgeler içindir. Bugünün tarihi varsa pano haftalık şablon yerine bu listeyi gösterir; boş liste (ör. ara tatil) "nöbetçi yok" anlamına gelir. |
+| `nobetAlanlari` | `string[]` | Nöbet yerleri (sürükle-bırak ekranındaki alanlar). |
 | `nobetciOgretmenler` | `string[]` | **Eski (legacy)** tek günlük liste. Yeni kayıtlarda `nobetciGunluk` kullanılır. |
 
 Nöbet yeri parantez içinde yazılır. `(Diğer)`, `(İzinli)` ve `(Ders Tamamlama)`
-etiketli kayıtlar **panoda gösterilmez**.
+etiketli kayıtlar **panoda gösterilmez**. Tarihli ve haftalık kayıtlar panoya aynı
+personel adı gizlilik ayarıyla biçimlendirilerek yayınlanır.
+
+### Kısmi içe aktarma
+
+`_meta.tur` değeri `"seyir-kismi-veri"` olan bir JSON, "JSON Yükle" ile yüklendiğinde
+mevcut kaydın yerine geçmez; yalnızca `_meta.alanlar` listesindeki üst düzey alanları
+günceller. İzin verilen alanlar: öğretmen, branş, kulüp, ders saati, sınıf programı,
+ders havuzu, sınıf, rehberlik ve nöbet alanları. Örnek:
+
+```json
+{ "_meta": { "tur": "seyir-kismi-veri", "surum": 1, "alanlar": ["nobetciTarihli", "nobetAlanlari"] },
+  "nobetciTarihli": { "2026-10-19": ["Ad Soyad (Bahçe)"] }, "nobetAlanlari": ["Bahçe"] }
+```
 
 ---
 

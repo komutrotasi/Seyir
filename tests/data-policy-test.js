@@ -29,3 +29,19 @@ assert.throws(() => policy.validate({ ayarlar: { tickerBaslik: null } }), /metin
 assert.throws(() => policy.validate({ karuselVideolar: [{youtubeId:'" onload=alert(1)'}] }), /YouTube/);
 
 assert.equal(policy.validate({zilYonetimi:{customAudioOgrenci:null}}).zilYonetimi.customAudioOgrenci,null);
+
+const tarihli = { '2026-10-19': ['Sentetik Öğretmen (Bahçe)'], '2026-11-16': [] };
+assert.deepEqual(policy.projectPublic({ nobetciTarihli: tarihli }).nobetciTarihli, tarihli);
+assert.deepEqual(policy.validate({ nobetciTarihli: tarihli }).nobetciTarihli, tarihli);
+assert.throws(() => policy.validate({ nobetciTarihli: { '2026-02-30': [] } }), /tarih/);
+assert.throws(() => policy.validate({ nobetciTarihli: { 'Pazartesi': [] } }), /tarih/);
+assert.throws(() => policy.validate({ nobetciTarihli: { '2026-10-19': [42] } }), /geçersiz değer/);
+assert.deepEqual(policy.clearPersonnel({ nobetciTarihli: tarihli }).nobetciTarihli, {});
+console.log('Tarihli nöbet çizelgesi: açık kopya, tarih doğrulaması ve saklama temizliği testleri geçti.');
+
+const kulupler = ['Sentetik Öğretmen : Spor Kulübü'];
+assert.equal('ogretmenKulupleri' in policy.projectPublic({ ogretmenKulupleri: kulupler }), false);
+assert.deepEqual(policy.validate({ ogretmenKulupleri: kulupler }).ogretmenKulupleri, kulupler);
+assert.throws(() => policy.validate({ ogretmenKulupleri: [{ ad: 'x' }] }), /liste/);
+assert.deepEqual(policy.clearPersonnel({ ogretmenKulupleri: kulupler }).ogretmenKulupleri, []);
+console.log('Öğretmen kulüpleri: yalnızca yönetimde kalma, doğrulama ve saklama temizliği testleri geçti.');
